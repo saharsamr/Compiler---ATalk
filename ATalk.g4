@@ -1,12 +1,30 @@
-lexer grammar ATalk;
-
+grammar ATalk;
 
 fragment LOWERCASE: [a-z];
 fragment UPPERCASE: [A-Z];
-fragment DIGITS: [0-9];
+fragment NATURALDIGIT: [1-9];
+fragment ARITHDIGIT: [0-9];
 
+@members{
+    void print(String str){
+        System.out.println(str);
+    }
+}
 
+code: (actor)*
+        {print("code");}
+;
 
-ID:        [a-zA-Z_][a-zA-Z0-9_]*;
+actor: 'actor' ID '<' NATURALNUM '>' '\n' (action_block) 'end' '\n'
+        {print("actor");}
+;
 
-WS:        [ \r\t\n]+ -> skip;
+action_block: (reciever | initialization)*
+        {print("action block");}
+;
+
+reciever :  'receiver' ID '(' (arguments) ')' '\n' (reciever_block) 'end' '\n'
+        {print("reciever block");}
+;
+
+arguments:
