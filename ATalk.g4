@@ -27,4 +27,4 @@ reciever :  'receiver' ID '(' (arguments) ')' '\n' (reciever_block) 'end' '\n'
         {print("reciever block");}
 ;
 
-arguments:
+arguments : (TYPE ID(',' TYPE ID)* );//type int char array
