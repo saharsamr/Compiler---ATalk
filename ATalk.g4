@@ -28,3 +28,12 @@ reciever :  'receiver' ID '(' (arguments) ')' '\n' (reciever_block) 'end' '\n'
 ;
 
 arguments : (TYPE ID(',' TYPE ID)* );//type int char array
+
+if : (IF expr condition_block)
+     (ELSEIF expr condition_block)*
+     (ELSE condition_block)? 'end'
+;
+
+condition_block : ('{' (statement)+ '}') | statement
+      {print("condition block");}
+;
