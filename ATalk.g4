@@ -22,13 +22,11 @@ actor : ACTOR ID '<' NATURALNUM '>' '\n' (actor_block) END '\n'
 
 actor_block : (reciever | initialization)*;
 
-reciever :  RECIEVER ID '(' (arguments)? ')' '\n' (reciever_block) END '\n'
+reciever :  RECIEVER ID '(' (arguments)? ')' '\n' (statement) END '\n'
         {print("reciever");}
 ;
 
-reciever_block : (statement); //inam star nemikhad b nazaram.
-
-statement : ( initialization | operation | function | if_statement | foreach_statement | QUIT )* //TODO
+statement : ( initialization | operation | function | if_statement | foreach_statement | QUIT )*
         {print("statement");}
 ;
 
@@ -56,17 +54,17 @@ type  : (INT | CHAR) ('[' NATURALNUM ']')*  //TODO
 
 operation: (ID '=')? ID (OPERANDS ID)*;
 
-/*expression:
-        {print("expression");}
-;*/
-
-if_statement : (IF expr '\n' statement)  //jaye condition block mishe ino gozasht dg? ba statement k farqi nadare.
-     (ELSEIF expr '\n' statement)*
-     (ELSE '\n' statement)? END '\n'
+if_statement : (IF expr '\n' condition_block)
+     (ELSEIF expr '\n' condition_block)*
+     (ELSE '\n' condition_block)? END '\n'
      {print("if statement");}
 ;
 
-foreach_statement : FOREACH ID IN ID (statement) END; ///star nemikhad dg? hame chi hey mitune tu statement tekrar she.
+condition_block: (statement);
+
+foreach_statement : FOREACH ID IN ID (foreach_statement) END;
+
+foreach_statement: (statement);
 
 /*
 Lexer
