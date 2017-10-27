@@ -12,41 +12,44 @@ fragment ARITHOPERANDS: [+-/*];
     }
 }
 
-code : (actor)*
+code: (actor)*
         {print("code");}
 ;
 
-actor : ACTOR ID '<' NATURALNUM '>' '\n' (actor_block) END '\n'
+actor: ACTOR ID '<' NATURALNUM '>' '\n' (actor_block) END '\n'
         {print("actor");}
 ;
 
 actor_block : (reciever | initialization)*;
 
-reciever :  RECIEVER ID '(' (arguments)? ')' '\n' (statement) END '\n'
+reciever:  RECIEVER ID '(' (defenition_arguments)? ')' '\n' (statement) END '\n'
         {print("reciever");}
 ;
 
-statement : ( initialization | operation | function | if_statement | foreach_statement | QUIT )*
+statement: ( initialization | operation | function_call | if_statement | foreach_statement | send | QUIT )*
         {print("statement");}
 ;
 
-arguments : (type ID (',' type ID)* );
+defenition_arguments: (type ID (',' type ID)* );
+call_arguments: ((ID | STRING | ARITHNUM | operation) (',' (ID | STRING | ARITHNUM | operation)*);
 
-initialization : ( (type ID ('=' rvalue)?) (',' ID ('=' rvalue)?)* ) //TODO
+initialization: ( (type ID ('=' rvalue)?) (',' ID ('=' rvalue)?)* ) //TODO
         {print("initialization variable");}
 ;
 
-function : (read_function) | (write_function) | (ID '(' (arguments)? ')') //aslan mitunim function benevisim? ya un recieveraro seda mizanim?
+function_call: (read_function) | (write_function) | (ID '(' (call_arguments)? ')')
         {print("function call");}
 ;
 
-read_function : READ '(' ARITHNUM ')' '\n'
+read_function: READ '(' ARITHNUM ')' '\n'
         {print("read function");}
 ;
 
-write_function : WRITE '(' ( ID | STRING | operation )')' '\n'
-        {print("write function");} //operation: write (x+y)
+write_function: WRITE '(' ( ID | STRING | operation )')' '\n'
+        {print("write function");}
 ;
+
+send: (SENDER | ID | SELF) SENDOP ID LPAR (call_arguments)? RPAR NEWLINE;
 
 type  : (INT | CHAR) ('[' NATURALNUM ']')*  //TODO
         {print("type");} //inke tedad [] aao baa {} ha moqe tarif e y array hamahang konio nmdunm:|
@@ -65,7 +68,7 @@ help: single_operator_op;
 operands: parantheses (ID | (ID LBRAC operation RBRAC) | ARITHNUM) operands;
 parantheses: LPAR operation RPAR parantheses;
 
-if_statement : (IF (operation | ARITHNUM) '\n' condition_block)
+if_statement: (IF (operation | ARITHNUM) '\n' condition_block)
      (ELSEIF (operation | ARITHNUM) '\n' condition_block)*
      (ELSE '\n' condition_block)? END '\n'
      {print("if statement");}
@@ -73,7 +76,7 @@ if_statement : (IF (operation | ARITHNUM) '\n' condition_block)
 
 condition_block: (statement);
 
-foreach_statement : FOREACH ID IN ID (foreach_statement) END;
+foreach_statement: FOREACH ID IN ID (foreach_statement) END;
 
 foreach_statement: (statement);
 
@@ -126,6 +129,7 @@ DIV: '/';
 LBRAC: '[';
 RBRAC: ']';
 NEWLINE: '\n';
+SENDOP: '<<';
 
 ID: ('_' | LOWERCASE | UPPERCASE)('_' | LOWERCASE | UPPERCASE | ARITHDIGIT)*;
 
