@@ -4,7 +4,7 @@ fragment LOWERCASE: [a-z];
 fragment UPPERCASE: [A-Z];
 fragment NATURALDIGIT: [1-9];
 fragment ARITHDIGIT: [0-9];
-fragment OPERANDS: [+-/*];
+fragment ARITHOPERANDS: [+-/*];
 
 @members{
     void print(String str){
@@ -44,7 +44,7 @@ read_function : READ '(' ARITHNUM ')' '\n'
         {print("read function");}
 ;
 
-write_function : WRITE '(' ( ID | STRING | operation )')' '\n' //TODO operation
+write_function : WRITE '(' ( ID | STRING | operation )')' '\n'
         {print("write function");} //operation: write (x+y)
 ;
 
@@ -52,10 +52,21 @@ type  : (INT | CHAR) ('[' NATURALNUM ']')*  //TODO
         {print("type");} //inke tedad [] aao baa {} ha moqe tarif e y array hamahang konio nmdunm:|
 ;
 
-operation: (ID '=')? ID (OPERANDS ID)*;
+////DEBUG KHIZ
+operation: or_op;
+or_op: and_op OR or_op;
+and_op: equality_op AND and_op;
+equality_op: (comparison_op (EQUAL | NOTEQUAL) equality_op);
+comparison_op: (add_op (GT | LT) comparison_op);
+add_op: (mult_op (ADD | SUB) add_op);
+mult_op: (single_operator_op (MULT | DIV) mult_op);
+single_operator_op: help (NOT | SUB) operands;
+help: single_operator_op;
+operands: parantheses (ID | (ID LBRAC operation RBRAC) | ARITHNUM) operands;
+parantheses: LPAR operation RPAR parantheses;
 
-if_statement : (IF expr '\n' condition_block)
-     (ELSEIF expr '\n' condition_block)*
+if_statement : (IF (operation | ARITHNUM) '\n' condition_block)
+     (ELSEIF (operation | ARITHNUM) '\n' condition_block)*
      (ELSE '\n' condition_block)? END '\n'
      {print("if statement");}
 ;
@@ -98,6 +109,23 @@ QUIT: 'quit';
 
 INT: 'int';
 CHAR: 'char';
+
+EQUAL: '==';
+NOTEQUAL: '<>';
+LT: '<';
+GT: '>';
+OR: 'or';
+AND: 'and';
+NOT: 'not';
+LPAR: '(';
+RPAR: ')';
+ADD: '+';
+SUB: '-';
+MULT: '*';
+DIV: '/';
+LBRAC: '[';
+RBRAC: ']';
+NEWLINE: '\n';
 
 ID: ('_' | LOWERCASE | UPPERCASE)('_' | LOWERCASE | UPPERCASE | ARITHDIGIT)*;
 
