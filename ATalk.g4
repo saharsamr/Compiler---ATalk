@@ -16,13 +16,13 @@ code: (actor)*
         {print("code");}
 ;
 
-actor: ACTOR ID '<' NATURALNUM '>' '\n' (actor_block) END '\n'
+actor: ACTOR ID LT NATURALNUM GT NEWLINE (actor_block) END NEWLINE
         {print("actor");}
 ;
 
 actor_block : (reciever | initialization)*;
 
-reciever:  RECIEVER ID '(' (defenition_arguments)? ')' '\n' (statement) END '\n'
+reciever:  RECIEVER ID LPAR (defenition_arguments)? RPAR NEWLINE (statement) END NEWLINE
         {print("reciever");}
 ;
 
@@ -33,44 +33,49 @@ statement: ( initialization | operation | function_call | if_statement | foreach
 defenition_arguments: (type ID (',' type ID)* );
 call_arguments: ((ID | STRING | ARITHNUM | operation) (',' (ID | STRING | ARITHNUM | operation)*);
 
-initialization: ( (type ID ('=' rvalue)?) (',' ID ('=' rvalue)?)* ) //TODO
+initialization: ( (type ID (ASSIGN rvalue)?) (',' ID (ASSIGN rvalue)?)* ) //TODO
         {print("initialization variable");}
 ;
 
-function_call: (read_function) | (write_function) | (ID '(' (call_arguments)? ')')
+assignment: (ID ASSIGN (operation | ID | STRING | ARITHNUM | assignment))
+
+function_call: (read_function) | (write_function) | (ID LPAR (call_arguments)? RPAR)
         {print("function call");}
 ;
 
-read_function: READ '(' ARITHNUM ')' '\n'
+read_function: READ LPAR ARITHNUM RPAR NEWLINE
         {print("read function");}
 ;
 
-write_function: WRITE '(' ( ID | STRING | operation )')' '\n'
+write_function: WRITE LPAR ( ID | STRING | operation ) RPAR NEWLINE
         {print("write function");}
 ;
 
 send: (SENDER | ID | SELF) SENDOP ID LPAR (call_arguments)? RPAR NEWLINE;
 
-type  : (INT | CHAR) ('[' NATURALNUM ']')*  //TODO
+type  : (INT | CHAR) (LBRAC NATURALNUM RBRAC)*  //TODO
         {print("type");} //inke tedad [] aao baa {} ha moqe tarif e y array hamahang konio nmdunm:|
 ;
 
 ////DEBUG KHIZ
+//TODO: 1- dota opersnd poshte ham bedune amalvand
+/////// 2- kolan debug kon :)))
 operation: or_op;
-or_op: and_op OR or_op;
-and_op: equality_op AND and_op;
-equality_op: (comparison_op (EQUAL | NOTEQUAL) equality_op);
-comparison_op: (add_op (GT | LT) comparison_op);
-add_op: (mult_op (ADD | SUB) add_op);
-mult_op: (single_operator_op (MULT | DIV) mult_op);
-single_operator_op: help (NOT | SUB) operands;
+or_op: (and_op OR or_op) | and_op;
+and_op: (equality_op AND and_op) | equality_op;
+equality_op: (comparison_op (EQUAL | NOTEQUAL) equality_op) | comparison_op;
+comparison_op: ((add_op (GT | LT) comparison_op)) | add_op;
+add_op: (mult_op (ADD | SUB) add_op) | mult_op;
+mult_op: (single_operator_op (MULT | DIV) mult_op) | single_operator_op;
+single_operator_op: ( help (NOT | SUB) operands ) | operands;
 help: single_operator_op;
-operands: parantheses (ID | (ID LBRAC operation RBRAC) | ARITHNUM) operands;
-parantheses: LPAR operation RPAR parantheses;
+operands: (parantheses (ID | (LPAR assignment RPAR) | (ID (LBRAC operation RBRAC)*) | ARITHNUM) operands) | parantheses; //ckeck the assignment part
+parantheses: LPAR operation RPAR parantheses | ;
+//assignment: (ID ASSIGN (operation | ID | STRING | ARITHNUM | assignment))
 
-if_statement: (IF (operation | ARITHNUM) '\n' condition_block)
-     (ELSEIF (operation | ARITHNUM) '\n' condition_block)*
-     (ELSE '\n' condition_block)? END '\n'
+if_statement: (IF (operation | ARITHNUM) NEWLINE condition_block)
+     (ELSEIF (operation | ARITHNUM) NEWLINE condition_block)*
+     (ELSE NEWLINE condition_block)? END NEWLINE
      {print("if statement");}
 ;
 
@@ -126,6 +131,7 @@ ADD: '+';
 SUB: '-';
 MULT: '*';
 DIV: '/';
+ASSIGN:'=';
 LBRAC: '[';
 RBRAC: ']';
 NEWLINE: '\n';
