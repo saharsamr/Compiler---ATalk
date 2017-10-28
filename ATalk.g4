@@ -71,7 +71,7 @@ grammar ATalk;
 	//single_operator_op: ( help (NOT | SUB) operands ) | operands;
 	//help: single_operator_op;
   single_operator_op: (operands (NOT| SUB) single_operator_op) | operands;
-	operands: (((LPAR assignment RPAR) | (ID (LBRAC (operation | ID | STRING | CHARACTER | ARITHNUM | NATURALNUM) RBRAC)*)
+	operands: (((LPAR (assignment | operation) RPAR) | (ID (LBRAC (operation | ID | STRING | CHARACTER | ARITHNUM | NATURALNUM) RBRAC)*)
             | ARITHNUM | STRING | CHARACTER | NATURALNUM | read_function) operands?); //ckeck the assignment part
 	/*parantheses: LPAR operation RPAR parantheses | (ID | NATURALNUM);*/
 
@@ -89,7 +89,7 @@ grammar ATalk;
 
   array_init: '{' (value (',' value)*) '}';
 
-  value: (array_init | ID | STRING | CHARACTER | NATURALNUM | ARITHNUM);
+  value: (array_init | operation | ID | STRING | CHARACTER | NATURALNUM | ARITHNUM);
 	/*
 	Lexer
 	*/
