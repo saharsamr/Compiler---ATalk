@@ -94,6 +94,8 @@ bild_output.txt
 runtime/Cpp/demo/generated
 xcuserdata
 *.jar
+*.java
+*.tokens
 .vscode
 
 # VSCode Java plugin temporary files
