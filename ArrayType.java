@@ -2,14 +2,6 @@ import java.util.*;
 
 public class ArrayType extends Type {
 
-  private int dimension;
-          ArrayList<int> dimsLength;
-
-  public ArrayType (int dimension_, ArrayList<int> dimsLength_){
-    this.dimension = dimension_;
-    this.dimsLength = dimsLength_;
-  }
-
 	public int size() {
 		return Type.WORD_BYTES;
 	}
@@ -27,6 +19,7 @@ public class ArrayType extends Type {
 	}
 
 	private static ArrayType instance;
+
 
 	public static ArrayType getInstance() {
 		if(instance == null)

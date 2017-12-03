@@ -1,4 +1,4 @@
-grammar Atalk;
+grammar ATalk;
 
 @members{
 
@@ -36,24 +36,44 @@ program:
 	;
 
 actor:
+  {beginScope();}
 		'actor' ID '<' CONST_NUM '>' NL
 			(state | receiver | NL)*
 		'end' (NL | EOF)
+  {endScope();}
 	;
 
 state:
-		type ID (',' ID)* NL
+		tp = type name = ID {
+      try{
+        putLocalVar($name.text, $tp.t);
+      }catch(ItemAlreadyExistsException e){
+        print("Item already exist!\n");
+      }
+
+    }
+    (',' name = ID {
+      try{
+        putLocalVar($name.text, $tp.t);
+      }catch(ItemAlreadyExistsException e){
+        print("Item already exist!\n");
+      }
+
+    })* NL
 	;
 
 receiver:
+  {beginScope();}
 		'receiver' ID '(' (type ID (',' type ID)*)? ')' NL
 			statements
 		'end' NL
+  {endScope();}
 	;
 
-type:
-		'char' ('[' CONST_NUM ']')*
-	|	'int' ('[' CONST_NUM ']')*
+type returns [Type t]:
+		  ('char' | 'int') ('[' CONST_NUM ']')+ {$t = new ArrayType();}
+    | 'char' {$t = new CharacterType();}
+    | 'int' {$t = new IntType();}
 	;
 
 block:
