@@ -1,149 +1,231 @@
-grammar ATalk;
+grammar Atalk;
 
 @members{
-  void print(String str){
-    System.out.println(str);
-  }
+
+    void print(String str){
+        System.out.println(str);
+    }
+
+    void putLocalVar(String name, Type type) throws ItemAlreadyExistsException {
+        SymbolTable.top.put(
+            new SymbolTableLocalVariableItem(
+                new Variable(name, type),
+                SymbolTable.top.getOffset(Register.SP)
+            )
+        );
+    }
+
+    void beginScope() {
+    	int offset = 0;
+    	if(SymbolTable.top != null)
+        	offset = SymbolTable.top.getOffset(Register.SP);
+        SymbolTable.push(new SymbolTable());
+        SymbolTable.top.setOffset(Register.SP, offset);
+    }
+
+    void endScope() {
+        print("Stack offset: " + SymbolTable.top.getOffset(Register.SP));
+        SymbolTable.pop();
+    }
 }
 
-fragment LOWERCASE: [a-z];
-fragment UPPERCASE: [A-Z];
-fragment NATURALDIGIT: [1-9];
-fragment ARITHDIGIT: [0-9];
-fragment ARITHOPERANDS: [+-/*];
+program:
+  {beginScope();}
+		(actor | NL)*
+  {endScope();}
+	;
 
-program: ((NEWLINE)|(actor))+;
+actor:
+		'actor' ID '<' CONST_NUM '>' NL
+			(state | receiver | NL)*
+		'end' (NL | EOF)
+	;
 
-actor: ACTOR actor_name=ID {print("ACTOR: " + $actor_name.text);}
-  LT NATURALNUM GT NEWLINE (actor_block) NEWLINE? END (NEWLINE | EOF)
-;
+state:
+		type ID (',' ID)* NL
+	;
 
-actor_block : ((reciever | (initialization_global NEWLINE) | (assignment NEWLINE) | NEWLINE)* );
+receiver:
+		'receiver' ID '(' (type ID (',' type ID)*)? ')' NL
+			statements
+		'end' NL
+	;
 
-reciever: RECEIVER reciever_name=ID {print("RECIEVER: " + $reciever_name.text);}
-  LPAR (defenition_arguments)? RPAR NEWLINE reciever_block END NEWLINE
-;
+type:
+		'char' ('[' CONST_NUM ']')*
+	|	'int' ('[' CONST_NUM ']')*
+	;
 
-reciever_block: (statement | NEWLINE);
+block:
+		'begin' NL
+			statements
+		'end' NL
+	;
 
-statement: ((function_call | assignment | assignment_multi | initialization_local | {print("operation");} operation |  if_statement | foreach_statement |
-              send | begin_end_block | QUIT | BREAK) NEWLINE)*;
+statements:
+		(statement | NL)*
+	;
 
-begin_end_block: BEGIN {print("begin/end block");} NEWLINE (statement | NEWLINE?) END;
+statement:
+		stm_vardef
+	|	stm_assignment
+	|	stm_foreach
+	|	stm_if_elseif_else
+	|	stm_quit
+	|	stm_break
+	|	stm_tell
+	|	stm_write
+	|	block
+	;
 
-defenition_arguments: (type ID (',' type ID)* );
+stm_vardef:
+		type ID ('=' expr)? (',' ID ('=' expr)?)* NL
+	;
 
-call_arguments: ((ID | STRING | CHARACTER | ARITHNUM | operation) (',' (ID | STRING | CHARACTER | ARITHNUM | operation))*);
+stm_tell:
+		(ID | 'sender' | 'self') '<<' ID '(' (expr (',' expr)*)? ')' NL
+	;
 
-initialization_global: type var_name=ID {print("GLOBAL VAR DEC: "+ $var_name.text);} (ASSIGN rvalue)?
-    (',' var_name=ID {print("GLOBAL VAR DEC: "+ $var_name.text);} (ASSIGN rvalue)?)*
-;
+stm_write:
+		'write' '(' expr ')' NL
+	;
 
-initialization_local: type var_name=ID {print("LOCAL VAR DEC: "+ $var_name.text);} (ASSIGN rvalue)?
-    (',' var_name=ID {print("LOCAL VAR DEC: "+ $var_name.text);} (ASSIGN rvalue)?)*
-;
+stm_if_elseif_else:
+		'if' expr NL statements
+		('elseif' expr NL statements)*
+		('else' NL statements)?
+		'end' NL
+	;
 
-rvalue: (ID | STRING | CHARACTER | ARITHNUM | NATURALNUM | assignment |  operation | array_init);
+stm_foreach:
+		'foreach' ID 'in' expr NL
+			statements
+		'end' NL
+	;
 
-assignment: (ID ASSIGN {print("assignment");} (read_function | operation | array_init | ID | STRING | CHARACTER | ARITHNUM | assignment));
+stm_quit:
+		'quit' NL
+	;
 
-assignment_multi: assignment (',' assignment)*;
+stm_break:
+		'break' NL
+	;
 
-function_call: (read_function NEWLINE) | (write_function) |
-  (func_name=ID {print("function call: " + $func_name.text);} LPAR (call_arguments)? RPAR);
+stm_assignment:
+		expr NL
+	;
 
-read_function: READ {print("function call: read");} LPAR (ARITHNUM | NATURALNUM) RPAR;
+expr:
+		expr_assign
+	;
 
-write_function: WRITE  {print("function call: write");} LPAR ( (ID(LBRAC ( operation | ID | ARITHNUM | NATURALNUM) RBRAC)*)
-    | STRING | CHARACTER |  operation ) RPAR;
+expr_assign:
+		expr_or '=' expr_assign
+	|	expr_or
+	;
 
-send: (SENDER | ID | SELF) SENDOP {print("sender");} ID LPAR (call_arguments)? RPAR;
+expr_or:
+		expr_and expr_or_tmp
+	;
 
-type : (INT | CHAR) (LBRAC NATURALNUM RBRAC)*;
+expr_or_tmp:
+		'or' expr_and expr_or_tmp
+	|
+	;
 
-operation: or_op ;
-or_op: and_op | (and_op OR {print("'or' operator");} or_op);
-and_op: (equality_op AND {print("'and' operator");} and_op) | equality_op;
-equality_op: (comparison_op (EQUAL {print("'==' operator");} | NOTEQUAL {print("'<>' operator");}) equality_op) | comparison_op;
-comparison_op: ((add_op (GT {print("'>' operator");} | LT {print("'<' operator");}) comparison_op)) | add_op;
-add_op: (mult_op (ADD {print("'+' operator");} | SUB {print("'-' operator");}) add_op) | mult_op;
-mult_op: (single_operator_op (MULT {print("'*' operator");} | DIV {print("'/' operator");}) mult_op) | single_operator_op;
-single_operator_op: (operands (NOT {print("'not' operator");}| SUB {print("'-' operator");}) single_operator_op) | operands;
-operands: (((LPAR (assignment | operation) RPAR) | (ID (LBRAC (operation | ID | STRING | CHARACTER | ARITHNUM | NATURALNUM) RBRAC)*)
-  | ARITHNUM | STRING | CHARACTER | NATURALNUM | read_function) operands?);
+expr_and:
+		expr_eq expr_and_tmp
+	;
 
-if_statement: (IF {print("if statement");} ( operation | ARITHNUM) NEWLINE condition_block)
-  (ELSEIF ( operation | ARITHNUM) NEWLINE condition_block)*
-  (ELSE NEWLINE condition_block)? END
-;
+expr_and_tmp:
+		'and' expr_eq expr_and_tmp
+	|
+	;
 
-condition_block: (statement);
+expr_eq:
+		expr_cmp expr_eq_tmp
+	;
 
-foreach_statement: FOREACH {print("foreach statement");} ID IN (ID(LBRAC  operation RBRAC)* | array_init) NEWLINE (foreach_block) END;
+expr_eq_tmp:
+		('==' | '<>') expr_cmp expr_eq_tmp
+	|
+	;
 
-foreach_block: (statement);
+expr_cmp:
+		expr_add expr_cmp_tmp
+	;
 
-array_init: '{' (value (',' value)*) '}';
+expr_cmp_tmp:
+		('<' | '>') expr_add expr_cmp_tmp
+	|
+	;
 
-value: (array_init |  operation | read_function | ID | STRING | CHARACTER | NATURALNUM | ARITHNUM);
+expr_add:
+		expr_mult expr_add_tmp
+	;
 
-/*
-Lexer
-*/
+expr_add_tmp:
+		('+' | '-') expr_mult expr_add_tmp
+	|
+	;
 
-CM: ('#' (~[\n])*) -> skip;
+expr_mult:
+		expr_un expr_mult_tmp
+	;
 
-NATURALNUM: NATURALDIGIT ARITHDIGIT*;
-ARITHNUM: ('0' | (NATURALDIGIT ARITHDIGIT*));
+expr_mult_tmp:
+		('*' | '/') expr_un expr_mult_tmp
+	|
+	;
 
-ACTOR: 'actor';
+expr_un:
+		('not' | '-') expr_un
+	|	expr_mem
+	;
 
-RECEIVER: 'receiver';
-SENDER: 'sender';
+expr_mem:
+		expr_other expr_mem_tmp
+	;
 
-SELF: 'self';
+expr_mem_tmp:
+		'[' expr ']' expr_mem_tmp
+	|
+	;
 
-READ: 'read';
-WRITE: 'write';
+expr_other:
+		CONST_NUM
+	|	CONST_CHAR
+	|	CONST_STR
+	|	ID
+	|	'{' expr (',' expr)* '}'
+	|	'read' '(' CONST_NUM ')'
+	|	'(' expr ')'
+	;
 
-IF: 'if';
-ELSEIF: 'elseif';
-ELSE: 'else';
+CONST_NUM:
+		[0-9]+
+	;
 
-FOREACH: 'foreach';
-IN: 'in';
+CONST_CHAR:
+		'\'' . '\''
+	;
 
-BEGIN: 'begin';
-END: 'end';
+CONST_STR:
+		'"' ~('\r' | '\n' | '"')* '"'
+	;
 
-BREAK: 'break';
-QUIT: 'quit';
+NL:
+		'\r'? '\n' { setText("new_line"); }
+	;
 
-INT: 'int';
-CHAR: 'char';
+ID:
+		[a-zA-Z_][a-zA-Z0-9_]*
+	;
 
-EQUAL: '==';
-NOTEQUAL: '<>';
-LT: '<';
-GT: '>';
-OR: 'or';
-AND: 'and';
-NOT: 'not';
-LPAR: '(';
-RPAR: ')';
-ADD: '+';
-SUB: '-';
-MULT: '*';
-DIV: '/';
-ASSIGN:'=';
-LBRAC: '[';
-RBRAC: ']';
-NEWLINE: ('\n')+;
-SENDOP: '<<';
+COMMENT:
+		'#'(~[\r\n])* -> skip
+	;
 
-WS: [ \t\r] -> skip;
-
-ID: ('_' | LOWERCASE | UPPERCASE)('_' | LOWERCASE | UPPERCASE | ARITHDIGIT)*;
-
-STRING: '"' .*? '"';
-CHARACTER: ['] .? ['];
+WS:
+    	[ \t] -> skip
+    ;
