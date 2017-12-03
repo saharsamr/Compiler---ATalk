@@ -46,20 +46,39 @@ grammar ATalk;
         print("Stack offset: " + SymbolTable.top.getOffset(Register.SP) + "\n");
         SymbolTable.pop();
     }
+
+    void putActor(String name, int offset)throws ItemAlreadyExistsException{
+      SymbolTable.top.put(
+          new SymbolTableItemActor(name,
+              SymbolTable.top.getOffset(Register.GP)
+          )
+      );
+    }
+
 }
 
 program:
-  {beginScope();}
-		(actor | NL)*
-  {endScope();}
+  {int actorCount=0;  beginScope();}
+		(actor {actorCount++;} | NL)*
+  {
+    endScope();
+    if(actorCount == 0){
+      print("actor doesnt found!\n");
+      //throws ActorDoesntExistsException;
+    }
+  }
 	;
 
 actor:
-  {beginScope();}
-		'actor' ID '<' CONST_NUM '>' NL
+		'actor' name = ID '<' CONST_NUM '>' NL {
+        try{
+          putActor($name.text, SymbolTable.top.getOffset(Register.GP));
+        }catch(ItemAlreadyExistsException e){
+          print("Actor already exist!\n");
+        }
+      }
 			(state | receiver | NL)*
 		'end' (NL | EOF)
-  {endScope();}
 	;
 
 state:

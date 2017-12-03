@@ -133,6 +133,15 @@ public class ATalkLexer extends Lexer {
 	        SymbolTable.pop();
 	    }
 
+	    void putActor(String name, int offset)throws ItemAlreadyExistsException{
+	      SymbolTable.top.put(
+	          new SymbolTableItemActor(name,
+	              SymbolTable.top.getOffset(Register.GP)
+	          )
+	      );
+	    }
+
+
 
 	public ATalkLexer(CharStream input) {
 		super(input);
