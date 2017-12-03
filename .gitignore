@@ -125,11 +125,11 @@ javac-services.0.log.lck
 hs_err_pid*
 
 run.sh
-ATalkBaseListener.java
-ATalkParser.java
+AtalkBaseListener.java
+AtalkParser.java
 LolListener.java
-ATalkLexer.java
+AtalkLexer.java
 LolBaseListener.java
 LolParser.java
-ATalkListener.java
+AtalkListener.java
 LolLexer.java
