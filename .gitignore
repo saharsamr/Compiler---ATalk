@@ -129,11 +129,11 @@ ATalkBaseListener.java
 AtalkBaseListener.java
 ATalkParser.java
 AtalkParser.java
-LolListener.java
+AtalkListener.java
 ATalkLexer.java
 AtalkLexer.java
-LolBaseListener.java
-LolParser.java
+ATalkBaseListener.java
+ATalkParser.java
 ATalkLexer.java
 AtalkLexer.java
 LolLexer.java

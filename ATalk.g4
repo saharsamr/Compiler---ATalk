@@ -15,6 +15,15 @@ grammar ATalk;
         );
     }
 
+    void putGlobalVar(String name, Type type) throws ItemAlreadyExistsException {
+        SymbolTable.top.put(
+            new SymbolTableLocalVariableItem(
+                new Variable(name, type),
+                SymbolTable.top.getOffset(Register.GP)
+            )
+        );
+    }
+
     void beginScope() {
     	int offset = 0;
     	if(SymbolTable.top != null)
@@ -46,7 +55,7 @@ actor:
 state:
 		tp = type name = ID {
       try{
-        putLocalVar($name.text, $tp.t);
+        putGlobalVar($name.text, $tp.t);
       }catch(ItemAlreadyExistsException e){
         print("Item already exist!\n");
       }
@@ -54,7 +63,7 @@ state:
     }
     (',' name = ID {
       try{
-        putLocalVar($name.text, $tp.t);
+        putGlobalVar($name.text, $tp.t);
       }catch(ItemAlreadyExistsException e){
         print("Item already exist!\n");
       }

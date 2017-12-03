@@ -101,6 +101,15 @@ public class ATalkLexer extends Lexer {
 	        );
 	    }
 
+	    void putGlobalVar(String name, Type type) throws ItemAlreadyExistsException {
+	        SymbolTable.top.put(
+	            new SymbolTableLocalVariableItem(
+	                new Variable(name, type),
+	                SymbolTable.top.getOffset(Register.GP)
+	            )
+	        );
+	    }
+
 	    void beginScope() {
 	    	int offset = 0;
 	    	if(SymbolTable.top != null)
