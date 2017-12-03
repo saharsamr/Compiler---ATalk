@@ -117,11 +117,15 @@ public class ATalkParser extends Parser {
 
 	    void putGlobalVar(String name, Type type) throws ItemAlreadyExistsException {
 	        SymbolTable.top.put(
-	            new SymbolTableLocalVariableItem(
+	            new SymbolTableGlobalVariableItem(
 	                new Variable(name, type),
 	                SymbolTable.top.getOffset(Register.GP)
 	            )
 	        );
+	    }
+
+	    void printGlobalVarData(String name, Type type){
+	      print("Variable Name: "+name+ "\n\tType: " + type + "\n\tGlobal offset:" + SymbolTable.top.getOffset(Register.GP));
 	    }
 
 	    void beginScope() {
@@ -370,6 +374,7 @@ public class ATalkParser extends Parser {
 
 			      try{
 			        putGlobalVar((((StateContext)_localctx).name!=null?((StateContext)_localctx).name.getText():null), ((StateContext)_localctx).tp.t);
+			        printGlobalVarData((((StateContext)_localctx).name!=null?((StateContext)_localctx).name.getText():null), ((StateContext)_localctx).tp.t);
 			      }catch(ItemAlreadyExistsException e){
 			        print("Item already exist!\n");
 			      }
@@ -388,6 +393,7 @@ public class ATalkParser extends Parser {
 
 				      try{
 				        putGlobalVar((((StateContext)_localctx).name!=null?((StateContext)_localctx).name.getText():null), ((StateContext)_localctx).tp.t);
+				        printGlobalVarData((((StateContext)_localctx).name!=null?((StateContext)_localctx).name.getText():null), ((StateContext)_localctx).tp.t);
 				      }catch(ItemAlreadyExistsException e){
 				        print("Item already exist!\n");
 				      }
