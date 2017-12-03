@@ -14,6 +14,11 @@ grammar ATalk;
             )
         );
     }
+    void printLocalVarData(String name, Type type){
+      print("Local variable \n\tName: "+ name + "\n\tType: " + type
+            + "\n\tGlobal offset:" + SymbolTable.top.getOffset(Register.SP)
+            + "\n\tVarible size: " + type.size() + "\n");
+    }
 
     void putGlobalVar(String name, Type type) throws ItemAlreadyExistsException {
         SymbolTable.top.put(
@@ -25,7 +30,8 @@ grammar ATalk;
     }
 
     void printGlobalVarData(String name, Type type){
-      print("Variable Name: "+name+ "\n\tType: " + type + "\n\tGlobal offset:" + SymbolTable.top.getOffset(Register.GP));
+      print("Global variable \n\tname: "+ name + "\n\tType: " + type + "\n\tGlobal offset:" + SymbolTable.top.getOffset(Register.GP)
+            + "\n\tVarible size: " + type.size() + "\n");
     }
 
     void beginScope() {
@@ -37,7 +43,7 @@ grammar ATalk;
     }
 
     void endScope() {
-        print("Stack offset: " + SymbolTable.top.getOffset(Register.SP));
+        print("Stack offset: " + SymbolTable.top.getOffset(Register.SP) + "\n");
         SymbolTable.pop();
     }
 }
@@ -79,7 +85,11 @@ state:
 
 receiver:
   {beginScope();}
-		'receiver' ID '(' (type ID (',' type ID)*)? ')' NL
+		'receiver' {print("Reciever:");}
+          name = ID {print("\tName: " + $name.text);} '('
+          (tp = type {print("\tArguments types:\n\t\t" + $tp.t.toString());} ID
+          (',' tp = type {print("\t\t" + $tp.t.toString());} ID)*)? ')' NL
+          {print("\n");}
 			statements
 		'end' NL
   {endScope();}
@@ -114,7 +124,22 @@ statement:
 	;
 
 stm_vardef:
-		type ID ('=' expr)? (',' ID ('=' expr)?)* NL
+		tp = type name = ID{
+      try{
+        putLocalVar($name.text, $tp.t);
+        printLocalVarData($name.text, $tp.t);
+      }catch(ItemAlreadyExistsException e){
+        print("Item already exist!\n");
+      }
+
+    } ('=' expr)? (',' ID {
+        try{
+          putLocalVar($name.text, $tp.t);
+          printLocalVarData($name.text, $tp.t);
+        }catch(ItemAlreadyExistsException e){
+          print("Item already exist!\n");
+      }
+    }('=' expr)?)* NL
 	;
 
 stm_tell:
