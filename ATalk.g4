@@ -47,34 +47,52 @@ grammar ATalk;
         SymbolTable.pop();
     }
 
-    void putActor(String name, int offset)throws ItemAlreadyExistsException{
-      SymbolTable.top.put(
-          new SymbolTableItemActor(name,
-              SymbolTable.top.getOffset(Register.GP)
-          )
-      );
+    void putActor(String name, int offset)throws ActorAlreadyExistsException{
+      try{
+        SymbolTable.top.put(
+            new SymbolTableItemActor(name,
+                SymbolTable.top.getOffset(Register.GP)
+            )
+        );
+      }catch(ItemAlreadyExistsException e){
+        throw new ActorAlreadyExistsException();
+      }
     }
 
 }
 
 program:
   {int actorCount=0;  beginScope();}
-		(actor {actorCount++;} | NL)*
+		(actor[actorCount] {actorCount++;} | NL)*
   {
     endScope();
     if(actorCount == 0){
-      print("actor doesnt found!\n");
-      //throws ActorDoesntExistsException;
+      print("Error: actor doesnt found!\n");
+      //throw new ActorDoesntExistsException();
     }
   }
 	;
 
-actor:
-		'actor' name = ID '<' CONST_NUM '>' NL {
+actor[int actorCount] returns [int s]:
+		'actor' name = ID '<' size = CONST_NUM '>' NL {
+        if( $size.int <= 0 ){
+          $s = 0;
+          print("Error(" + $size.line + "): size of Actor queue is negative.\n");
+          //throw
+        }
+        $s = $size.int;
+        print("Actor\n\tname: "+ $name.text
+            + "\n\tActor queue size: " + $size.int + "\n");
         try{
           putActor($name.text, SymbolTable.top.getOffset(Register.GP));
-        }catch(ItemAlreadyExistsException e){
-          print("Actor already exist!\n");
+        }catch(ActorAlreadyExistsException e){
+          print("Error: Actor already exist!");
+          String new_name = $name.text + "_temporary_" + actorCount;
+          try{
+            putActor(new_name, SymbolTable.top.getOffset(Register.GP));
+          }catch(ActorAlreadyExistsException ex){
+            print("");
+          }
         }
       }
 			(state | receiver | NL)*
@@ -114,8 +132,13 @@ receiver:
   {endScope();}
 	;
 
-type returns [Type t]:
-		  ('char' | 'int') ('[' CONST_NUM ']')+ {$t = new ArrayType();}
+type returns [Type t]://TODO: int s
+		  ('char' | 'int') ('[' size = CONST_NUM ']' {
+          if ($size.int <= 0){
+            print("Error(" + $size.line + "): size of array is negative.\n");
+            //throws
+          }
+        })+ {$t = new ArrayType();}
     | 'char' {$t = new CharacterType();}
     | 'int' {$t = new IntType();}
 	;
@@ -282,7 +305,7 @@ expr_other:
 	;
 
 CONST_NUM:
-		[0-9]+
+		('-')? [0-9]+
 	;
 
 CONST_CHAR:
