@@ -59,6 +59,14 @@ grammar ATalk;
       }
     }
 
+    void printErrors(int lineNum, String err){
+      print("Error(" + lineNum + "): " + err + "\n");
+    }
+
+    int itemCount = 0;
+    void incRepeadtedItemCount(){
+      itemCount++;
+    }
 }
 
 program:
@@ -77,7 +85,7 @@ actor[int actorCount] returns [int s]:
 		'actor' name = ID '<' size = CONST_NUM '>' NL {
         if( $size.int <= 0 ){
           $s = 0;
-          print("Error(" + $size.line + "): size of Actor queue is negative.\n");
+          printErrors($size.line, "size of Actor queue is negative.");
           //throw
         }
         $s = $size.int;
@@ -105,7 +113,13 @@ state:
         putGlobalVar($name.text, $tp.t);
         printGlobalVarData($name.text, $tp.t);
       }catch(ItemAlreadyExistsException e){
-        print("Item already exist!\n");
+        incRepeadtedItemCount();
+        printErrors($name.line , "Global variable <" + $name.text + "> already exist!");
+        try{
+          putGlobalVar($name.text + "_temporary_" + itemCount , $tp.t);
+        }catch(ItemAlreadyExistsException ex){
+          print("");
+        }
       }
 
     }
@@ -114,9 +128,14 @@ state:
         putGlobalVar($name.text, $tp.t);
         printGlobalVarData($name.text, $tp.t);
       }catch(ItemAlreadyExistsException e){
-        print("Item already exist!\n");
+        incRepeadtedItemCount();
+        printErrors($name.line , "Global variable <" + $name.text + "> already exist!");
+        try{
+          putGlobalVar($name.text + "_temporary_" + itemCount , $tp.t);
+        }catch(ItemAlreadyExistsException ex){
+          print("");
+        }
       }
-
     })* NL
 	;
 
@@ -135,7 +154,7 @@ receiver:
 type returns [Type t]://TODO: int s
 		  ('char' | 'int') ('[' size = CONST_NUM ']' {
           if ($size.int <= 0){
-            print("Error(" + $size.line + "): size of array is negative.\n");
+            printErrors($size.line, "size of array is negative.");
             //throws
           }
         })+ {$t = new ArrayType();}
@@ -171,7 +190,13 @@ stm_vardef:
         putLocalVar($name.text, $tp.t);
         printLocalVarData($name.text, $tp.t);
       }catch(ItemAlreadyExistsException e){
-        print("Item already exist!\n");
+        incRepeadtedItemCount();
+        printErrors($name.line , "Local variable <" + $name.text + "> already exist!");
+        try{
+          putLocalVar($name.text + "_temporary_" + itemCount , $tp.t);
+        }catch(ItemAlreadyExistsException ex){
+          print("");
+        }
       }
 
     } ('=' expr)? (',' ID {
@@ -179,8 +204,13 @@ stm_vardef:
           putLocalVar($name.text, $tp.t);
           printLocalVarData($name.text, $tp.t);
         }catch(ItemAlreadyExistsException e){
-          print("Item already exist!\n");
-      }
+          printErrors($name.line , "Local variable <" + $name.text + "> already exist!");
+          try{
+            putLocalVar($name.text + "_temporary_" + itemCount , $tp.t);
+          }catch(ItemAlreadyExistsException ex){
+            print("");
+          }
+        }
     }('=' expr)?)* NL
 	;
 

@@ -145,6 +145,14 @@ public class ATalkLexer extends Lexer {
 	      }
 	    }
 
+	    void printErrors(int lineNum, String err){
+	      print("Error(" + lineNum + "): " + err + "\n");
+	    }
+
+	    int itemCount = 0;
+	    void incRepeadtedItemCount(){
+	      itemCount++;
+	    }
 
 
 	public ATalkLexer(CharStream input) {
