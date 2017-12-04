@@ -151,15 +151,9 @@ receiver:
   {endScope();}
 	;
 
-type returns [Type t]://TODO: int s
-		  ('char' | 'int') ('[' size = CONST_NUM ']' {
-          if ($size.int <= 0){
-            printErrors($size.line, "size of array is negative.");
-            //throws
-          }
-        })+ {$t = new ArrayType();}
-    | 'char' {$t = new CharacterType();}
-    | 'int' {$t = new IntType();}
+type returns [Type t]:
+		'char'  {$t = new CharacterType();} ('[' size = CONST_NUM ']' {$t = new ArrayType($size.int, $t );})*
+	|	'int' {$t = new IntType();} ('[' size = CONST_NUM ']' {$t = new ArrayType($size.int, $t );})*
 	;
 
 block:
