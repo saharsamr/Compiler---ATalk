@@ -20,6 +20,21 @@ grammar ATalk;
             + "\n\tVarible size: " + type.size() + "\n");
     }
 
+    void addLocalvarItem(String name, Type type, int lineNum){
+      try{
+        putLocalVar(name, type);
+        printLocalVarData(name, type);
+      }catch(ItemAlreadyExistsException e){
+        incRepeadtedItemCount();
+        printErrors(lineNum , "Local variable <" + name + "> already exist!");
+        try{
+          putLocalVar(name + "_temporary_" + itemCount , type);
+        }catch(ItemAlreadyExistsException ex){
+          print("");
+        }
+      }
+    }
+
     void putGlobalVar(String name, Type type) throws ItemAlreadyExistsException {
         SymbolTable.top.put(
             new SymbolTableGlobalVariableItem(
@@ -60,7 +75,8 @@ grammar ATalk;
     }
 
     void printErrors(int lineNum, String err){
-      print("Error(" + lineNum + "): " + err + "\n");
+      if(lineNum >= 0)
+        print("Error(" + lineNum + "): " + err + "\n");
     }
 
     int itemCount = 0;
@@ -75,7 +91,7 @@ program:
   {
     endScope();
     if(actorCount == 0){
-      print("Error: actor doesnt found!\n");
+      printErrors(-1,"actor doesnt found!");
       //throw new ActorDoesntExistsException();
     }
   }
@@ -84,17 +100,15 @@ program:
 actor[int actorCount] returns [int s]:
 		'actor' name = ID '<' size = CONST_NUM '>' NL {
         if( $size.int <= 0 ){
-          $s = 0;
+          $s = 0;//TODO
           printErrors($size.line, "size of Actor queue is negative.");
-          //throw
         }
-        $s = $size.int;
         print("Actor\n\tname: "+ $name.text
             + "\n\tActor queue size: " + $size.int + "\n");
         try{
           putActor($name.text, SymbolTable.top.getOffset(Register.GP));
         }catch(ActorAlreadyExistsException e){
-          print("Error: Actor already exist!");
+          printErrors($name.line,"Actor " + $name.text + " already exist!");
           String new_name = $name.text + "_temporary_" + actorCount;
           try{
             putActor(new_name, SymbolTable.top.getOffset(Register.GP));
@@ -180,31 +194,9 @@ statement:
 
 stm_vardef:
 		tp = type name = ID{
-      try{
-        putLocalVar($name.text, $tp.t);
-        printLocalVarData($name.text, $tp.t);
-      }catch(ItemAlreadyExistsException e){
-        incRepeadtedItemCount();
-        printErrors($name.line , "Local variable <" + $name.text + "> already exist!");
-        try{
-          putLocalVar($name.text + "_temporary_" + itemCount , $tp.t);
-        }catch(ItemAlreadyExistsException ex){
-          print("");
-        }
-      }
-
+      addLocalvarItem($name.text, $tp.t, $name.line);
     } ('=' expr)? (',' ID {
-        try{
-          putLocalVar($name.text, $tp.t);
-          printLocalVarData($name.text, $tp.t);
-        }catch(ItemAlreadyExistsException e){
-          printErrors($name.line , "Local variable <" + $name.text + "> already exist!");
-          try{
-            putLocalVar($name.text + "_temporary_" + itemCount , $tp.t);
-          }catch(ItemAlreadyExistsException ex){
-            print("");
-          }
-        }
+      addLocalvarItem($name.text, $tp.t, $name.line);
     }('=' expr)?)* NL
 	;
 

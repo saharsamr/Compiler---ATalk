@@ -120,6 +120,21 @@ public class ATalkParser extends Parser {
 	            + "\n\tVarible size: " + type.size() + "\n");
 	    }
 
+	    void addLocalvarItem(String name, Type type, int lineNum){
+	      try{
+	        putLocalVar(name, type);
+	        printLocalVarData(name, type);
+	      }catch(ItemAlreadyExistsException e){
+	        incRepeadtedItemCount();
+	        printErrors(lineNum , "Local variable <" + name + "> already exist!");
+	        try{
+	          putLocalVar(name + "_temporary_" + itemCount , type);
+	        }catch(ItemAlreadyExistsException ex){
+	          print("");
+	        }
+	      }
+	    }
+
 	    void putGlobalVar(String name, Type type) throws ItemAlreadyExistsException {
 	        SymbolTable.top.put(
 	            new SymbolTableGlobalVariableItem(
@@ -160,7 +175,8 @@ public class ATalkParser extends Parser {
 	    }
 
 	    void printErrors(int lineNum, String err){
-	      print("Error(" + lineNum + "): " + err + "\n");
+	      if(lineNum >= 0)
+	        print("Error(" + lineNum + "): " + err + "\n");
 	    }
 
 	    int itemCount = 0;
@@ -237,7 +253,7 @@ public class ATalkParser extends Parser {
 
 			    endScope();
 			    if(actorCount == 0){
-			      print("Error: actor doesnt found!\n");
+			      printErrors(-1,"actor doesnt found!");
 			      //throw new ActorDoesntExistsException();
 			    }
 			  
@@ -317,15 +333,13 @@ public class ATalkParser extends Parser {
 			        if( (((ActorContext)_localctx).size!=null?Integer.valueOf(((ActorContext)_localctx).size.getText()):0) <= 0 ){
 			          ((ActorContext)_localctx).s =  0;
 			          printErrors((((ActorContext)_localctx).size!=null?((ActorContext)_localctx).size.getLine():0), "size of Actor queue is negative.");
-			          //throw
 			        }
-			        ((ActorContext)_localctx).s =  (((ActorContext)_localctx).size!=null?Integer.valueOf(((ActorContext)_localctx).size.getText()):0);
 			        print("Actor\n\tname: "+ (((ActorContext)_localctx).name!=null?((ActorContext)_localctx).name.getText():null)
 			            + "\n\tActor queue size: " + (((ActorContext)_localctx).size!=null?Integer.valueOf(((ActorContext)_localctx).size.getText()):0) + "\n");
 			        try{
 			          putActor((((ActorContext)_localctx).name!=null?((ActorContext)_localctx).name.getText():null), SymbolTable.top.getOffset(Register.GP));
 			        }catch(ActorAlreadyExistsException e){
-			          print("Error: Actor already exist!");
+			          printErrors((((ActorContext)_localctx).name!=null?((ActorContext)_localctx).name.getLine():0),"Actor " + (((ActorContext)_localctx).name!=null?((ActorContext)_localctx).name.getText():null) + " already exist!");
 			          String new_name = (((ActorContext)_localctx).name!=null?((ActorContext)_localctx).name.getText():null) + "_temporary_" + actorCount;
 			          try{
 			            putActor(new_name, SymbolTable.top.getOffset(Register.GP));
@@ -1005,19 +1019,7 @@ public class ATalkParser extends Parser {
 			setState(189);
 			((Stm_vardefContext)_localctx).name = match(ID);
 
-			      try{
-			        putLocalVar((((Stm_vardefContext)_localctx).name!=null?((Stm_vardefContext)_localctx).name.getText():null), ((Stm_vardefContext)_localctx).tp.t);
-			        printLocalVarData((((Stm_vardefContext)_localctx).name!=null?((Stm_vardefContext)_localctx).name.getText():null), ((Stm_vardefContext)_localctx).tp.t);
-			      }catch(ItemAlreadyExistsException e){
-			        incRepeadtedItemCount();
-			        printErrors((((Stm_vardefContext)_localctx).name!=null?((Stm_vardefContext)_localctx).name.getLine():0) , "Local variable <" + (((Stm_vardefContext)_localctx).name!=null?((Stm_vardefContext)_localctx).name.getText():null) + "> already exist!");
-			        try{
-			          putLocalVar((((Stm_vardefContext)_localctx).name!=null?((Stm_vardefContext)_localctx).name.getText():null) + "_temporary_" + itemCount , ((Stm_vardefContext)_localctx).tp.t);
-			        }catch(ItemAlreadyExistsException ex){
-			          print("");
-			        }
-			      }
-
+			      addLocalvarItem((((Stm_vardefContext)_localctx).name!=null?((Stm_vardefContext)_localctx).name.getText():null), ((Stm_vardefContext)_localctx).tp.t, (((Stm_vardefContext)_localctx).name!=null?((Stm_vardefContext)_localctx).name.getLine():0));
 			    
 			setState(193);
 			_errHandler.sync(this);
@@ -1042,17 +1044,7 @@ public class ATalkParser extends Parser {
 				setState(196);
 				match(ID);
 
-				        try{
-				          putLocalVar((((Stm_vardefContext)_localctx).name!=null?((Stm_vardefContext)_localctx).name.getText():null), ((Stm_vardefContext)_localctx).tp.t);
-				          printLocalVarData((((Stm_vardefContext)_localctx).name!=null?((Stm_vardefContext)_localctx).name.getText():null), ((Stm_vardefContext)_localctx).tp.t);
-				        }catch(ItemAlreadyExistsException e){
-				          printErrors((((Stm_vardefContext)_localctx).name!=null?((Stm_vardefContext)_localctx).name.getLine():0) , "Local variable <" + (((Stm_vardefContext)_localctx).name!=null?((Stm_vardefContext)_localctx).name.getText():null) + "> already exist!");
-				          try{
-				            putLocalVar((((Stm_vardefContext)_localctx).name!=null?((Stm_vardefContext)_localctx).name.getText():null) + "_temporary_" + itemCount , ((Stm_vardefContext)_localctx).tp.t);
-				          }catch(ItemAlreadyExistsException ex){
-				            print("");
-				          }
-				        }
+				      addLocalvarItem((((Stm_vardefContext)_localctx).name!=null?((Stm_vardefContext)_localctx).name.getText():null), ((Stm_vardefContext)_localctx).tp.t, (((Stm_vardefContext)_localctx).name!=null?((Stm_vardefContext)_localctx).name.getLine():0));
 				    
 				setState(200);
 				_errHandler.sync(this);

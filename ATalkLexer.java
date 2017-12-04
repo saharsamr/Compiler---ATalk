@@ -106,6 +106,21 @@ public class ATalkLexer extends Lexer {
 	            + "\n\tVarible size: " + type.size() + "\n");
 	    }
 
+	    void addLocalvarItem(String name, Type type, int lineNum){
+	      try{
+	        putLocalVar(name, type);
+	        printLocalVarData(name, type);
+	      }catch(ItemAlreadyExistsException e){
+	        incRepeadtedItemCount();
+	        printErrors(lineNum , "Local variable <" + name + "> already exist!");
+	        try{
+	          putLocalVar(name + "_temporary_" + itemCount , type);
+	        }catch(ItemAlreadyExistsException ex){
+	          print("");
+	        }
+	      }
+	    }
+
 	    void putGlobalVar(String name, Type type) throws ItemAlreadyExistsException {
 	        SymbolTable.top.put(
 	            new SymbolTableGlobalVariableItem(
@@ -146,7 +161,8 @@ public class ATalkLexer extends Lexer {
 	    }
 
 	    void printErrors(int lineNum, String err){
-	      print("Error(" + lineNum + "): " + err + "\n");
+	      if(lineNum >= 0)
+	        print("Error(" + lineNum + "): " + err + "\n");
 	    }
 
 	    int itemCount = 0;
