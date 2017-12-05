@@ -95,24 +95,41 @@ public class ATalkLexer extends Lexer {
 	        System.out.println(str);
 	    }
 
-	    void putVar(String name, Type type, Register reg) throws ItemAlreadyExistsException {
+	    void putLocalVar(String name, Type type) throws ItemAlreadyExistsException {
 	        SymbolTable.top.put(
 	            new SymbolTableLocalVariableItem(
 	                new Variable(name, type),
-	                SymbolTable.top.getOffset(reg)
+	                SymbolTable.top.getOffset(Register.SP)
+	            )
+	        );
+	    }
+
+	    void putGlobalVar(String name, Type type) throws ItemAlreadyExistsException {
+	        SymbolTable.top.put(
+	            new SymbolTableGlobalVariableItem(
+	                new Variable(name, type),
+	                SymbolTable.top.getOffset(Register.GP)
 	            )
 	        );
 	    }
 
 	    void addVarItem(String name, Type type, int lineNum, Register reg){
 	      try{
-	        putVar(name, type, reg);
+	        if (reg == Register.SP)
+	          putLocalVar(name, type);
+	        else if (reg == Register.GP)
+	          putGlobalVar(name, type);
 	        printVarData(name, type, reg);
 	      }catch(ItemAlreadyExistsException e){
 	        incRepeadtedItemCount();
 	        printErrors(lineNum , "Variable <" + name + "> already exist!");
 	        try{
-	          putVar(name + "_temporary_" + itemCount , type, reg);
+	          if (reg == Register.SP)
+	            putLocalVar(name + "_temporary_" + itemCount, type);
+	          else if (reg == Register.GP)
+	            putGlobalVar(name + "_temporary_" + itemCount, type);
+
+	          printVarData(name + "_temporary_" + itemCount, type, reg);
 	        }catch(ItemAlreadyExistsException ex){}
 	      }
 	    }
@@ -133,6 +150,26 @@ public class ATalkLexer extends Lexer {
 	    void endScope() {
 	        print("Stack offset: " + SymbolTable.top.getOffset(Register.SP) + "\n");
 	        SymbolTable.pop();
+	    }
+
+	    int actorCount=0;
+	    void addActor(int size, String name, int lineNum){
+	        if( size <= 0 ){
+	          size=0;
+	          printErrors(lineNum, "size of Actor queue is negative.");
+	        }
+	        print("Actor\n\tname: "+ name
+	            + "\n\tActor queue size: " + size + "\n");
+	        try{
+	          putActor(name, SymbolTable.top.getOffset(Register.GP));
+	        }catch(ActorAlreadyExistsException e){
+	          actorCount++;
+	          printErrors(lineNum,"Actor " + name + " already exist!");
+	          String new_name = name + "_temporary_" + actorCount;
+	          try{
+	            putActor(new_name, SymbolTable.top.getOffset(Register.GP));
+	          }catch(ActorAlreadyExistsException ex){}
+	        }
 	    }
 
 	    void putActor(String name, int offset)throws ActorAlreadyExistsException{
@@ -169,6 +206,7 @@ public class ATalkLexer extends Lexer {
 	      arguments += ")";
 	      print("Reciever: " + recName + arguments + "\n");
 	    }
+
 
 
 	public ATalkLexer(CharStream input) {

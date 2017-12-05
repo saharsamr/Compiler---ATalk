@@ -30,7 +30,7 @@ grammar ATalk;
       try{
         if (reg == Register.SP)
           putLocalVar(name, type);
-        elseif (reg == Register.GP)
+        else if (reg == Register.GP)
           putGlobalVar(name, type);
         printVarData(name, type, reg);
       }catch(ItemAlreadyExistsException e){
@@ -39,8 +39,10 @@ grammar ATalk;
         try{
           if (reg == Register.SP)
             putLocalVar(name + "_temporary_" + itemCount, type);
-          elseif (reg == Register.GP)
+          else if (reg == Register.GP)
             putGlobalVar(name + "_temporary_" + itemCount, type);
+
+          printVarData(name + "_temporary_" + itemCount, type, reg);
         }catch(ItemAlreadyExistsException ex){}
       }
     }
@@ -61,6 +63,26 @@ grammar ATalk;
     void endScope() {
         print("Stack offset: " + SymbolTable.top.getOffset(Register.SP) + "\n");
         SymbolTable.pop();
+    }
+
+    int actorCount=0;
+    void addActor(int size, String name, int lineNum){
+        if( size <= 0 ){
+          size=0;
+          printErrors(lineNum, "size of Actor queue is negative.");
+        }
+        print("Actor\n\tname: "+ name
+            + "\n\tActor queue size: " + size + "\n");
+        try{
+          putActor(name, SymbolTable.top.getOffset(Register.GP));
+        }catch(ActorAlreadyExistsException e){
+          actorCount++;
+          printErrors(lineNum,"Actor " + name + " already exist!");
+          String new_name = name + "_temporary_" + actorCount;
+          try{
+            putActor(new_name, SymbolTable.top.getOffset(Register.GP));
+          }catch(ActorAlreadyExistsException ex){}
+        }
     }
 
     void putActor(String name, int offset)throws ActorAlreadyExistsException{
@@ -97,39 +119,21 @@ grammar ATalk;
       arguments += ")";
       print("Reciever: " + recName + arguments + "\n");
     }
+
 }
 
 program:{
-    int actorCount=0;
     beginScope();
   }
-		(actor[actorCount] {actorCount++;} | NL)*
+		(actor{actorCount++;} | NL)*
   {
     endScope();
     if(actorCount == 0)
       printErrors(-1,"actor doesnt found!");
   };
 
-actor[int actorCount] returns [int s]:
-		'actor' name = ID '<' size = CONST_NUM '>' NL {
-        if( $size.int <= 0 ){
-          $s = 0;//TODO
-          printErrors($size.line, "size of Actor queue is negative.");
-        }
-        print("Actor\n\tname: "+ $name.text
-            + "\n\tActor queue size: " + $size.int + "\n");
-        try{
-          putActor($name.text, SymbolTable.top.getOffset(Register.GP));
-        }catch(ActorAlreadyExistsException e){
-          printErrors($name.line,"Actor " + $name.text + " already exist!");
-          String new_name = $name.text + "_temporary_" + actorCount;
-          try{
-            putActor(new_name, SymbolTable.top.getOffset(Register.GP));
-          }catch(ActorAlreadyExistsException ex){
-            print("");
-          }
-        }
-      }
+actor:
+		'actor' name = ID '<' size = CONST_NUM '>' NL {addActor($size.int, $name.text, $name.line);}
 			(state | receiver | NL)*
 		'end' (NL | EOF)
 	;
@@ -151,14 +155,20 @@ receiver:
 	;
 
 type returns [Type t]:
-		'char'  {$t = new CharacterType();} ('[' size = CONST_NUM ']' {$t = new ArrayType($size.int, $t );})*
-	|	'int' {$t = new IntType();} ('[' size = CONST_NUM ']' {$t = new ArrayType($size.int, $t );})*
+		'char'  {$t = new CharacterType();} ('[' size = CONST_NUM ']' {//TODO:
+      if($size.int <= 0)
+        printErrors($size.line, "Array size is negative.");
+      $t = new ArrayType($size.int, $t );})*
+	|	'int' {$t = new IntType();} ('[' size = CONST_NUM ']' {
+    if($size.int <= 0)
+      printErrors($size.line, "Array size is negative.");
+    $t = new ArrayType($size.int, $t );})*
 	;
 
 block:
-		'begin' NL
+		'begin' {beginScope();} NL
 			statements
-		'end' NL
+		'end' {endScope();} NL
 	;
 
 statements:
@@ -181,7 +191,7 @@ stm_vardef:
 		tp = type name = ID{
       addVarItem($name.text, $tp.t, $name.line, Register.SP);}
     ('=' expr)? (',' ID {
-      addVarItem($name.text, $tp.t, $name.line, Register.GP);}
+      addVarItem($name.text, $tp.t, $name.line, Register.SP);}
     ('=' expr)?)* NL
 	;
 
@@ -194,16 +204,16 @@ stm_write:
 	;
 
 stm_if_elseif_else:
-		'if' expr NL statements
-		('elseif' expr NL statements)*
-		('else' NL statements)?
+		'if' {beginScope();} expr NL statements {endScope();}
+		('elseif' {beginScope();} expr NL statements {endScope();})*
+		('else' {beginScope();} NL statements {endScope();})?
 		'end' NL
 	;
 
 stm_foreach:
-		'foreach' ID 'in' expr NL
+		'foreach' {beginScope();} ID 'in' expr NL
 			statements
-		'end' NL
+		'end'{endScope();} NL
 	;
 
 stm_quit:

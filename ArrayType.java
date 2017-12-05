@@ -8,6 +8,8 @@ public class ArrayType extends Type {
 	public ArrayType(int size_, Type t){
 		this.size = size_;
 		this.arrType = t;
+		if (size_ <= 0)
+			this.size=0;
 	}
 
 	public int size() {
@@ -23,15 +25,10 @@ public class ArrayType extends Type {
 
 	@Override
 	public String toString() {
-		return "array";
+			return this.arrType.toString() + "[" + this.size + "]";
 	}
+	// public String toString() {
+  //   return "array(" + size + "," + arrType.toString() + ")";
+  // }
 
-	private static ArrayType instance;
-
-
-	// public static ArrayType getInstance() {
-	// 	if(instance == null)
-	// 		return instance = new ArrayType();
-	// 	return instance;
-	// }
 }
