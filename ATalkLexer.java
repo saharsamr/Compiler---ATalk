@@ -1,4 +1,7 @@
 // Generated from ATalk.g4 by ANTLR 4.7
+
+      import java.util.ArrayList;
+
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Token;
@@ -92,46 +95,30 @@ public class ATalkLexer extends Lexer {
 	        System.out.println(str);
 	    }
 
-	    void putLocalVar(String name, Type type) throws ItemAlreadyExistsException {
+	    void putVar(String name, Type type, Register reg) throws ItemAlreadyExistsException {
 	        SymbolTable.top.put(
 	            new SymbolTableLocalVariableItem(
 	                new Variable(name, type),
-	                SymbolTable.top.getOffset(Register.SP)
+	                SymbolTable.top.getOffset(reg)
 	            )
 	        );
 	    }
-	    void printLocalVarData(String name, Type type){
-	      print("Local variable \n\tName: "+ name + "\n\tType: " + type
-	            + "\n\tGlobal offset:" + SymbolTable.top.getOffset(Register.SP)
-	            + "\n\tVarible size: " + type.size() + "\n");
-	    }
 
-	    void addLocalvarItem(String name, Type type, int lineNum){
+	    void addVarItem(String name, Type type, int lineNum, Register reg){
 	      try{
-	        putLocalVar(name, type);
-	        printLocalVarData(name, type);
+	        putVar(name, type, reg);
+	        printVarData(name, type, reg);
 	      }catch(ItemAlreadyExistsException e){
 	        incRepeadtedItemCount();
-	        printErrors(lineNum , "Local variable <" + name + "> already exist!");
+	        printErrors(lineNum , "Variable <" + name + "> already exist!");
 	        try{
-	          putLocalVar(name + "_temporary_" + itemCount , type);
-	        }catch(ItemAlreadyExistsException ex){
-	          print("");
-	        }
+	          putVar(name + "_temporary_" + itemCount , type, reg);
+	        }catch(ItemAlreadyExistsException ex){}
 	      }
 	    }
 
-	    void putGlobalVar(String name, Type type) throws ItemAlreadyExistsException {
-	        SymbolTable.top.put(
-	            new SymbolTableGlobalVariableItem(
-	                new Variable(name, type),
-	                SymbolTable.top.getOffset(Register.GP)
-	            )
-	        );
-	    }
-
-	    void printGlobalVarData(String name, Type type){
-	      print("Global variable \n\tname: "+ name + "\n\tType: " + type + "\n\tGlobal offset:" + SymbolTable.top.getOffset(Register.GP)
+	    void printVarData(String name, Type type, Register reg){
+	      print("Variable \n\tname: "+ name + "\n\tType: " + type + "\n\tOffset:" + SymbolTable.top.getOffset(reg)
 	            + "\n\tVarible size: " + type.size() + "\n");
 	    }
 
@@ -163,11 +150,24 @@ public class ATalkLexer extends Lexer {
 	    void printErrors(int lineNum, String err){
 	      if(lineNum >= 0)
 	        print("Error(" + lineNum + "): " + err + "\n");
+	      else
+	        print("Error: " + err + "\n");
 	    }
 
 	    int itemCount = 0;
 	    void incRepeadtedItemCount(){
 	      itemCount++;
+	    }
+
+	    void printRecieverData(String recName, ArrayList<String> argumentTypes){
+	      String arguments = "(";
+	      for (int i = 0; i < argumentTypes.size(); i++){
+	        arguments += argumentTypes.get(i);
+	        if (i!=argumentTypes.size()-1)
+	          arguments+=", ";
+	      }
+	      arguments += ")";
+	      print("Reciever: " + recName + arguments + "\n");
 	    }
 
 

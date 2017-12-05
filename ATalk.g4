@@ -1,5 +1,7 @@
 grammar ATalk;
-
+@header{
+      import java.util.ArrayList;
+}
 @members{
 
     void print(String str){
@@ -70,10 +72,13 @@ grammar ATalk;
       itemCount++;
     }
 
-    void printRecieverData(string recName, ArrayList<String> argumentTypes){
-      string arguments = "(";
-      for (int i = 0; i < argumentTypes.length; i++)
-        arguments += argumentTypes[i];
+    void printRecieverData(String recName, ArrayList<String> argumentTypes){
+      String arguments = "(";
+      for (int i = 0; i < argumentTypes.size(); i++){
+        arguments += argumentTypes.get(i);
+        if (i!=argumentTypes.size()-1)
+          arguments+=", ";
+      }
       arguments += ")";
       print("Reciever: " + recName + arguments + "\n");
     }
@@ -122,7 +127,7 @@ state:
   ;
 
 receiver:
-  {beginScope(); ArrayList<String> arguments;}
+  {beginScope(); ArrayList<String> arguments = new ArrayList<String>() ;}
 		'receiver' name = ID '(' (tp = type {arguments.add($tp.t.toString());} ID
           (',' tp = type {arguments.add($tp.t.toString());} ID)*)? ')' NL
 			statements
