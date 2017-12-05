@@ -18,6 +18,8 @@ public abstract class SymbolTableItem {
 
 	public abstract String getKey();
 
+	public abstract int getSize();
+
 	int definitionNumber;
 
 }

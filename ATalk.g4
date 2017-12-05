@@ -3,6 +3,7 @@ grammar ATalk;
       import java.util.ArrayList;
 }
 @members{
+  String codeData = "";
 
     void print(String str){
         System.out.println(str);
@@ -48,8 +49,8 @@ grammar ATalk;
     }
 
     void printVarData(String name, Type type, Register reg){
-      print("Variable \n\tname: "+ name + "\n\tType: " + type + "\n\tOffset:" + SymbolTable.top.getOffset(reg)
-            + "\n\tVarible size: " + type.size() + "\n");
+      codeData += ("Variable \n\tname: "+ name + "\n\tType: " + type + "\n\tOffset:" + (SymbolTable.top.getOffset(reg) - type.size())
+            + "\n\tVarible size: " + type.size() + "\n\n");
     }
 
     void beginScope() {
@@ -61,7 +62,7 @@ grammar ATalk;
     }
 
     void endScope() {
-        print("Stack offset: " + SymbolTable.top.getOffset(Register.SP) + "\n");
+        codeData += ("Stack offset: " + SymbolTable.top.getOffset(Register.SP) + "\n\n");
         SymbolTable.pop();
     }
 
@@ -71,8 +72,8 @@ grammar ATalk;
           size=0;
           printErrors(lineNum, "size of Actor queue is negative.");
         }
-        print("Actor\n\tname: "+ name
-            + "\n\tActor queue size: " + size + "\n");
+        codeData += ("Actor\n\tname: "+ name
+            + "\n\tActor queue size: " + size + "\n\n");
         try{
           putActor(name, SymbolTable.top.getOffset(Register.GP));
         }catch(ActorAlreadyExistsException e){
@@ -97,7 +98,34 @@ grammar ATalk;
       }
     }
 
+    int receiverCount=0;
+
+    void addReceiver(String receiverName,String actorName, int lineNum, ArrayList<String> argumentTypes){
+       printRecieverData(receiverName, argumentTypes);
+       try{
+         putReceiver(receiverName, actorName, argumentTypes);
+       }catch(ReceiverAlreadyExistsException e){
+         receiverCount++;
+         printErrors(lineNum,"Reciever " + receiverName + " already exist!");
+         String new_name = receiverName + "_temporary_" + receiverCount;
+         try{
+           putReceiver(new_name, actorName, argumentTypes);
+         }catch(ReceiverAlreadyExistsException ex){}
+       }
+    }
+
+    void putReceiver(String name,String actorName, ArrayList<String> argumentTypes)throws ReceiverAlreadyExistsException{
+      try{
+        SymbolTable.top.put(
+            new SymbolTableItemReceiver(name,actorName,argumentTypes)
+        );
+      }catch(ItemAlreadyExistsException e){
+        throw new ReceiverAlreadyExistsException();
+      }
+    }
+
     void printErrors(int lineNum, String err){
+      errorOccured ++;
       if(lineNum >= 0)
         print("Error(" + lineNum + "): " + err + "\n");
       else
@@ -117,10 +145,11 @@ grammar ATalk;
           arguments+=", ";
       }
       arguments += ")";
-      print("Reciever: " + recName + arguments + "\n");
+      codeData += ("Reciever: " + recName + arguments + "\n\n.");
     }
 
     int foreachCount = 0;
+    int errorOccured = 0;
 
 }
 
@@ -132,11 +161,13 @@ program:{
     endScope();
     if(actorCount == 0)
       printErrors(-1,"actor doesnt found!");
+    if(errorOccured == 0)
+      print(codeData);
   };
 
 actor:
 		'actor' name = ID '<' size = CONST_NUM '>' NL {addActor($size.int, $name.text, $name.line);}
-			(state | receiver | NL)*
+			(state | receiver[$name.text] | NL)*
 		'end' (NL | EOF)
 	;
 
@@ -147,13 +178,14 @@ state:
       addVarItem($name.text, $tp.t, $name.line, Register.GP);})* NL
   ;
 
-receiver:
+receiver[String actorName]:
   {beginScope(); ArrayList<String> arguments = new ArrayList<String>() ;}
 		'receiver' name = ID '(' (tp = type {arguments.add($tp.t.toString());} ID
           (',' tp = type {arguments.add($tp.t.toString());} ID)*)? ')' NL
+          {addReceiver($name.text,$actorName, $name.line, arguments);}
 			statements
 		'end' NL
-  {endScope(); printRecieverData($name.text, arguments);}
+  {endScope();}
 	;
 
 type returns [Type t]:
@@ -226,6 +258,8 @@ stm_break:
 		ln = 'break' NL {
       if(foreachCount == 0)
         printErrors($ln.line, "break statement is used out of foreach block.");
+      else
+        foreachCount--;
     }
 	;
 

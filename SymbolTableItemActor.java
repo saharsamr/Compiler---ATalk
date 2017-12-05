@@ -17,6 +17,11 @@ public class SymbolTableItemActor extends SymbolTableItem {
     return Register.GP;
   }
 
+	@Override
+	public int getSize(){
+		return 0;
+	}
+
 	int offset;
 	String actorName;
 }
