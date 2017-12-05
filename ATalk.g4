@@ -8,24 +8,39 @@ grammar ATalk;
         System.out.println(str);
     }
 
-    void putVar(String name, Type type, Register reg) throws ItemAlreadyExistsException {
+    void putLocalVar(String name, Type type) throws ItemAlreadyExistsException {
         SymbolTable.top.put(
             new SymbolTableLocalVariableItem(
                 new Variable(name, type),
-                SymbolTable.top.getOffset(reg)
+                SymbolTable.top.getOffset(Register.SP)
+            )
+        );
+    }
+
+    void putGlobalVar(String name, Type type) throws ItemAlreadyExistsException {
+        SymbolTable.top.put(
+            new SymbolTableGlobalVariableItem(
+                new Variable(name, type),
+                SymbolTable.top.getOffset(Register.GP)
             )
         );
     }
 
     void addVarItem(String name, Type type, int lineNum, Register reg){
       try{
-        putVar(name, type, reg);
+        if (reg == Register.SP)
+          putLocalVar(name, type);
+        elseif (reg == Register.GP)
+          putGlobalVar(name, type);
         printVarData(name, type, reg);
       }catch(ItemAlreadyExistsException e){
         incRepeadtedItemCount();
         printErrors(lineNum , "Variable <" + name + "> already exist!");
         try{
-          putVar(name + "_temporary_" + itemCount , type, reg);
+          if (reg == Register.SP)
+            putLocalVar(name + "_temporary_" + itemCount, type);
+          elseif (reg == Register.GP)
+            putGlobalVar(name + "_temporary_" + itemCount, type);
         }catch(ItemAlreadyExistsException ex){}
       }
     }
