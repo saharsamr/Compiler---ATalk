@@ -6,46 +6,30 @@ grammar ATalk;
         System.out.println(str);
     }
 
-    void putLocalVar(String name, Type type) throws ItemAlreadyExistsException {
+    void putVar(String name, Type type, Register reg) throws ItemAlreadyExistsException {
         SymbolTable.top.put(
             new SymbolTableLocalVariableItem(
                 new Variable(name, type),
-                SymbolTable.top.getOffset(Register.SP)
+                SymbolTable.top.getOffset(reg)
             )
         );
     }
-    void printLocalVarData(String name, Type type){
-      print("Local variable \n\tName: "+ name + "\n\tType: " + type
-            + "\n\tGlobal offset:" + SymbolTable.top.getOffset(Register.SP)
-            + "\n\tVarible size: " + type.size() + "\n");
-    }
 
-    void addLocalvarItem(String name, Type type, int lineNum){
+    void addVarItem(String name, Type type, int lineNum, Register reg){
       try{
-        putLocalVar(name, type);
-        printLocalVarData(name, type);
+        putVar(name, type, reg);
+        printVarData(name, type, reg);
       }catch(ItemAlreadyExistsException e){
         incRepeadtedItemCount();
-        printErrors(lineNum , "Local variable <" + name + "> already exist!");
+        printErrors(lineNum , "Variable <" + name + "> already exist!");
         try{
-          putLocalVar(name + "_temporary_" + itemCount , type);
-        }catch(ItemAlreadyExistsException ex){
-          print("");
-        }
+          putVar(name + "_temporary_" + itemCount , type, reg);
+        }catch(ItemAlreadyExistsException ex){}
       }
     }
 
-    void putGlobalVar(String name, Type type) throws ItemAlreadyExistsException {
-        SymbolTable.top.put(
-            new SymbolTableGlobalVariableItem(
-                new Variable(name, type),
-                SymbolTable.top.getOffset(Register.GP)
-            )
-        );
-    }
-
-    void printGlobalVarData(String name, Type type){
-      print("Global variable \n\tname: "+ name + "\n\tType: " + type + "\n\tGlobal offset:" + SymbolTable.top.getOffset(Register.GP)
+    void printVarData(String name, Type type, Register reg){
+      print("Variable \n\tname: "+ name + "\n\tType: " + type + "\n\tOffset:" + SymbolTable.top.getOffset(reg)
             + "\n\tVarible size: " + type.size() + "\n");
     }
 
@@ -77,25 +61,34 @@ grammar ATalk;
     void printErrors(int lineNum, String err){
       if(lineNum >= 0)
         print("Error(" + lineNum + "): " + err + "\n");
+      else
+        print("Error: " + err + "\n");
     }
 
     int itemCount = 0;
     void incRepeadtedItemCount(){
       itemCount++;
     }
+
+    void printRecieverData(string recName, ArrayList<String> argumentTypes){
+      string arguments = "(";
+      for (int i = 0; i < argumentTypes.length; i++)
+        arguments += argumentTypes[i];
+      arguments += ")";
+      print("Reciever: " + recName + arguments + "\n");
+    }
 }
 
-program:
-  {int actorCount=0;  beginScope();}
+program:{
+    int actorCount=0;
+    beginScope();
+  }
 		(actor[actorCount] {actorCount++;} | NL)*
   {
     endScope();
-    if(actorCount == 0){
+    if(actorCount == 0)
       printErrors(-1,"actor doesnt found!");
-      //throw new ActorDoesntExistsException();
-    }
-  }
-	;
+  };
 
 actor[int actorCount] returns [int s]:
 		'actor' name = ID '<' size = CONST_NUM '>' NL {
@@ -123,46 +116,18 @@ actor[int actorCount] returns [int s]:
 
 state:
 		tp = type name = ID {
-      try{
-        putGlobalVar($name.text, $tp.t);
-        printGlobalVarData($name.text, $tp.t);
-      }catch(ItemAlreadyExistsException e){
-        incRepeadtedItemCount();
-        printErrors($name.line , "Global variable <" + $name.text + "> already exist!");
-        try{
-          putGlobalVar($name.text + "_temporary_" + itemCount , $tp.t);
-        }catch(ItemAlreadyExistsException ex){
-          print("");
-        }
-      }
-
-    }
+      addVarItem($name.text, $tp.t, $name.line, Register.GP);}
     (',' name = ID {
-      try{
-        putGlobalVar($name.text, $tp.t);
-        printGlobalVarData($name.text, $tp.t);
-      }catch(ItemAlreadyExistsException e){
-        incRepeadtedItemCount();
-        printErrors($name.line , "Global variable <" + $name.text + "> already exist!");
-        try{
-          putGlobalVar($name.text + "_temporary_" + itemCount , $tp.t);
-        }catch(ItemAlreadyExistsException ex){
-          print("");
-        }
-      }
-    })* NL
-	;
+      addVarItem($name.text, $tp.t, $name.line, Register.GP);})* NL
+  ;
 
 receiver:
-  {beginScope();}
-		'receiver' {print("Reciever:");}
-          name = ID {print("\tName: " + $name.text);} '('
-          (tp = type {print("\tArguments types:\n\t\t" + $tp.t.toString());} ID
-          (',' tp = type {print("\t\t" + $tp.t.toString());} ID)*)? ')' NL
-          {print("\n");}
+  {beginScope(); ArrayList<String> arguments;}
+		'receiver' name = ID '(' (tp = type {arguments.add($tp.t.toString());} ID
+          (',' tp = type {arguments.add($tp.t.toString());} ID)*)? ')' NL
 			statements
 		'end' NL
-  {endScope();}
+  {endScope(); printRecieverData($name.text, arguments);}
 	;
 
 type returns [Type t]:
@@ -194,10 +159,10 @@ statement:
 
 stm_vardef:
 		tp = type name = ID{
-      addLocalvarItem($name.text, $tp.t, $name.line);
-    } ('=' expr)? (',' ID {
-      addLocalvarItem($name.text, $tp.t, $name.line);
-    }('=' expr)?)* NL
+      addVarItem($name.text, $tp.t, $name.line, Register.SP);}
+    ('=' expr)? (',' ID {
+      addVarItem($name.text, $tp.t, $name.line, Register.GP);}
+    ('=' expr)?)* NL
 	;
 
 stm_tell:
