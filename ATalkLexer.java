@@ -207,6 +207,8 @@ public class ATalkLexer extends Lexer {
 	      print("Reciever: " + recName + arguments + "\n");
 	    }
 
+	    int foreachCount = 0;
+
 
 
 	public ATalkLexer(CharStream input) {

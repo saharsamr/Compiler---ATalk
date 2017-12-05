@@ -120,6 +120,8 @@ grammar ATalk;
       print("Reciever: " + recName + arguments + "\n");
     }
 
+    int foreachCount = 0;
+
 }
 
 program:{
@@ -211,9 +213,9 @@ stm_if_elseif_else:
 	;
 
 stm_foreach:
-		'foreach' {beginScope();} ID 'in' expr NL
+		'foreach' {beginScope(); foreachCount++;} ID 'in' expr NL
 			statements
-		'end'{endScope();} NL
+		'end'{endScope(); foreachCount--;} NL
 	;
 
 stm_quit:
@@ -221,7 +223,10 @@ stm_quit:
 	;
 
 stm_break:
-		'break' NL
+		ln = 'break' NL {
+      if(foreachCount == 0)
+        printErrors($ln.line, "break statement is used out of foreach block.");
+    }
 	;
 
 stm_assignment:
