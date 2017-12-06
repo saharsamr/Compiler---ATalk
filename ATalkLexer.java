@@ -92,6 +92,11 @@ public class ATalkLexer extends Lexer {
 
 	  String codeData = "";
 
+	    void addArgumentsVariables(ArrayList<Type> argumentTypes, ArrayList<String> argumentsNames, int lineNum){
+	      for (int i = 0; i < argumentTypes.size(); i++)
+	        addVarItem(argumentsNames.get(i), argumentTypes.get(i), lineNum, Register.SP);
+	    }
+
 	    void print(String str){
 	        System.out.println(str);
 	    }
@@ -187,10 +192,10 @@ public class ATalkLexer extends Lexer {
 
 	    int receiverCount=0;
 
-	    void addReceiver(String receiverName,String actorName, int lineNum, ArrayList<String> argumentTypes){
-	       printRecieverData(receiverName, argumentTypes);
+	    void addReceiver(String receiverName,String actorName, int lineNum, ArrayList<Type> argumentTypes){
 	       try{
 	         putReceiver(receiverName, actorName, argumentTypes);
+	         printRecieverData(receiverName, argumentTypes);
 	       }catch(ReceiverAlreadyExistsException e){
 	         receiverCount++;
 	         printErrors(lineNum,"Reciever " + receiverName + " already exist!");
@@ -201,7 +206,7 @@ public class ATalkLexer extends Lexer {
 	       }
 	    }
 
-	    void putReceiver(String name,String actorName, ArrayList<String> argumentTypes)throws ReceiverAlreadyExistsException{
+	    void putReceiver(String name,String actorName, ArrayList<Type> argumentTypes)throws ReceiverAlreadyExistsException{
 	      try{
 	        SymbolTable.top.put(
 	            new SymbolTableItemReceiver(name,actorName,argumentTypes)
@@ -224,10 +229,10 @@ public class ATalkLexer extends Lexer {
 	      itemCount++;
 	    }
 
-	    void printRecieverData(String recName, ArrayList<String> argumentTypes){
+	    void printRecieverData(String recName, ArrayList<Type> argumentTypes){
 	      String arguments = "(";
 	      for (int i = 0; i < argumentTypes.size(); i++){
-	        arguments += argumentTypes.get(i);
+	        arguments += argumentTypes.get(i).toString();
 	        if (i!=argumentTypes.size()-1)
 	          arguments+=", ";
 	      }

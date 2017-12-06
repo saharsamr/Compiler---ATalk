@@ -2,7 +2,7 @@ import java.util.ArrayList;
 
 public class SymbolTableItemReceiver extends SymbolTableItem {
 
-	public SymbolTableItemReceiver(String recName_,String actorName_, ArrayList<String> argumentTypes_) {
+	public SymbolTableItemReceiver(String recName_,String actorName_, ArrayList<Type> argumentTypes_) {
 		this.receiverName = recName_;
 		this.actorName=actorName_;
 		this.argumentTypes=argumentTypes_;
@@ -13,15 +13,22 @@ public class SymbolTableItemReceiver extends SymbolTableItem {
 		return 0;
 	}
 
+	@Override
 	public String getKey() {
-		return this.receiverName;
+		String key = this.receiverName + " (";
+		for (int i = 0; i < argumentTypes.size(); i++){
+			key += argumentTypes.get(i).toString();
+			if (i != argumentTypes.size() - 1)
+				key += ", ";
+		}
+		return key;
 	}
 
 	public Register getBaseRegister(){
-    return Register.SP;
+    return Register.GP; //in SP bud
   }
 
 	String receiverName;
 	String actorName;
-	ArrayList<String> argumentTypes;
+	ArrayList<Type> argumentTypes;
 }

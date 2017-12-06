@@ -5,6 +5,11 @@ grammar ATalk;
 @members{
   String codeData = "";
 
+    void addArgumentsVariables(ArrayList<Type> argumentTypes, ArrayList<String> argumentsNames, int lineNum){
+      for (int i = 0; i < argumentTypes.size(); i++)
+        addVarItem(argumentsNames.get(i), argumentTypes.get(i), lineNum, Register.SP);
+    }
+
     void print(String str){
         System.out.println(str);
     }
@@ -100,10 +105,10 @@ grammar ATalk;
 
     int receiverCount=0;
 
-    void addReceiver(String receiverName,String actorName, int lineNum, ArrayList<String> argumentTypes){
-       printRecieverData(receiverName, argumentTypes);
+    void addReceiver(String receiverName,String actorName, int lineNum, ArrayList<Type> argumentTypes){
        try{
          putReceiver(receiverName, actorName, argumentTypes);
+         printRecieverData(receiverName, argumentTypes);
        }catch(ReceiverAlreadyExistsException e){
          receiverCount++;
          printErrors(lineNum,"Reciever " + receiverName + " already exist!");
@@ -114,7 +119,7 @@ grammar ATalk;
        }
     }
 
-    void putReceiver(String name,String actorName, ArrayList<String> argumentTypes)throws ReceiverAlreadyExistsException{
+    void putReceiver(String name,String actorName, ArrayList<Type> argumentTypes)throws ReceiverAlreadyExistsException{
       try{
         SymbolTable.top.put(
             new SymbolTableItemReceiver(name,actorName,argumentTypes)
@@ -137,10 +142,10 @@ grammar ATalk;
       itemCount++;
     }
 
-    void printRecieverData(String recName, ArrayList<String> argumentTypes){
+    void printRecieverData(String recName, ArrayList<Type> argumentTypes){
       String arguments = "(";
       for (int i = 0; i < argumentTypes.size(); i++){
-        arguments += argumentTypes.get(i);
+        arguments += argumentTypes.get(i).toString();
         if (i!=argumentTypes.size()-1)
           arguments+=", ";
       }
@@ -166,9 +171,11 @@ program:{
   };
 
 actor:
-		'actor' name = ID '<' size = CONST_NUM '>' NL {addActor($size.int, $name.text, $name.line);}
+
+		'actor' name = ID '<' size = CONST_NUM '>' NL {beginScope();
+      addActor($size.int, $name.text, $name.line);}
 			(state | receiver[$name.text] | NL)*
-		'end' (NL | EOF)
+		{endScope();}'end' (NL | EOF)
 	;
 
 state:
@@ -179,10 +186,16 @@ state:
   ;
 
 receiver[String actorName]:
-  {beginScope(); ArrayList<String> arguments = new ArrayList<String>() ;}
-		'receiver' name = ID '(' (tp = type {arguments.add($tp.t.toString());} ID
-          (',' tp = type {arguments.add($tp.t.toString());} ID)*)? ')' NL
-          {addReceiver($name.text,$actorName, $name.line, arguments);}
+  {ArrayList<Type> argumentsTypes = new ArrayList<Type>();
+   ArrayList<String> argumentsNames = new ArrayList<String>(); }
+		'receiver' name = ID '(' (tp = type {argumentsTypes.add($tp.t);} argName = ID
+                {argumentsNames.add($argName.text);}
+          (',' tp = type {argumentsTypes.add($tp.t);} argName = ID
+                {argumentsNames.add($argName.text);})*)? ')' NL
+          {addReceiver($name.text, $actorName, $name.line, argumentsTypes);
+           beginScope();
+           addArgumentsVariables(argumentsTypes, argumentsNames, $name.line);
+         }
 			statements
 		'end' NL
   {endScope();}
@@ -258,8 +271,6 @@ stm_break:
 		ln = 'break' NL {
       if(foreachCount == 0)
         printErrors($ln.line, "break statement is used out of foreach block.");
-      else
-        foreachCount--;
     }
 	;
 
