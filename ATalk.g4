@@ -1,176 +1,168 @@
 grammar ATalk;
+
 @header{
       import java.util.ArrayList;
 }
+
 @members{
   String codeData = "";
+  int foreachCount = 0;
+  int errorOccured = 0;
+  int actorCount=0;
+  int receiverCount=0;
+  int repeatedVarCount = 0;
 
-    void addArgumentsVariables(ArrayList<Type> argumentTypes, ArrayList<String> argumentsNames, int lineNum){
-      for (int i = 0; i < argumentTypes.size(); i++)
-        addVarItem(argumentsNames.get(i), argumentTypes.get(i), lineNum, Register.SP);
-    }
+  void beginScope() {
+  	int offset = 0;
+  	if(SymbolTable.top != null)
+      	offset = SymbolTable.top.getOffset(Register.SP);
+      SymbolTable.push(new SymbolTable());
+      SymbolTable.top.setOffset(Register.SP, offset);
+  }
 
-    void print(String str){
-        System.out.println(str);
-    }
+  void endScope() {
+      codeData += ("Stack offset: " + SymbolTable.top.getOffset(Register.SP) + "\n\n");
+      SymbolTable.pop();
+  }
 
-    void putLocalVar(String name, Type type) throws ItemAlreadyExistsException {
-        SymbolTable.top.put(
-            new SymbolTableLocalVariableItem(
-                new Variable(name, type),
-                SymbolTable.top.getOffset(Register.SP)
-            )
-        );
-    }
-
-    void putGlobalVar(String name, Type type) throws ItemAlreadyExistsException {
-        SymbolTable.top.put(
-            new SymbolTableGlobalVariableItem(
-                new Variable(name, type),
-                SymbolTable.top.getOffset(Register.GP)
-            )
-        );
-    }
-
-    void addVarItem(String name, Type type, int lineNum, Register reg){
+  void addVarItem(String name, Type type, int lineNum, Register reg){
+    try{
+      if (reg == Register.SP)
+        putLocalVar(name, type);
+      else if (reg == Register.GP)
+        putGlobalVar(name, type);
+      printVarData(name, type, reg);
+    }catch(ItemAlreadyExistsException e){
+      repeatedVarCount++;
+      printErrors(lineNum , "Variable <" + name + "> already exist!");
       try{
         if (reg == Register.SP)
-          putLocalVar(name, type);
+          putLocalVar(name + "_temporary_" + repeatedVarCount, type);
         else if (reg == Register.GP)
-          putGlobalVar(name, type);
-        printVarData(name, type, reg);
-      }catch(ItemAlreadyExistsException e){
-        incRepeadtedItemCount();
-        printErrors(lineNum , "Variable <" + name + "> already exist!");
-        try{
-          if (reg == Register.SP)
-            putLocalVar(name + "_temporary_" + itemCount, type);
-          else if (reg == Register.GP)
-            putGlobalVar(name + "_temporary_" + itemCount, type);
-        }catch(ItemAlreadyExistsException ex){}
-      }
+          putGlobalVar(name + "_temporary_" + repeatedVarCount, type);
+      }catch(ItemAlreadyExistsException ex){}
     }
+  }
 
-    void printVarData(String name, Type type, Register reg){
-      codeData += ("Variable \n\tname: "+ name + "\n\tType: " + type + "\n\tOffset:" + (SymbolTable.top.getOffset(reg) - type.size())
-            + "\n\tVarible size: " + type.size() + "\n\n");
+  void addActor(int size, String name, int lineNum){
+    if( size <= 0 ){
+      size=0;
+      printErrors(lineNum, "size of Actor queue is negative.");
     }
-
-    void beginScope() {
-    	int offset = 0;
-    	if(SymbolTable.top != null)
-        	offset = SymbolTable.top.getOffset(Register.SP);
-        SymbolTable.push(new SymbolTable());
-        SymbolTable.top.setOffset(Register.SP, offset);
-    }
-
-    void endScope() {
-        codeData += ("Stack offset: " + SymbolTable.top.getOffset(Register.SP) + "\n\n");
-        SymbolTable.pop();
-    }
-
-    int actorCount=0;
-    void addActor(int size, String name, int lineNum){
-        if( size <= 0 ){
-          size=0;
-          printErrors(lineNum, "size of Actor queue is negative.");
-        }
-        codeData += ("Actor\n\tname: "+ name
-            + "\n\tActor queue size: " + size + "\n\n");
-        try{
-          putActor(name, SymbolTable.top.getOffset(Register.GP));
-        }catch(ActorAlreadyExistsException e){
-          actorCount++;
-          printErrors(lineNum,"Actor <" + name + "> already exist!");
-          String new_name = name + "_temporary_" + actorCount;
-          try{
-            putActor(new_name, SymbolTable.top.getOffset(Register.GP));
-          }catch(ActorAlreadyExistsException ex){}
-        }
-    }
-
-    void putActor(String name, int offset)throws ActorAlreadyExistsException{
+    codeData += ("Actor\n\tname: "+ name
+        + "\n\tActor queue size: " + size + "\n\n");
+    try{
+      putActor(name, SymbolTable.top.getOffset(Register.GP));
+    }catch(ActorAlreadyExistsException e){
+      actorCount++;
+      printErrors(lineNum,"Actor <" + name + "> already exist!");
+      String new_name = name + "_temporary_" + actorCount;
       try{
-        SymbolTable.top.put(
-            new SymbolTableItemActor(name,
-                SymbolTable.top.getOffset(Register.GP)
-            )
-        );
-      }catch(ItemAlreadyExistsException e){
-        throw new ActorAlreadyExistsException();
-      }
+        putActor(new_name, SymbolTable.top.getOffset(Register.GP));
+      }catch(ActorAlreadyExistsException ex){}
     }
+  }
 
-    int receiverCount=0;
-
-    void addReceiver(String receiverName,String actorName, int lineNum, ArrayList<Type> argumentTypes){
+  void addReceiver(String receiverName,String actorName, int lineNum, ArrayList<Type> argumentTypes){
+     try{
+       putReceiver(receiverName, actorName, argumentTypes);
+       printRecieverData(receiverName, argumentTypes);
+     }catch(ReceiverAlreadyExistsException e){
+       receiverCount++;
+       SymbolTableItemReceiver temp = new SymbolTableItemReceiver(receiverName,actorName,argumentTypes);
+       printErrors(lineNum,"Reciever <" + temp.getKey() + "> already exist!");
+       String new_name = receiverName + "_temporary_" + receiverCount;
        try{
-         putReceiver(receiverName, actorName, argumentTypes);
-         printRecieverData(receiverName, argumentTypes);
-       }catch(ReceiverAlreadyExistsException e){
-         receiverCount++;
-         SymbolTableItemReceiver temp = new SymbolTableItemReceiver(receiverName,actorName,argumentTypes);
-         printErrors(lineNum,"Reciever <" + temp.getKey() + "> already exist!");
-         String new_name = receiverName + "_temporary_" + receiverCount;
-         try{
-           putReceiver(new_name, actorName, argumentTypes);
-         }catch(ReceiverAlreadyExistsException ex){}
-       }
+         putReceiver(new_name, actorName, argumentTypes);
+       }catch(ReceiverAlreadyExistsException ex){}
+     }
+  }
+
+  void putLocalVar(String name, Type type) throws ItemAlreadyExistsException {
+      SymbolTable.top.put(
+          new SymbolTableLocalVariableItem(
+              new Variable(name, type),
+              SymbolTable.top.getOffset(Register.SP)
+          )
+      );
+  }
+
+  void putGlobalVar(String name, Type type) throws ItemAlreadyExistsException {
+      SymbolTable.top.put(
+          new SymbolTableGlobalVariableItem(
+              new Variable(name, type),
+              SymbolTable.top.getOffset(Register.GP)
+          )
+      );
+  }
+
+  void putActor(String name, int offset)throws ActorAlreadyExistsException{
+    try{
+      SymbolTable.top.put(
+          new SymbolTableItemActor(name,
+              SymbolTable.top.getOffset(Register.GP)
+          )
+      );
+    }catch(ItemAlreadyExistsException e){
+      throw new ActorAlreadyExistsException();
     }
+  }
 
-    void putReceiver(String name,String actorName, ArrayList<Type> argumentTypes)throws ReceiverAlreadyExistsException{
-      try{
-        SymbolTable.top.put(
-            new SymbolTableItemReceiver(name,actorName,argumentTypes)
-        );
-      }catch(ItemAlreadyExistsException e){
-        throw new ReceiverAlreadyExistsException();
-      }
+  void putReceiver(String name,String actorName, ArrayList<Type> argumentTypes)throws ReceiverAlreadyExistsException{
+    try{
+      SymbolTable.top.put(
+          new SymbolTableItemReceiver(name,actorName,argumentTypes)
+      );
+    }catch(ItemAlreadyExistsException e){
+      throw new ReceiverAlreadyExistsException();
     }
+  }
 
-    void printErrors(int lineNum, String err){
-      errorOccured ++;
-      if(lineNum >= 0)
-        print("Error(" + lineNum + "): " + err + "\n");
-      else
-        print("Error: " + err + "\n");
+  void addRecieverArguments(ArrayList<Type> argumentTypes, ArrayList<String> argumentsNames, int lineNum){
+    for (int i = 0; i < argumentTypes.size(); i++)
+      addVarItem(argumentsNames.get(i), argumentTypes.get(i), lineNum, Register.SP);
+  }
+
+  void printVarData(String name, Type type, Register reg){
+    codeData += ("Variable \n\tname: "+ name + "\n\tType: " + type + "\n\tOffset:" + (SymbolTable.top.getOffset(reg) - type.size())
+          + "\n\tVarible size: " + type.size() + "\n\n");
+  }
+
+  void printRecieverData(String recName, ArrayList<Type> argumentTypes){
+    String arguments = "(";
+    for (int i = 0; i < argumentTypes.size(); i++){
+      arguments += argumentTypes.get(i).toString();
+      if (i!=argumentTypes.size()-1)
+        arguments+=", ";
     }
+    arguments += ")";
+    codeData += ("Reciever: " + recName + arguments + "\n\n.");
+  }
 
-    int itemCount = 0;
-    void incRepeadtedItemCount(){
-      itemCount++;
-    }
+  void printErrors(int lineNum, String err){
+    errorOccured ++;
+    if(lineNum >= 0)
+      print("Error(" + lineNum + "): " + err + "\n");
+    else
+      print("Error: " + err + "\n");
+  }
 
-    void printRecieverData(String recName, ArrayList<Type> argumentTypes){
-      String arguments = "(";
-      for (int i = 0; i < argumentTypes.size(); i++){
-        arguments += argumentTypes.get(i).toString();
-        if (i!=argumentTypes.size()-1)
-          arguments+=", ";
-      }
-      arguments += ")";
-      codeData += ("Reciever: " + recName + arguments + "\n\n.");
-    }
-
-    int foreachCount = 0;
-    int errorOccured = 0;
-
+  void print(String str){
+      System.out.println(str);
+  }
 }
 
-program:{
-    beginScope();
-  }
-		(actor{actorCount++;} | NL)*
-  {
-    endScope();
-    if(actorCount == 0)
-      printErrors(-1,"actor doesnt found!");
-    if(errorOccured == 0)
-      print(codeData);
+
+program:{beginScope();}
+		(actor{actorCount++;} | NL)*{
+      endScope();
+      if(actorCount == 0)
+        printErrors(-1,"actor doesnt found!");
+      if(errorOccured == 0)
+        print(codeData);
   };
 
 actor:
-
 		'actor' name = ID '<' size = CONST_NUM '>' NL {
       addActor($size.int, $name.text, $name.line);  beginScope();}
 			(state | receiver[$name.text] | NL)*
@@ -193,7 +185,7 @@ receiver[String actorName]:
                 {argumentsNames.add($argName.text);})*)? ')' NL
           {addReceiver($name.text, $actorName, $name.line, argumentsTypes);
            beginScope();
-           addArgumentsVariables(argumentsTypes, argumentsNames, $name.line);
+           addRecieverArguments(argumentsTypes, argumentsNames, $name.line);
          }
 			statements
 		'end' NL
@@ -269,7 +261,7 @@ stm_quit:
 stm_break:
 		ln = 'break' NL {
       if(foreachCount == 0)
-        printErrors($ln.line, "break statement is used out of foreach block.");
+        printErrors($ln.line, "<break> statement is used out of foreach block.");
     }
 	;
 
