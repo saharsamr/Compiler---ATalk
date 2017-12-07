@@ -47,8 +47,6 @@ grammar ATalk;
             putLocalVar(name + "_temporary_" + itemCount, type);
           else if (reg == Register.GP)
             putGlobalVar(name + "_temporary_" + itemCount, type);
-
-          printVarData(name + "_temporary_" + itemCount, type, reg);
         }catch(ItemAlreadyExistsException ex){}
       }
     }
@@ -83,7 +81,7 @@ grammar ATalk;
           putActor(name, SymbolTable.top.getOffset(Register.GP));
         }catch(ActorAlreadyExistsException e){
           actorCount++;
-          printErrors(lineNum,"Actor " + name + " already exist!");
+          printErrors(lineNum,"Actor <" + name + "> already exist!");
           String new_name = name + "_temporary_" + actorCount;
           try{
             putActor(new_name, SymbolTable.top.getOffset(Register.GP));
@@ -111,7 +109,8 @@ grammar ATalk;
          printRecieverData(receiverName, argumentTypes);
        }catch(ReceiverAlreadyExistsException e){
          receiverCount++;
-         printErrors(lineNum,"Reciever " + receiverName + " already exist!");
+         SymbolTableItemReceiver temp = new SymbolTableItemReceiver(receiverName,actorName,argumentTypes);
+         printErrors(lineNum,"Reciever <" + temp.getKey() + "> already exist!");
          String new_name = receiverName + "_temporary_" + receiverCount;
          try{
            putReceiver(new_name, actorName, argumentTypes);
@@ -172,8 +171,8 @@ program:{
 
 actor:
 
-		'actor' name = ID '<' size = CONST_NUM '>' NL {beginScope();
-      addActor($size.int, $name.text, $name.line);}
+		'actor' name = ID '<' size = CONST_NUM '>' NL {
+      addActor($size.int, $name.text, $name.line);  beginScope();}
 			(state | receiver[$name.text] | NL)*
 		{endScope();}'end' (NL | EOF)
 	;
@@ -237,7 +236,7 @@ statement:
 stm_vardef:
 		tp = type name = ID{
       addVarItem($name.text, $tp.t, $name.line, Register.SP);}
-    ('=' expr)? (',' ID {
+    ('=' expr)? (',' name = ID {
       addVarItem($name.text, $tp.t, $name.line, Register.SP);}
     ('=' expr)?)* NL
 	;

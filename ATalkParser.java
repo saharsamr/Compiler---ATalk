@@ -148,8 +148,6 @@ public class ATalkParser extends Parser {
 	            putLocalVar(name + "_temporary_" + itemCount, type);
 	          else if (reg == Register.GP)
 	            putGlobalVar(name + "_temporary_" + itemCount, type);
-
-	          printVarData(name + "_temporary_" + itemCount, type, reg);
 	        }catch(ItemAlreadyExistsException ex){}
 	      }
 	    }
@@ -184,7 +182,7 @@ public class ATalkParser extends Parser {
 	          putActor(name, SymbolTable.top.getOffset(Register.GP));
 	        }catch(ActorAlreadyExistsException e){
 	          actorCount++;
-	          printErrors(lineNum,"Actor " + name + " already exist!");
+	          printErrors(lineNum,"Actor <" + name + "> already exist!");
 	          String new_name = name + "_temporary_" + actorCount;
 	          try{
 	            putActor(new_name, SymbolTable.top.getOffset(Register.GP));
@@ -212,7 +210,8 @@ public class ATalkParser extends Parser {
 	         printRecieverData(receiverName, argumentTypes);
 	       }catch(ReceiverAlreadyExistsException e){
 	         receiverCount++;
-	         printErrors(lineNum,"Reciever " + receiverName + " already exist!");
+	         SymbolTableItemReceiver temp = new SymbolTableItemReceiver(receiverName,actorName,argumentTypes);
+	         printErrors(lineNum,"Reciever <" + temp.getKey() + "> already exist!");
 	         String new_name = receiverName + "_temporary_" + receiverCount;
 	         try{
 	           putReceiver(new_name, actorName, argumentTypes);
@@ -401,8 +400,8 @@ public class ATalkParser extends Parser {
 			match(T__2);
 			setState(85);
 			match(NL);
-			beginScope();
-			      addActor((((ActorContext)_localctx).size!=null?Integer.valueOf(((ActorContext)_localctx).size.getText()):0), (((ActorContext)_localctx).name!=null?((ActorContext)_localctx).name.getText():null), (((ActorContext)_localctx).name!=null?((ActorContext)_localctx).name.getLine():0));
+
+			      addActor((((ActorContext)_localctx).size!=null?Integer.valueOf(((ActorContext)_localctx).size.getText()):0), (((ActorContext)_localctx).name!=null?((ActorContext)_localctx).name.getText():null), (((ActorContext)_localctx).name!=null?((ActorContext)_localctx).name.getLine():0));  beginScope();
 			setState(92);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
@@ -1088,7 +1087,7 @@ public class ATalkParser extends Parser {
 				setState(198);
 				match(T__4);
 				setState(199);
-				match(ID);
+				((Stm_vardefContext)_localctx).name = match(ID);
 
 				      addVarItem((((Stm_vardefContext)_localctx).name!=null?((Stm_vardefContext)_localctx).name.getText():null), ((Stm_vardefContext)_localctx).tp.t, (((Stm_vardefContext)_localctx).name!=null?((Stm_vardefContext)_localctx).name.getLine():0), Register.SP);
 				setState(203);

@@ -1,7 +1,7 @@
 public class CharacterType extends Type {
 
 	public int size() {
-		return Type.WORD_BYTES;
+		return Type.WORD_BYTES/4;
 	}
 
 	@Override

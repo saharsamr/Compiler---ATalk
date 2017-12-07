@@ -21,7 +21,7 @@ public class SymbolTableItemReceiver extends SymbolTableItem {
 			if (i != argumentTypes.size() - 1)
 				key += ", ";
 		}
-		return key;
+		return key + ")";
 	}
 
 	public Register getBaseRegister(){

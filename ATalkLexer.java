@@ -134,8 +134,6 @@ public class ATalkLexer extends Lexer {
 	            putLocalVar(name + "_temporary_" + itemCount, type);
 	          else if (reg == Register.GP)
 	            putGlobalVar(name + "_temporary_" + itemCount, type);
-
-	          printVarData(name + "_temporary_" + itemCount, type, reg);
 	        }catch(ItemAlreadyExistsException ex){}
 	      }
 	    }
@@ -170,7 +168,7 @@ public class ATalkLexer extends Lexer {
 	          putActor(name, SymbolTable.top.getOffset(Register.GP));
 	        }catch(ActorAlreadyExistsException e){
 	          actorCount++;
-	          printErrors(lineNum,"Actor " + name + " already exist!");
+	          printErrors(lineNum,"Actor <" + name + "> already exist!");
 	          String new_name = name + "_temporary_" + actorCount;
 	          try{
 	            putActor(new_name, SymbolTable.top.getOffset(Register.GP));
@@ -198,7 +196,8 @@ public class ATalkLexer extends Lexer {
 	         printRecieverData(receiverName, argumentTypes);
 	       }catch(ReceiverAlreadyExistsException e){
 	         receiverCount++;
-	         printErrors(lineNum,"Reciever " + receiverName + " already exist!");
+	         SymbolTableItemReceiver temp = new SymbolTableItemReceiver(receiverName,actorName,argumentTypes);
+	         printErrors(lineNum,"Reciever <" + temp.getKey() + "> already exist!");
 	         String new_name = receiverName + "_temporary_" + receiverCount;
 	         try{
 	           putReceiver(new_name, actorName, argumentTypes);
