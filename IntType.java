@@ -1,5 +1,5 @@
 public class IntType extends Type {
-	
+
 	public int size() {
 		return Type.WORD_BYTES;
 	}
@@ -22,5 +22,12 @@ public class IntType extends Type {
 		if(instance == null)
 			return instance = new IntType();
 		return instance;
+	}
+
+	@Override
+	public Type dimensionAccess(int n)throws UndefinedDemensionsException{
+		if(n == 0)
+			reurn this;
+		throw new UndefinedDemensionsException();
 	}
 }

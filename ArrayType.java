@@ -31,4 +31,11 @@ public class ArrayType extends Type {
   //   return "array(" + size + "," + arrType.toString() + ")";
   // }
 
+	@Override
+	public Type dimensionAccess(int n)throws UndefinedDemensionsException{
+		if(n == 0)
+			return this;
+		return arrType.dimensionAccess(n-1);
+	}
+
 }

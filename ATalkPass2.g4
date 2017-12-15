@@ -111,7 +111,7 @@ stm_assignment:
 		expr NL
 	;
 
-expr:
+expr returns [Type t]:
 		expr_assign
 	;
 
@@ -160,38 +160,77 @@ expr_add:
 		expr_mult expr_add_tmp
 	;
 
-expr_add_tmp:
-		('+' | '-') expr_mult expr_add_tmp
-	|
+expr_add_tmp returns [Type t]:
+		('+' | '-') tp = expr_mult{
+      if(!$tp.t.equals(new IntType())){
+        $t = new NoType();
+        print("invalid use of + operations.");
+        //throw
+      }
+      else
+        $t = $tp.t;
+    }
+    expr_add_tmp
+	| {$t = new NoType();}
 	;
 
-expr_mult:
-		expr_un expr_mult_tmp
+expr_mult returns [Type t]:
+		tp1 = expr_un tp2 = expr_mult_tmp{
+      if((!$tp1.t.equals(new IntType) && !$tp2.t.equals(new NoType))){
+        $t = new NoType();
+        //
+        print("......");
+      }
+      else
+        $t = $tp1.t;
+    }
 	;
 
-expr_mult_tmp:
-		('*' | '/') expr_un expr_mult_tmp
-	|
+expr_mult_tmp returns [Type t]:
+		('*' | '/') tp = expr_un {
+      if(!$tp.t.equals(new IntType())){
+        $t = new NoType();
+        print("invalid use of mult operations.");
+        //throw
+      }
+      else
+        $t = $tp.t;
+    }
+   expr_mult_tmp
+	| {$t = new NoType();}
 	;
 
-expr_un:
-		('not' | '-') expr_un
-	|	expr_mem
+expr_un returns [Type t]:
+		('not' | '-') tp = expr_un {
+      if(!$tp.t.equals(new IntType())){
+        $t = new NoType();
+        print("invalid use of unary operations.");
+        //throw
+      }
+      else
+        $t = $tp.t;
+  }
+	|	tp = expr_mem {$t = $tp.t;}
 	;
 
-expr_mem:
-		expr_other expr_mem_tmp
+expr_mem returns [Type t]:
+		tp = expr_other dim = expr_mem_tmp {$t = $tp.t.dimensionAccess($dim.dimension);}
 	;
 
-expr_mem_tmp:
-		'[' expr ']' expr_mem_tmp
-	|
+expr_mem_tmp returns [int dimension]:
+		'[' tp = expr {
+      if(!$tp.t.equals(new IntType())){
+        print("invalid index.");
+        //throw
+      }
+      } ']' d = expr_mem_tmp {$dimention = $d.int + 1;}
+	| {$dimention = 0;}
 	;
 
 expr_other returns [Type t]:
-		CONST_NUM {$t = new IntType()}
-	|	CONST_CHAR {$t = new CharacterType()}
-	|	str = CONST_STR {$t = new ArrayType($str.text.size(), new CharacterType();)}
+		CONST_NUM {$t = new IntType();}
+	|	CONST_CHAR {$t = new CharacterType();}
+	|	str = CONST_STR {$t = new ArrayType($str.text.length(), new CharacterType());}
 	|	id = ID
     { SymbolTableItem item = SymbolTable.top.get($id.text);
       if(item == null) {
@@ -200,12 +239,23 @@ expr_other returns [Type t]:
       else {
         SymbolTableVariableItemBase var = (SymbolTableVariableItemBase) item;
         print($id.line + ") Variable " + $id.text + " used.\t\t" +   "Base Reg: " + var.getBaseRegister() + ", Offset: " + var.getOffset());
-        
+        $t = var.getVariable().getType();
       }
     }
-	|	'{' expr (',' expr)* '}'
-	|	'read' '(' CONST_NUM ')'
-	|	'(' expr ')'
+	|	'{' tp = expr {int size = 1;} (',' tp2 = expr {
+    if(!$tp2.t.equals($tp.t)) {
+      $t = new NoType();
+      print("incompatible types");
+      //TODO: throw exception
+    }
+    elseif(size != -1)
+      size ++;
+  })* {
+    if(size != -1)
+      $t = new ArrayType(size, $tp.t);
+    }'}'
+	|	'read' '(' size = CONST_NUM ')' {$t = new ArrayType($size.int, new CharacterType());}
+	|	'(' tp = expr ')' {$t = $tp.t;}
 	;
 
 CONST_NUM:

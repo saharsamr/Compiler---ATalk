@@ -23,4 +23,11 @@ public class CharacterType extends Type {
 			return instance = new CharacterType();
 		return instance;
 	}
+
+	@Override
+	public Type dimensionAccess(int n)throws UndefinedDemensionsException{
+		if(n == 0)
+			reurn this;
+		throw new UndefinedDemensionsException();
+	}
 }
