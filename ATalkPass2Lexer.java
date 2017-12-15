@@ -87,7 +87,6 @@ public class ATalkPass2Lexer extends Lexer {
 	}
 
 
-
 	    void print(String str){
 	        System.out.println(str);
 	    }

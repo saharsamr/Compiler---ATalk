@@ -101,7 +101,6 @@ public class ATalkPass2Parser extends Parser {
 	public ATN getATN() { return _ATN; }
 
 
-
 	    void print(String str){
 	        System.out.println(str);
 	    }
@@ -1596,6 +1595,7 @@ public class ATalkPass2Parser extends Parser {
 			case NL:
 				enterOuterAlt(_localctx, 2);
 				{
+				((Expr_or_tmpContext)_localctx).t =  new NoType();
 				}
 				break;
 			default:
@@ -1782,8 +1782,10 @@ public class ATalkPass2Parser extends Parser {
 			setState(314);
 			((Expr_eqContext)_localctx).tp2 = expr_eq_tmp();
 
-			      if(((Expr_eqContext)_localctx).tp1.t.equals(((Expr_eqContext)_localctx).tp2.t) || ((Expr_eqContext)_localctx).tp2.t.equals(new NoType()))
+			      if(((Expr_eqContext)_localctx).tp1.t.equals(((Expr_eqContext)_localctx).tp2.t))
 			        ((Expr_eqContext)_localctx).t =  new IntType();//TODO: moshakhas konim 1 ya 0
+			    else if(((Expr_eqContext)_localctx).tp2.t.equals(new NoType()))
+			        ((Expr_eqContext)_localctx).t =  ((Expr_eqContext)_localctx).tp1.t;
 			      else {
 			        ((Expr_eqContext)_localctx).t =  new NoType();
 			        print("************");
@@ -2828,8 +2830,8 @@ public class ATalkPass2Parser extends Parser {
 		"\b\23\1\2\u0120\u0122\3\2\2\2\u0121\u0119\3\2\2\2\u0121\u011e\3\2\2\2"+
 		"\u0122%\3\2\2\2\u0123\u0124\5*\26\2\u0124\u0125\5(\25\2\u0125\u0126\b"+
 		"\24\1\2\u0126\'\3\2\2\2\u0127\u0128\7\34\2\2\u0128\u0129\5*\26\2\u0129"+
-		"\u012a\5(\25\2\u012a\u012b\b\25\1\2\u012b\u012e\3\2\2\2\u012c\u012e\3"+
-		"\2\2\2\u012d\u0127\3\2\2\2\u012d\u012c\3\2\2\2\u012e)\3\2\2\2\u012f\u0130"+
+		"\u012a\5(\25\2\u012a\u012b\b\25\1\2\u012b\u012e\3\2\2\2\u012c\u012e\b"+
+		"\25\1\2\u012d\u0127\3\2\2\2\u012d\u012c\3\2\2\2\u012e)\3\2\2\2\u012f\u0130"+
 		"\5.\30\2\u0130\u0131\5,\27\2\u0131\u0132\b\26\1\2\u0132+\3\2\2\2\u0133"+
 		"\u0134\7\35\2\2\u0134\u0135\5.\30\2\u0135\u0136\5,\27\2\u0136\u0137\b"+
 		"\27\1\2\u0137\u013a\3\2\2\2\u0138\u013a\b\27\1\2\u0139\u0133\3\2\2\2\u0139"+
