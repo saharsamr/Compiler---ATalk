@@ -188,10 +188,10 @@ expr_mem_tmp:
 	|
 	;
 
-expr_other:
-		CONST_NUM
-	|	CONST_CHAR
-	|	CONST_STR
+expr_other returns [Type t]:
+		CONST_NUM {$t = new IntType()}
+	|	CONST_CHAR {$t = new CharacterType()}
+	|	str = CONST_STR {$t = new ArrayType($str.text.size(), new CharacterType();)}
 	|	id = ID
     { SymbolTableItem item = SymbolTable.top.get($id.text);
       if(item == null) {
@@ -200,6 +200,7 @@ expr_other:
       else {
         SymbolTableVariableItemBase var = (SymbolTableVariableItemBase) item;
         print($id.line + ") Variable " + $id.text + " used.\t\t" +   "Base Reg: " + var.getBaseRegister() + ", Offset: " + var.getOffset());
+        
       }
     }
 	|	'{' expr (',' expr)* '}'
