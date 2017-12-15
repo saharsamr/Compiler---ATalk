@@ -1,4 +1,4 @@
-grammar ATalk;
+grammar ATalkPass1;
 
 @header{
       import java.util.ArrayList;
