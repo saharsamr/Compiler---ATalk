@@ -112,56 +112,128 @@ stm_assignment:
 	;
 
 expr returns [Type t]:
-		expr_assign
+		tp = expr_assign {t = $tp.t;}
 	;
 
-expr_assign:
-		expr_or '=' expr_assign
-	|	expr_or
+expr_assign returns [Type t]:
+		tp1 = expr_or '=' tp2 = expr_assign{
+      if($tp1.t.equals($tp2.t))
+        $t = $tp1.t;
+    }
+	|	tp = expr_or {$t = $tp.t;}
 	;
 
-expr_or:
-		expr_and expr_or_tmp
+expr_or returns [Type t]:
+		tp1 = expr_and tp2 = expr_or_tmp {
+      if((!$tp1.t.equals(new IntType) && !$tp2.t.equals(new NoType))){
+        $t = new NoType();
+        //
+        print("or");
+      }
+      else
+        $t = $tp1.t;
+    }
 	;
 
-expr_or_tmp:
-		'or' expr_and expr_or_tmp
+expr_or_tmp returns [Type t]:
+		'or' tp1 = expr_and tp2 = expr_or_tmp {
+      if(!$tp.t.equals(new IntType())){
+        $t = new NoType();
+        print("invalid use of or operations.");
+        //throw
+      }
+      else
+        $t = $tp.t;
+    }
 	|
 	;
 
-expr_and:
-		expr_eq expr_and_tmp
+expr_and returns [Type t]:
+		tp1 = expr_eq tp2 = expr_and_tmp {
+      if((!$tp1.t.equals(new IntType) && !$tp2.t.equals(new NoType))){
+        $t = new NoType();
+        //
+        print("exp and");
+      }
+      else
+        $t = $tp1.t;
+    }
 	;
 
-expr_and_tmp:
-		'and' expr_eq expr_and_tmp
-	|
+expr_and_tmp returns [Type t]:
+		'and' tp1 = expr_eq tp2 = expr_and_tmp{
+      if(!$tp.t.equals(new IntType())){
+        $t = new NoType();
+        print("invalid use of and operations.");
+        //throw
+      }
+      else
+        $t = $tp.t;
+    }
+	| {$t = new NoType();}
 	;
 
-expr_eq:
-		expr_cmp expr_eq_tmp
+expr_eq returns [Type t]:
+		tp1 = expr_cmp tp2 = expr_eq_tmp{
+      if($tp1.t.equals($tp2.t) || $tp2.t.equals(new NoType()))
+        $t = new IntType();//TODO: moshakhas konim 1 ya 0
+      else {
+        $t = new NoType();
+        print("************");
+      }
 	;
 
-expr_eq_tmp:
-		('==' | '<>') expr_cmp expr_eq_tmp
-	|
+expr_eq_tmp returns [Type t]:
+		('==' | '<>') tp1 = expr_cmp tp2 = expr_eq_tmp {
+      if($tp1.t.equals($tp2.t) || $tp2.t.equals(new NoType()))
+        $t = $tp1.t;
+      else {
+        $t = new NoType();
+        print("----------");
+      }
+    }
+	| {$t = new NoType();}
 	;
 
-expr_cmp:
-		expr_add expr_cmp_tmp
+expr_cmp returns [Type t]:
+		tp1 = expr_add tp2 = expr_cmp_tmp {
+      if((!$tp1.t.equals(new IntType) && !$tp2.t.equals(new NoType()))){
+        $t = new NoType();
+        //
+        print("exp add");
+      }
+      else
+        $t = $tp1.t;
+    }
 	;
 
-expr_cmp_tmp:
-		('<' | '>') expr_add expr_cmp_tmp
-	|
+expr_cmp_tmp returns [Type t]:
+		('<' | '>') tp = expr_add {
+      if(!$tp.t.equals(new IntType())){
+        $t = new NoType();
+        print("invalid use of cmp operations.");
+        //throw
+      }
+      else
+        $t = $tp.t;
+    } expr_cmp_tmp
+	| {$t = new NoType();}
 	;
 
-expr_add:
-		expr_mult expr_add_tmp
+expr_add returns [Type t]:
+		tp1 = expr_mult tp2 = expr_add_tmp {
+      if((!$tp1.t.equals(new IntType) && !$tp2.t.equals(new NoType))){
+        $t = new NoType();
+        //
+        print("exp add");
+      }
+      else
+        $t = $tp1.t;
+    }
 	;
 
 expr_add_tmp returns [Type t]:
-		('+' | '-') tp = expr_mult{
+		('+' | '-') tp = expr_mult {
       if(!$tp.t.equals(new IntType())){
         $t = new NoType();
         print("invalid use of + operations.");
