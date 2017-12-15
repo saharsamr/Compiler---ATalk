@@ -27,7 +27,7 @@ public class IntType extends Type {
 	@Override
 	public Type dimensionAccess(int n)throws UndefinedDemensionsException{
 		if(n == 0)
-			reurn this;
+			return this;
 		throw new UndefinedDemensionsException();
 	}
 }

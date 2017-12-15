@@ -33,9 +33,13 @@ public class ArrayType extends Type {
 
 	@Override
 	public Type dimensionAccess(int n)throws UndefinedDemensionsException{
-		if(n == 0)
-			return this;
-		return arrType.dimensionAccess(n-1);
+		try{
+			if(n == 0)
+				return this;
+			return arrType.dimensionAccess(n-1);
+		}catch (UndefinedDemensionsException ex){
+			throw ex;
+		}
 	}
 
 }

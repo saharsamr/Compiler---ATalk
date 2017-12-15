@@ -8,5 +8,5 @@ public abstract class Type {
 
 	public static final int WORD_BYTES = 4;
 
-	public abstract Type dimensionAccess(int n);
+	public abstract Type dimensionAccess(int n)throws UndefinedDemensionsException;
 }

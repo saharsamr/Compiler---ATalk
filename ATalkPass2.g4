@@ -112,20 +112,22 @@ stm_assignment:
 	;
 
 expr returns [Type t]:
-		tp = expr_assign {t = $tp.t;}
+		tp = expr_assign {$t = $tp.t;}
 	;
 
 expr_assign returns [Type t]:
 		tp1 = expr_or '=' tp2 = expr_assign{
       if($tp1.t.equals($tp2.t))
         $t = $tp1.t;
+      else
+        $t = new NoType();
     }
 	|	tp = expr_or {$t = $tp.t;}
 	;
 
 expr_or returns [Type t]:
 		tp1 = expr_and tp2 = expr_or_tmp {
-      if((!$tp1.t.equals(new IntType) && !$tp2.t.equals(new NoType))){
+      if((!$tp1.t.equals(new IntType()) && !$tp2.t.equals(new NoType()))){
         $t = new NoType();
         //
         print("or");
@@ -137,20 +139,20 @@ expr_or returns [Type t]:
 
 expr_or_tmp returns [Type t]:
 		'or' tp1 = expr_and tp2 = expr_or_tmp {
-      if(!$tp.t.equals(new IntType())){
+      if(!$tp1.t.equals(new IntType())){
         $t = new NoType();
         print("invalid use of or operations.");
         //throw
       }
       else
-        $t = $tp.t;
+        $t = $tp1.t;
     }
 	|
 	;
 
 expr_and returns [Type t]:
 		tp1 = expr_eq tp2 = expr_and_tmp {
-      if((!$tp1.t.equals(new IntType) && !$tp2.t.equals(new NoType))){
+      if((!$tp1.t.equals(new IntType()) && !$tp2.t.equals(new NoType()))){
         $t = new NoType();
         //
         print("exp and");
@@ -162,13 +164,13 @@ expr_and returns [Type t]:
 
 expr_and_tmp returns [Type t]:
 		'and' tp1 = expr_eq tp2 = expr_and_tmp{
-      if(!$tp.t.equals(new IntType())){
+      if(!$tp1.t.equals(new IntType())){
         $t = new NoType();
         print("invalid use of and operations.");
         //throw
       }
       else
-        $t = $tp.t;
+        $t = $tp1.t;
     }
 	| {$t = new NoType();}
 	;
@@ -181,6 +183,7 @@ expr_eq returns [Type t]:
         $t = new NoType();
         print("************");
       }
+    }
 	;
 
 expr_eq_tmp returns [Type t]:
@@ -197,7 +200,7 @@ expr_eq_tmp returns [Type t]:
 
 expr_cmp returns [Type t]:
 		tp1 = expr_add tp2 = expr_cmp_tmp {
-      if((!$tp1.t.equals(new IntType) && !$tp2.t.equals(new NoType()))){
+      if((!$tp1.t.equals(new IntType()) && !$tp2.t.equals(new NoType()))){
         $t = new NoType();
         //
         print("exp add");
@@ -222,7 +225,7 @@ expr_cmp_tmp returns [Type t]:
 
 expr_add returns [Type t]:
 		tp1 = expr_mult tp2 = expr_add_tmp {
-      if((!$tp1.t.equals(new IntType) && !$tp2.t.equals(new NoType))){
+      if((!$tp1.t.equals(new IntType()) && !$tp2.t.equals(new NoType()))){
         $t = new NoType();
         //
         print("exp add");
@@ -248,7 +251,7 @@ expr_add_tmp returns [Type t]:
 
 expr_mult returns [Type t]:
 		tp1 = expr_un tp2 = expr_mult_tmp{
-      if((!$tp1.t.equals(new IntType) && !$tp2.t.equals(new NoType))){
+      if((!$tp1.t.equals(new IntType()) && !$tp2.t.equals(new NoType()))){
         $t = new NoType();
         //
         print("......");
@@ -282,11 +285,16 @@ expr_un returns [Type t]:
       else
         $t = $tp.t;
   }
-	|	tp = expr_mem {$t = $tp.t;}
+	|	tp1 = expr_mem {$t = $tp1.t;}
 	;
 
 expr_mem returns [Type t]:
-		tp = expr_other dim = expr_mem_tmp {$t = $tp.t.dimensionAccess($dim.dimension);}
+		tp = expr_other dim = expr_mem_tmp {
+      try{
+        $t = $tp.t.dimensionAccess($dim.dimension);
+      }catch(UndefinedDemensionsException ex){$t = new NoType();
+      print("salam.");}
+    }
 	;
 
 expr_mem_tmp returns [int dimension]:
@@ -295,8 +303,8 @@ expr_mem_tmp returns [int dimension]:
         print("invalid index.");
         //throw
       }
-      } ']' d = expr_mem_tmp {$dimention = $d.int + 1;}
-	| {$dimention = 0;}
+      } ']' d = expr_mem_tmp {$dimension = $d.dimension + 1;}
+	| {$dimension = 0;}
 	;
 
 expr_other returns [Type t]:
@@ -307,6 +315,7 @@ expr_other returns [Type t]:
     { SymbolTableItem item = SymbolTable.top.get($id.text);
       if(item == null) {
         print($id.line + ") Item " + $id.text + " doesnt exist.");
+        $t = new NoType();
       }
       else {
         SymbolTableVariableItemBase var = (SymbolTableVariableItemBase) item;
@@ -320,7 +329,7 @@ expr_other returns [Type t]:
       print("incompatible types");
       //TODO: throw exception
     }
-    elseif(size != -1)
+    else if(size != -1)
       size ++;
   })* {
     if(size != -1)

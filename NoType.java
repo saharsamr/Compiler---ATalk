@@ -23,4 +23,11 @@ public class NoType extends Type {
 			return instance = new NoType();
 		return instance;
 	}
+
+	@Override
+	public Type dimensionAccess(int n)throws UndefinedDemensionsException{
+		if(n == 0)
+			return this;
+		throw new UndefinedDemensionsException();
+	}
 }
