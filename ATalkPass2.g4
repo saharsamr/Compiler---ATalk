@@ -37,24 +37,23 @@ actor:
 	;
 
 state:
-		type ID (',' ID)* NL
+		type ID { SymbolTable.define(); } (',' ID { SymbolTable.define(); })* NL
 	;
 
 receiver:
-		'receiver' ID '(' (type ID (',' type ID)*)? ')' NL
+		'receiver' ID { SymbolTable.define(); } '(' (type ID { SymbolTable.define(); } (',' type ID { SymbolTable.define(); })*)? ')' NL
     {beginScope();}
 			statements
 		'end' {endScope();} NL
 	;
 
-type:
+type: //TODO:{ $return_type = IntType.getInstance(); }
 		'char' ('[' CONST_NUM ']')*
 	|	'int' ('[' CONST_NUM ']')*
 	;
 
 block:
-		'begin' NL
-    {beginScope();}
+		'begin' {beginScope();} NL
 			statements
 		'end' {endScope();} NL
 	;
@@ -76,7 +75,7 @@ statement:
 	;
 
 stm_vardef:
-		type ID ('=' expr)? (',' ID ('=' expr)?)* NL
+		type ID { SymbolTable.define(); }('=' expr)? (',' ID { SymbolTable.define(); } ('=' expr)?)* NL
 	;
 
 stm_tell:
@@ -193,7 +192,16 @@ expr_other:
 		CONST_NUM
 	|	CONST_CHAR
 	|	CONST_STR
-	|	ID
+	|	id = ID
+    { SymbolTableItem item = SymbolTable.top.get($id.text);
+      if(item == null) {
+        print($id.line + ") Item " + $id.text + " doesnt exist.");
+      }
+      else {
+        SymbolTableVariableItemBase var = (SymbolTableVariableItemBase) item;
+        print($id.line + ") Variable " + $id.text + " used.\t\t" +   "Base Reg: " + var.getBaseRegister() + ", Offset: " + var.getOffset());
+      }
+    }
 	|	'{' expr (',' expr)* '}'
 	|	'read' '(' CONST_NUM ')'
 	|	'(' expr ')'
