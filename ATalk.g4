@@ -13,16 +13,29 @@ grammar ATalk;
   int repeatedVarCount = 0;
 
   void beginScope() {
-  	int offset = 0;
-  	if(SymbolTable.top != null)
-      	offset = SymbolTable.top.getOffset(Register.SP);
-      SymbolTable.push(new SymbolTable());
-      SymbolTable.top.setOffset(Register.SP, offset);
-  }
+    	int localOffset = 0;
+    	int globalOffset = 0;
+
+    	if(SymbolTable.top != null) {
+        	localOffset = SymbolTable.top.getOffset(Register.SP);
+        	globalOffset = SymbolTable.top.getOffset(Register.GP);
+    	}
+
+        SymbolTable.push(new SymbolTable(SymbolTable.top));
+
+        SymbolTable.top.setOffset(Register.SP, localOffset);
+        SymbolTable.top.setOffset(Register.GP, globalOffset);
+    }
 
   void endScope() {
       codeData += ("Stack offset: " + SymbolTable.top.getOffset(Register.SP) + "\n\n");
-      SymbolTable.pop();
+      if(SymbolTable.top.getPreSymbolTable() != null) {
+            SymbolTable.top.getPreSymbolTable().setOffset(
+                Register.GP,
+                SymbolTable.top.getOffset(Register.GP)
+            );
+        }
+        SymbolTable.pop();
   }
 
   void addVarItem(String name, Type type, int lineNum, Register reg){

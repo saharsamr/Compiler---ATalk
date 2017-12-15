@@ -81,7 +81,7 @@ public class SymbolTable {
 		if(value == null && pre != null)
 			return pre.get(key);
 
-		if(value.useMustBeComesAfterDef() &&
+		if(value != null && value.useMustBeComesAfterDef() &&
 				SymbolTable.definitionsCount <= value.getDefinitionNumber()) {
 			if(pre != null)
 				return pre.get(key);
