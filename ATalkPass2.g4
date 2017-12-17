@@ -14,24 +14,49 @@ grammar ATalkPass2;
         SymbolTable.pop();
     }
 
+    Type printErrAndAssignNoType(String msg){
+      print(msg);
+      return new NoType();
+    }
+
     Type checkArithOperandValidation(Type tp)throws ArithmaticsOperandsException{
-      if(!tp.equals(new IntType())){
+      if(!tp.equals(new IntType()))
         throw new ArithmaticsOperandsException();
-      }
       else
         return tp;
     }
 
-    Type printErrAndAssignNoType(String msg){
-      print("Invalid types for <" + msg + "> operator.");
-      return new NoType();
-    }
-
-    Type assignBinaryExprType (Type tp, String msg) {
+    Type assignExprType_tmp (Type tp, String msg) {
       try {
         return checkArithOperandValidation(tp);
       } catch(ArithmaticsOperandsException ex) {
         return printErrAndAssignNoType(msg);
+      }
+    }
+
+    Type checkCombinedArithExprTypes(Type tp1,Type tp2)throws ArithmaticsOperandsException{
+      if((!tp1.equals(new IntType()) && !tp2.equals(new NoType())))
+       throw new ArithmaticsOperandsException();
+     else
+       return tp1;
+   }
+
+    Type assignExprType (Type tp1, Type tp2, String msg) {
+      try {
+        return checkCombinedArithExprTypes(tp);
+      } catch(ArithmaticsOperandsException ex) {
+        return printErrAndAssignNoType(msg);
+      }
+    }
+
+    Type getIDFromSymTable(String idName, int line) {
+      SymbolTableItem item = SymbolTable.top.get(idName);
+      if(item == null)
+        return printErrAndAssignNoType(line + ") Item " + idName + " doesnt exist.");
+      else {
+        SymbolTableVariableItemBase var = (SymbolTableVariableItemBase) item;
+        print(line + ") Variable " + idName + " used.\t\t" +   "Base Reg: " + var.getBaseRegister() + ", Offset: " + var.getOffset());
+        return var.getVariable().getType();
       }
     }
 }
@@ -146,39 +171,25 @@ expr_assign returns [Type t]:
   ;
 
 expr_or returns [Type t]:
-    tp1 = expr_and tp2 = expr_or_tmp {
-      if((!$tp1.t.equals(new IntType()) && !$tp2.t.equals(new NoType()))){
-        $t = new NoType();
-        //
-        print("or");
-      }
-      else
-        $t = $tp1.t;
-    }
+    tp1 = expr_and tp2 = expr_or_tmp
+    {assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");}
   ;
 
 expr_or_tmp returns [Type t]:
     'or' tp1 = expr_and tp2 = expr_or_tmp {
-      $t = assignBinaryExprType($tp1.t, "or");
+      $t = assignExprType_tmp($tp1.t, "Invalid operands for <or> operator.");
     }
   | {$t = new NoType();}
   ;
 
 expr_and returns [Type t]:
-    tp1 = expr_eq tp2 = expr_and_tmp {
-      if((!$tp1.t.equals(new IntType()) && !$tp2.t.equals(new NoType()))){
-        $t = new NoType();
-        //
-        print("exp and");
-      }
-      else
-        $t = $tp1.t;
-    }
+    tp1 = expr_eq tp2 = expr_and_tmp
+    {assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");}
   ;
 
 expr_and_tmp returns [Type t]:
     'and' tp1 = expr_eq tp2 = expr_and_tmp {
-      $t = assignBinaryExprType($tp1.t, "and");
+      $t = assignExprType_tmp($tp1.t, "Invalid operands for <and> operator.");
     }
   | {$t = new NoType();}
   ;
@@ -210,72 +221,45 @@ expr_eq_tmp returns [Type t]:
   ;
 
 expr_cmp returns [Type t]:
-    tp1 = expr_add tp2 = expr_cmp_tmp {
-      if((!$tp1.t.equals(new IntType()) && !$tp2.t.equals(new NoType()))){
-        $t = new NoType();
-        //
-        print("exp add");
-      }
-      else
-        $t = $tp1.t;
-    }
+    tp1 = expr_add tp2 = expr_cmp_tmp
+    {assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");}
   ;
 
 expr_cmp_tmp returns [Type t]:
     (cmp = '<' | cmp = '>') tp = expr_add {
-      $t = assignBinaryExprType($tp1.t, cmp.text);
+      $t = assignExprType_tmp($tp1.t, cmp.text);
     } expr_cmp_tmp
   | {$t = new NoType();}
   ;
 
 expr_add returns [Type t]:
-    tp1 = expr_mult tp2 = expr_add_tmp {
-      if((!$tp1.t.equals(new IntType()) && !$tp2.t.equals(new NoType()))){
-        $t = new NoType();
-        //
-        print("exp add");
-      }
-      else
-        $t = $tp1.t;
-    }
+    tp1 = expr_mult tp2 = expr_add_tmp
+    {assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");}
   ;
 
 expr_add_tmp returns [Type t]:
     add = ('+' | '-') tp = expr_mult {
-      $t = assignBinaryExprType($tp1.t, add.text);
+      $t = assignExprType_tmp($tp1.t, add.text);
     } expr_add_tmp
   | {$t = new NoType();}
   ;
 
 expr_mult returns [Type t]:
-    tp1 = expr_un tp2 = expr_mult_tmp{
-      if((!$tp1.t.equals(new IntType()) && !$tp2.t.equals(new NoType()))){
-        $t = new NoType();
-        //
-        print("......");
-      }
-      else
-        $t = $tp1.t;
-    }
+    tp1 = expr_un tp2 = expr_mult_tmp
+    {assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");}
   ;
 
 expr_mult_tmp returns [Type t]:
     mult = ('*' | '/') tp = expr_un {
-      $t = assignBinaryExprType($tp1.t, mult.text);
+      $t = assignExprType_tmp($tp1.t, mult.text);
     } expr_mult_tmp
   | {$t = new NoType();}
   ;
 
 expr_un returns [Type t]:
     ('not' | '-') tp = expr_un {
-      if(!$tp.t.equals(new IntType())){
-        $t = new NoType();
-        print("invalid use of unary operations.");
-        //throw
-      }
-      else
-        $t = $tp.t;
-  }
+      $t = assignExprType_tmp($tp1.t,  "Invalid arithmatic operands");
+    }
   |  tp1 = expr_mem {$t = $tp1.t;}
   ;
 
@@ -299,27 +283,13 @@ expr_mem_tmp returns [int dimension]:
   ;
 
 expr_other returns [Type t]:
-    CONST_NUM {$t = new IntType();}
+     CONST_NUM {$t = new IntType();}
   |  CONST_CHAR {$t = new CharacterType();}
   |  str = CONST_STR {$t = new ArrayType($str.text.length()-2, new CharacterType());}
-  |  id = ID
-    { SymbolTableItem item = SymbolTable.top.get($id.text);
-      if(item == null) {
-        print($id.line + ") Item " + $id.text + " doesnt exist.");
-        $t = new NoType();
-      }
-      else {
-        SymbolTableVariableItemBase var = (SymbolTableVariableItemBase) item;
-        print($id.line + ") Variable " + $id.text + " used.\t\t" +   "Base Reg: " + var.getBaseRegister() + ", Offset: " + var.getOffset());
-        $t = var.getVariable().getType();
-      }
-    }
+  |  id = ID {$t = getIDFromSymTable($id.text, $id.line);}
   |  '{' tp = expr {int size = 1;} (',' tp2 = expr {
-    if(!$tp2.t.equals($tp.t)) {
-      $t = new NoType();
-      print("incompatible types");
-      //TODO: throw exception
-    }
+    if(!$tp2.t.equals($tp.t))
+      $t = printErrAndAssignNoType("incompatible type.");
     else if(size != -1)
       size ++;
   })* {
