@@ -100,6 +100,52 @@ public class ATalkPass2Lexer extends Lexer {
 	        SymbolTable.pop();
 	    }
 
+	    Type printErrAndAssignNoType(String msg){
+	      print(msg);
+	      return new NoType();
+	    }
+
+	    Type checkArithOperandValidation(Type tp)throws ArithmaticsOperandsException{
+	      if(!tp.equals(new IntType()))
+	        throw new ArithmaticsOperandsException();
+	      else
+	        return tp;
+	    }
+
+	    Type assignExprType_tmp (Type tp, String msg) {
+	      try {
+	        return checkArithOperandValidation(tp);
+	      } catch(ArithmaticsOperandsException ex) {
+	        return printErrAndAssignNoType(msg);
+	      }
+	    }
+
+	    Type checkCombinedArithExprTypes(Type tp1,Type tp2)throws ArithmaticsOperandsException{
+	      if((!tp1.equals(new IntType())) && (!tp2.equals(new NoType())))
+	       throw new ArithmaticsOperandsException();
+	     else
+	       return tp1;
+	   }
+
+	    Type assignExprType(Type tp1, Type tp2, String msg) {
+	      try {
+	        return checkCombinedArithExprTypes(tp1, tp2);
+	      } catch(ArithmaticsOperandsException ex) {
+	        return printErrAndAssignNoType(msg);
+	      }
+	    }
+
+	    Type getIDFromSymTable(String idName, int line) {
+	      SymbolTableItem item = SymbolTable.top.get(idName);
+	      if(item == null)
+	        return printErrAndAssignNoType(line + ") Item " + idName + " doesnt exist.");
+	      else {
+	        SymbolTableVariableItemBase var = (SymbolTableVariableItemBase) item;
+	        print(line + ") Variable " + idName + " used.\t\t" +   "Base Reg: " + var.getBaseRegister() + ", Offset: " + var.getOffset());
+	        return var.getVariable().getType();
+	      }
+	    }
+
 
 	public ATalkPass2Lexer(CharStream input) {
 		super(input);

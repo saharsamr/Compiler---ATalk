@@ -35,15 +35,15 @@ grammar ATalkPass2;
     }
 
     Type checkCombinedArithExprTypes(Type tp1,Type tp2)throws ArithmaticsOperandsException{
-      if((!tp1.equals(new IntType()) && !tp2.equals(new NoType())))
+      if((!tp1.equals(new IntType())) && (!tp2.equals(new NoType())))
        throw new ArithmaticsOperandsException();
      else
        return tp1;
    }
 
-    Type assignExprType (Type tp1, Type tp2, String msg) {
+    Type assignExprType(Type tp1, Type tp2, String msg) {
       try {
-        return checkCombinedArithExprTypes(tp);
+        return checkCombinedArithExprTypes(tp1, tp2);
       } catch(ArithmaticsOperandsException ex) {
         return printErrAndAssignNoType(msg);
       }
@@ -172,7 +172,7 @@ expr_assign returns [Type t]:
 
 expr_or returns [Type t]:
     tp1 = expr_and tp2 = expr_or_tmp
-    {assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");}
+    {$t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");}
   ;
 
 expr_or_tmp returns [Type t]:
@@ -184,7 +184,7 @@ expr_or_tmp returns [Type t]:
 
 expr_and returns [Type t]:
     tp1 = expr_eq tp2 = expr_and_tmp
-    {assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");}
+    {$t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");}
   ;
 
 expr_and_tmp returns [Type t]:
@@ -222,43 +222,43 @@ expr_eq_tmp returns [Type t]:
 
 expr_cmp returns [Type t]:
     tp1 = expr_add tp2 = expr_cmp_tmp
-    {assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");}
+    {$t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");}
   ;
 
 expr_cmp_tmp returns [Type t]:
     (cmp = '<' | cmp = '>') tp = expr_add {
-      $t = assignExprType_tmp($tp1.t, cmp.text);
+      $t = assignExprType_tmp($tp.t, $cmp.text);
     } expr_cmp_tmp
   | {$t = new NoType();}
   ;
 
 expr_add returns [Type t]:
     tp1 = expr_mult tp2 = expr_add_tmp
-    {assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");}
+    {$t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");}
   ;
 
 expr_add_tmp returns [Type t]:
     add = ('+' | '-') tp = expr_mult {
-      $t = assignExprType_tmp($tp1.t, add.text);
+      $t = assignExprType_tmp($tp.t, $add.text);
     } expr_add_tmp
   | {$t = new NoType();}
   ;
 
 expr_mult returns [Type t]:
     tp1 = expr_un tp2 = expr_mult_tmp
-    {assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");}
+    {$t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");}
   ;
 
 expr_mult_tmp returns [Type t]:
     mult = ('*' | '/') tp = expr_un {
-      $t = assignExprType_tmp($tp1.t, mult.text);
+      $t = assignExprType_tmp($tp.t, $mult.text);
     } expr_mult_tmp
   | {$t = new NoType();}
   ;
 
 expr_un returns [Type t]:
     ('not' | '-') tp = expr_un {
-      $t = assignExprType_tmp($tp1.t,  "Invalid arithmatic operands");
+      $t = assignExprType_tmp($tp.t,  "Invalid arithmatic operands");
     }
   |  tp1 = expr_mem {$t = $tp1.t;}
   ;
