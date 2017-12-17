@@ -17,7 +17,7 @@ public class ArrayType extends Type {
 	}
 
 	@Override
-	public boolean equals(Object other) {
+	public boolean equals(Object other) {//length
 		if(other instanceof ArrayType) //TODO: add dimention checking
 			return true;
 		return false;

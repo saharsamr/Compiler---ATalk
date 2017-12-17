@@ -13,6 +13,27 @@ grammar ATalkPass2;
         print("Stack offset: " + SymbolTable.top.getOffset(Register.SP) + ", Global offset: " + SymbolTable.top.getOffset(Register.GP));
         SymbolTable.pop();
     }
+
+    Type checkArithOperandValidation(Type tp)throws ArithmaticsOperandsException{
+      if(!tp.equals(new IntType())){
+        throw new ArithmaticsOperandsException();
+      }
+      else
+        return tp;
+    }
+
+    Type printErrAndAssignNoType(String msg){
+      print("Invalid types for <" + msg + "> operator.");
+      return new NoType();
+    }
+
+    Type assignBinaryExprType (Type tp, String msg) {
+      try {
+        return checkArithOperandValidation(tp);
+      } catch(ArithmaticsOperandsException ex) {
+        return printErrAndAssignNoType(msg);
+      }
+    }
 }
 
 
@@ -138,13 +159,7 @@ expr_or returns [Type t]:
 
 expr_or_tmp returns [Type t]:
     'or' tp1 = expr_and tp2 = expr_or_tmp {
-      if(!$tp1.t.equals(new IntType())){
-        $t = new NoType();
-        print("invalid use of or operations.");
-        //throw
-      }
-      else
-        $t = $tp1.t;
+      $t = assignBinaryExprType($tp1.t, "or");
     }
   | {$t = new NoType();}
   ;
@@ -162,14 +177,8 @@ expr_and returns [Type t]:
   ;
 
 expr_and_tmp returns [Type t]:
-    'and' tp1 = expr_eq tp2 = expr_and_tmp{
-      if(!$tp1.t.equals(new IntType())){
-        $t = new NoType();
-        print("invalid use of and operations.");
-        //throw
-      }
-      else
-        $t = $tp1.t;
+    'and' tp1 = expr_eq tp2 = expr_and_tmp {
+      $t = assignBinaryExprType($tp1.t, "and");
     }
   | {$t = new NoType();}
   ;
@@ -178,7 +187,7 @@ expr_eq returns [Type t]:
     tp1 = expr_cmp tp2 = expr_eq_tmp{
       if($tp1.t.equals($tp2.t))
         $t = new IntType();//TODO: moshakhas konim 1 ya 0
-    else if($tp2.t.equals(new NoType()))
+    else if($tp2.t.equals(new NoType()))//TODO: notype & notype
         $t = $tp1.t;
       else {
         $t = new NoType();
@@ -213,14 +222,8 @@ expr_cmp returns [Type t]:
   ;
 
 expr_cmp_tmp returns [Type t]:
-    ('<' | '>') tp = expr_add {
-      if(!$tp.t.equals(new IntType())){
-        $t = new NoType();
-        print("invalid use of cmp operations.");
-        //throw
-      }
-      else
-        $t = $tp.t;
+    (cmp = '<' | cmp = '>') tp = expr_add {
+      $t = assignBinaryExprType($tp1.t, cmp.text);
     } expr_cmp_tmp
   | {$t = new NoType();}
   ;
@@ -238,16 +241,9 @@ expr_add returns [Type t]:
   ;
 
 expr_add_tmp returns [Type t]:
-    ('+' | '-') tp = expr_mult {
-      if(!$tp.t.equals(new IntType())){
-        $t = new NoType();
-        print("invalid use of + operations.");
-        //throw
-      }
-      else
-        $t = $tp.t;
-    }
-    expr_add_tmp
+    add = ('+' | '-') tp = expr_mult {
+      $t = assignBinaryExprType($tp1.t, add.text);
+    } expr_add_tmp
   | {$t = new NoType();}
   ;
 
@@ -264,16 +260,9 @@ expr_mult returns [Type t]:
   ;
 
 expr_mult_tmp returns [Type t]:
-    ('*' | '/') tp = expr_un {
-      if(!$tp.t.equals(new IntType())){
-        $t = new NoType();
-        print("invalid use of mult operations.");
-        //throw
-      }
-      else
-        $t = $tp.t;
-    }
-   expr_mult_tmp
+    mult = ('*' | '/') tp = expr_un {
+      $t = assignBinaryExprType($tp1.t, mult.text);
+    } expr_mult_tmp
   | {$t = new NoType();}
   ;
 
@@ -312,7 +301,7 @@ expr_mem_tmp returns [int dimension]:
 expr_other returns [Type t]:
     CONST_NUM {$t = new IntType();}
   |  CONST_CHAR {$t = new CharacterType();}
-  |  str = CONST_STR {$t = new ArrayType($str.text.length(), new CharacterType());}
+  |  str = CONST_STR {$t = new ArrayType($str.text.length()-2, new CharacterType());}
   |  id = ID
     { SymbolTableItem item = SymbolTable.top.get($id.text);
       if(item == null) {
