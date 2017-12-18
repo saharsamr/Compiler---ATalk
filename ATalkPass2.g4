@@ -84,11 +84,11 @@ grammar ATalkPass2;
 
     Type checkEqualityExprType(Type tp1, Type tp2) {
       if(tp1.equals(tp2))
-        return new IntType();//TODO: moshakhas konim 1 ya 0
-      else if(tp2.equals(new NoType()))//TODO: notype & notype
+        return new IntType();
+      else if(tp2.equals(new NoType()))//NOTE: notype & notype is not handled?
         return tp1;
       else
-        return printErrAndAssignNoType("Incompatible types for checking equality.")
+        return printErrAndAssignNoType("Incompatible types for checking equality.");
     }
 
     Type assignAssignmentExprType(Type tp1, Type tp2) {

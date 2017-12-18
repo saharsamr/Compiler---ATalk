@@ -160,6 +160,44 @@ public class ATalkPass2Parser extends Parser {
 	      }
 	    }
 
+	    int checkAndFindNumOfItemsInExplitArray(Type tp1,Type tp2, int size) {
+	      if(!tp2.equals(tp1))
+	        size = -1;
+	      else if(size != -1)
+	        size ++;
+	      return size;
+	    }
+
+	    Type assignExplitArrayType(int size, Type tp) {
+	      if(size != -1)
+	        return new ArrayType(size, tp);
+	      else
+	        return printErrAndAssignNoType("Invalid combination for a array type.");
+	    }
+
+	    Type checkEqualityExprType_tmp(Type tp1, Type tp2) {
+	      if(tp1.equals(tp2) || tp2.equals(new NoType()))
+	        return tp1;
+	      else
+	        return printErrAndAssignNoType("Incompatible types for checking equality.");
+	    }
+
+	    Type checkEqualityExprType(Type tp1, Type tp2) {
+	      if(tp1.equals(tp2))
+	        return new IntType();
+	      else if(tp2.equals(new NoType()))//NOTE: notype & notype is not handled?
+	        return tp1;
+	      else
+	        return printErrAndAssignNoType("Incompatible types for checking equality.");
+	    }
+
+	    Type assignAssignmentExprType(Type tp1, Type tp2) {
+	      if(tp1.equals(tp2))
+	        return tp1;
+	      else
+	        return printErrAndAssignNoType("Invalid assignment.");
+	    }
+
 	public ATalkPass2Parser(TokenStream input) {
 		super(input);
 		_interp = new ParserATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
@@ -1497,12 +1535,7 @@ public class ATalkPass2Parser extends Parser {
 				match(T__13);
 				setState(281);
 				((Expr_assignContext)_localctx).tp2 = expr_assign();
-
-				      if(((Expr_assignContext)_localctx).tp1.t.equals(((Expr_assignContext)_localctx).tp2.t))
-				        ((Expr_assignContext)_localctx).t =  ((Expr_assignContext)_localctx).tp1.t;
-				      else
-				        ((Expr_assignContext)_localctx).t =  new NoType();
-				    
+				((Expr_assignContext)_localctx).t =  assignAssignmentExprType(((Expr_assignContext)_localctx).tp1.t, ((Expr_assignContext)_localctx).tp2.t);
 				}
 				break;
 			case 2:
@@ -1614,9 +1647,7 @@ public class ATalkPass2Parser extends Parser {
 				((Expr_or_tmpContext)_localctx).tp1 = expr_and();
 				setState(295);
 				((Expr_or_tmpContext)_localctx).tp2 = expr_or_tmp();
-
-				      ((Expr_or_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_or_tmpContext)_localctx).tp1.t, "Invalid operands for <or> operator.");
-				    
+				((Expr_or_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_or_tmpContext)_localctx).tp1.t, "Invalid operands for <or> operator.");
 				}
 				break;
 			case T__4:
@@ -1733,9 +1764,7 @@ public class ATalkPass2Parser extends Parser {
 				((Expr_and_tmpContext)_localctx).tp1 = expr_eq();
 				setState(307);
 				((Expr_and_tmpContext)_localctx).tp2 = expr_and_tmp();
-
-				      ((Expr_and_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_and_tmpContext)_localctx).tp1.t, "Invalid operands for <and> operator.");
-				    
+				((Expr_and_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_and_tmpContext)_localctx).tp1.t, "Invalid operands for <and> operator.");
 				}
 				break;
 			case T__4:
@@ -1799,16 +1828,7 @@ public class ATalkPass2Parser extends Parser {
 			((Expr_eqContext)_localctx).tp1 = expr_cmp();
 			setState(314);
 			((Expr_eqContext)_localctx).tp2 = expr_eq_tmp();
-
-			      if(((Expr_eqContext)_localctx).tp1.t.equals(((Expr_eqContext)_localctx).tp2.t))
-			        ((Expr_eqContext)_localctx).t =  new IntType();//TODO: moshakhas konim 1 ya 0
-			    else if(((Expr_eqContext)_localctx).tp2.t.equals(new NoType()))//TODO: notype & notype
-			        ((Expr_eqContext)_localctx).t =  ((Expr_eqContext)_localctx).tp1.t;
-			      else {
-			        ((Expr_eqContext)_localctx).t =  new NoType();
-			        print("************");
-			      }
-			    
+			((Expr_eqContext)_localctx).t =  checkEqualityExprType(((Expr_eqContext)_localctx).tp1.t, ((Expr_eqContext)_localctx).tp2.t);
 			}
 		}
 		catch (RecognitionException re) {
@@ -1872,14 +1892,7 @@ public class ATalkPass2Parser extends Parser {
 				((Expr_eq_tmpContext)_localctx).tp1 = expr_cmp();
 				setState(319);
 				((Expr_eq_tmpContext)_localctx).tp2 = expr_eq_tmp();
-
-				      if(((Expr_eq_tmpContext)_localctx).tp1.t.equals(((Expr_eq_tmpContext)_localctx).tp2.t) || ((Expr_eq_tmpContext)_localctx).tp2.t.equals(new NoType()))
-				        ((Expr_eq_tmpContext)_localctx).t =  ((Expr_eq_tmpContext)_localctx).tp1.t;
-				      else {
-				        ((Expr_eq_tmpContext)_localctx).t =  new NoType();
-				        print("----------");
-				      }
-				    
+				((Expr_eq_tmpContext)_localctx).t =  checkEqualityExprType_tmp(((Expr_eq_tmpContext)_localctx).tp1.t, ((Expr_eq_tmpContext)_localctx).tp2.t);
 				}
 				break;
 			case T__4:
@@ -2013,9 +2026,7 @@ public class ATalkPass2Parser extends Parser {
 				}
 				setState(333);
 				((Expr_cmp_tmpContext)_localctx).tp = expr_add();
-
-				      ((Expr_cmp_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_cmp_tmpContext)_localctx).tp.t, (((Expr_cmp_tmpContext)_localctx).cmp!=null?((Expr_cmp_tmpContext)_localctx).cmp.getText():null));
-				    
+				((Expr_cmp_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_cmp_tmpContext)_localctx).tp.t, (((Expr_cmp_tmpContext)_localctx).cmp!=null?((Expr_cmp_tmpContext)_localctx).cmp.getText():null));
 				setState(335);
 				expr_cmp_tmp();
 				}
@@ -2147,9 +2158,7 @@ public class ATalkPass2Parser extends Parser {
 				}
 				setState(345);
 				((Expr_add_tmpContext)_localctx).tp = expr_mult();
-
-				      ((Expr_add_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_add_tmpContext)_localctx).tp.t, (((Expr_add_tmpContext)_localctx).add!=null?((Expr_add_tmpContext)_localctx).add.getText():null));
-				    
+				((Expr_add_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_add_tmpContext)_localctx).tp.t, (((Expr_add_tmpContext)_localctx).add!=null?((Expr_add_tmpContext)_localctx).add.getText():null));
 				setState(347);
 				expr_add_tmp();
 				}
@@ -2283,9 +2292,7 @@ public class ATalkPass2Parser extends Parser {
 				}
 				setState(357);
 				((Expr_mult_tmpContext)_localctx).tp = expr_un();
-
-				      ((Expr_mult_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_mult_tmpContext)_localctx).tp.t, (((Expr_mult_tmpContext)_localctx).mult!=null?((Expr_mult_tmpContext)_localctx).mult.getText():null));
-				    
+				((Expr_mult_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_mult_tmpContext)_localctx).tp.t, (((Expr_mult_tmpContext)_localctx).mult!=null?((Expr_mult_tmpContext)_localctx).mult.getText():null));
 				setState(359);
 				expr_mult_tmp();
 				}
@@ -2372,9 +2379,7 @@ public class ATalkPass2Parser extends Parser {
 				}
 				setState(365);
 				((Expr_unContext)_localctx).tp = expr_un();
-
-				      ((Expr_unContext)_localctx).t =  assignExprType_tmp(((Expr_unContext)_localctx).tp.t,  "Invalid arithmatic operands");
-				    
+				((Expr_unContext)_localctx).t =  assignExprType_tmp(((Expr_unContext)_localctx).tp.t,  "Invalid arithmatic operands");
 				}
 				break;
 			case T__6:
@@ -2443,8 +2448,9 @@ public class ATalkPass2Parser extends Parser {
 
 			      try{
 			        ((Expr_memContext)_localctx).t =  ((Expr_memContext)_localctx).tp.t.dimensionAccess(((Expr_memContext)_localctx).dim.dimension);
-			      }catch(UndefinedDemensionsException ex){((Expr_memContext)_localctx).t =  new NoType();
-			      print("salam.");}
+			      }catch(UndefinedDemensionsException ex){
+			        ((Expr_memContext)_localctx).t =  printErrAndAssignNoType("Undefined demensions.");
+			      }
 			    
 			}
 		}
@@ -2498,10 +2504,8 @@ public class ATalkPass2Parser extends Parser {
 				setState(378);
 				((Expr_mem_tmpContext)_localctx).tp = expr();
 
-				      if(!((Expr_mem_tmpContext)_localctx).tp.t.equals(new IntType())){
+				      if(!((Expr_mem_tmpContext)_localctx).tp.t.equals(new IntType()))
 				        print("invalid index.");
-				        //throw
-				      }
 				      
 				setState(380);
 				match(T__10);
@@ -2550,9 +2554,10 @@ public class ATalkPass2Parser extends Parser {
 		public Type t;
 		public Token str;
 		public Token id;
-		public ExprContext tp;
+		public ExprContext tp1;
 		public ExprContext tp2;
 		public Token size;
+		public ExprContext tp;
 		public TerminalNode CONST_NUM() { return getToken(ATalkPass2Parser.CONST_NUM, 0); }
 		public TerminalNode CONST_CHAR() { return getToken(ATalkPass2Parser.CONST_CHAR, 0); }
 		public TerminalNode CONST_STR() { return getToken(ATalkPass2Parser.CONST_STR, 0); }
@@ -2623,7 +2628,7 @@ public class ATalkPass2Parser extends Parser {
 				setState(395);
 				match(T__34);
 				setState(396);
-				((Expr_otherContext)_localctx).tp = expr();
+				((Expr_otherContext)_localctx).tp1 = expr();
 				int size = 1;
 				setState(404);
 				_errHandler.sync(this);
@@ -2635,22 +2640,14 @@ public class ATalkPass2Parser extends Parser {
 					match(T__4);
 					setState(399);
 					((Expr_otherContext)_localctx).tp2 = expr();
-
-					    if(!((Expr_otherContext)_localctx).tp2.t.equals(((Expr_otherContext)_localctx).tp.t))
-					      ((Expr_otherContext)_localctx).t =  printErrAndAssignNoType("incompatible type.");
-					    else if(size != -1)
-					      size ++;
-					  
+					size = checkAndFindNumOfItemsInExplitArray(((Expr_otherContext)_localctx).tp1.t, ((Expr_otherContext)_localctx).tp2.t, size);
 					}
 					}
 					setState(406);
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 				}
-
-				    if(size != -1)
-				      ((Expr_otherContext)_localctx).t =  new ArrayType(size, ((Expr_otherContext)_localctx).tp.t);
-				    
+				((Expr_otherContext)_localctx).t =  assignExplitArrayType(size, ((Expr_otherContext)_localctx).tp1.t);
 				setState(408);
 				match(T__35);
 				}

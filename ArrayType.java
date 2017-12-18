@@ -18,7 +18,7 @@ public class ArrayType extends Type {
 
 	@Override
 	public boolean equals(Object other) {//length
-		if(other instanceof ArrayType) //TODO: add dimention checking
+		if(other instanceof ArrayType && this.toString().equals(other.toString()))
 			return true;
 		return false;
 	}
@@ -27,9 +27,6 @@ public class ArrayType extends Type {
 	public String toString() {
 			return this.arrType.toString() + "[" + this.size + "]";
 	}
-	// public String toString() {
-  //   return "array(" + size + "," + arrType.toString() + ")";
-  // }
 
 	@Override
 	public Type dimensionAccess(int n)throws UndefinedDemensionsException{

@@ -146,6 +146,44 @@ public class ATalkPass2Lexer extends Lexer {
 	      }
 	    }
 
+	    int checkAndFindNumOfItemsInExplitArray(Type tp1,Type tp2, int size) {
+	      if(!tp2.equals(tp1))
+	        size = -1;
+	      else if(size != -1)
+	        size ++;
+	      return size;
+	    }
+
+	    Type assignExplitArrayType(int size, Type tp) {
+	      if(size != -1)
+	        return new ArrayType(size, tp);
+	      else
+	        return printErrAndAssignNoType("Invalid combination for a array type.");
+	    }
+
+	    Type checkEqualityExprType_tmp(Type tp1, Type tp2) {
+	      if(tp1.equals(tp2) || tp2.equals(new NoType()))
+	        return tp1;
+	      else
+	        return printErrAndAssignNoType("Incompatible types for checking equality.");
+	    }
+
+	    Type checkEqualityExprType(Type tp1, Type tp2) {
+	      if(tp1.equals(tp2))
+	        return new IntType();
+	      else if(tp2.equals(new NoType()))//NOTE: notype & notype is not handled?
+	        return tp1;
+	      else
+	        return printErrAndAssignNoType("Incompatible types for checking equality.");
+	    }
+
+	    Type assignAssignmentExprType(Type tp1, Type tp2) {
+	      if(tp1.equals(tp2))
+	        return tp1;
+	      else
+	        return printErrAndAssignNoType("Invalid assignment.");
+	    }
+
 
 	public ATalkPass2Lexer(CharStream input) {
 		super(input);
