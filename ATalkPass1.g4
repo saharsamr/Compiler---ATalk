@@ -212,33 +212,23 @@ receiver[String actorName]:
   {endScope();}
 	;
 
-type returns [Type t]:
-    {ArrayList<int> dims = new ArrayList<int>();}
-		'char'  {$t = new CharacterType();} ('[' size = CONST_NUM ']' {//TODO:
+  type returns [Type t]:
+    {ArrayList<Integer> dims = new ArrayList<Integer>();}
+    (('int') {$t = new IntType();} | ('char') {$t = new CharacterType();})
+    ('[' size = CONST_NUM ']'{
+      int size_arr = $size.int;
       if($size.int <= 0){
-        printErrors($size.line, "Array size is negative.");
-        dims.add(0);
+        printErrors($size.line,"size of array is negative");
+        size_arr = 0;
       }
-      else
-        dims.add($size.int);
-      })*
-      {
-        for(int i = dims.length() - 1; i >= 0; i--)
-          $t = new ArrayType($t, dims.get(i));
+      dims.add(size_arr);
+    })*
+    {
+      for(int i=dims.size()-1; i >= 0; i--){
+        $t = new ArrayType(dims.get(i),$t);
       }
-	|	'int' {$t = new IntType();} ('[' size = CONST_NUM ']' {
-      if($size.int <= 0){
-        printErrors($size.line, "Array size is negative.");
-        dims.add(0);
-      }
-      else
-        dims.add($size.int);
-      })*
-      {
-        for(int i = dims.length() - 1; i >= 0; i--)
-          $t = new ArrayType($t, dims.get(i));
-      }
-	;
+    }
+    ;
 
 block:
 		'begin' {beginScope();} NL
