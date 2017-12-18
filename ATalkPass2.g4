@@ -268,16 +268,14 @@ expr_mem returns [Type t]:
       try{
         $t = $tp.t.dimensionAccess($dim.dimension);
       }catch(UndefinedDemensionsException ex){$t = new NoType();
-      print("salam.");}
+      print("");}
     }
   ;
 
 expr_mem_tmp returns [int dimension]:
     '[' tp = expr {
-      if(!$tp.t.equals(new IntType())){
+      if(!$tp.t.equals(new IntType()))
         print("invalid index.");
-        //throw
-      }
       } ']' d = expr_mem_tmp {$dimension = $d.dimension + 1;}
   | {$dimension = 0;}
   ;
