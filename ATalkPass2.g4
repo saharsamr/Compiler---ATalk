@@ -59,6 +59,21 @@ grammar ATalkPass2;
         return var.getVariable().getType();
       }
     }
+
+    int checkAndFindNumOfItemsInExplitArray(Type tp1,Type tp2, int size) {
+      if(!tp2.equals(tp1))
+        size = -1;
+      else if(size != -1)
+        size ++;
+      return size;
+    }
+
+    Type assignExplitArrayType(int size, Type tp) {
+      if(size != -1)
+        return new ArrayType(size, tp);
+      else
+        return printErrAndAssignNoType("Invalid combination for a array type.");
+    }
 }
 
 
@@ -176,9 +191,8 @@ expr_or returns [Type t]:
   ;
 
 expr_or_tmp returns [Type t]:
-    'or' tp1 = expr_and tp2 = expr_or_tmp {
-      $t = assignExprType_tmp($tp1.t, "Invalid operands for <or> operator.");
-    }
+    'or' tp1 = expr_and tp2 = expr_or_tmp
+      {$t = assignExprType_tmp($tp1.t, "Invalid operands for <or> operator.");}
   | {$t = new NoType();}
   ;
 
@@ -188,9 +202,8 @@ expr_and returns [Type t]:
   ;
 
 expr_and_tmp returns [Type t]:
-    'and' tp1 = expr_eq tp2 = expr_and_tmp {
-      $t = assignExprType_tmp($tp1.t, "Invalid operands for <and> operator.");
-    }
+    'and' tp1 = expr_eq tp2 = expr_and_tmp
+      {$t = assignExprType_tmp($tp1.t, "Invalid operands for <and> operator.");}
   | {$t = new NoType();}
   ;
 
@@ -226,9 +239,9 @@ expr_cmp returns [Type t]:
   ;
 
 expr_cmp_tmp returns [Type t]:
-    (cmp = '<' | cmp = '>') tp = expr_add {
-      $t = assignExprType_tmp($tp.t, $cmp.text);
-    } expr_cmp_tmp
+    (cmp = '<' | cmp = '>') tp = expr_add
+      {$t = assignExprType_tmp($tp.t, $cmp.text);}
+    expr_cmp_tmp
   | {$t = new NoType();}
   ;
 
@@ -238,9 +251,9 @@ expr_add returns [Type t]:
   ;
 
 expr_add_tmp returns [Type t]:
-    add = ('+' | '-') tp = expr_mult {
-      $t = assignExprType_tmp($tp.t, $add.text);
-    } expr_add_tmp
+    add = ('+' | '-') tp = expr_mult
+      {$t = assignExprType_tmp($tp.t, $add.text);}
+    expr_add_tmp
   | {$t = new NoType();}
   ;
 
@@ -250,16 +263,15 @@ expr_mult returns [Type t]:
   ;
 
 expr_mult_tmp returns [Type t]:
-    mult = ('*' | '/') tp = expr_un {
-      $t = assignExprType_tmp($tp.t, $mult.text);
-    } expr_mult_tmp
+    mult = ('*' | '/') tp = expr_un
+      {$t = assignExprType_tmp($tp.t, $mult.text);}
+    expr_mult_tmp
   | {$t = new NoType();}
   ;
 
 expr_un returns [Type t]:
-    ('not' | '-') tp = expr_un {
-      $t = assignExprType_tmp($tp.t,  "Invalid arithmatic operands");
-    }
+    ('not' | '-') tp = expr_un
+      {$t = assignExprType_tmp($tp.t,  "Invalid arithmatic operands");}
   |  tp1 = expr_mem {$t = $tp1.t;}
   ;
 
@@ -285,15 +297,10 @@ expr_other returns [Type t]:
   |  CONST_CHAR {$t = new CharacterType();}
   |  str = CONST_STR {$t = new ArrayType($str.text.length()-2, new CharacterType());}
   |  id = ID {$t = getIDFromSymTable($id.text, $id.line);}
-  |  '{' tp = expr {int size = 1;} (',' tp2 = expr {
-    if(!$tp2.t.equals($tp.t))
-      $t = printErrAndAssignNoType("incompatible type.");
-    else if(size != -1)
-      size ++;
-  })* {
-    if(size != -1)
-      $t = new ArrayType(size, $tp.t);
-    }'}'
+  |  '{' tp1 = expr {int size = 1;} (',' tp2 = expr
+          {size = checkAndFindNumOfItemsInExplitArray($tp1.t, $tp2.t, size);})*
+          {$t = assignExplitArrayType(size, $tp1.t);}
+     '}'
   |  'read' '(' size = CONST_NUM ')' {$t = new ArrayType($size.int, new CharacterType());}
   |  '(' tp = expr ')' {$t = $tp.t;}
   ;
