@@ -221,6 +221,13 @@ public class ATalkPass1Lexer extends Lexer {
 	      addVarItem(argumentsNames.get(i), argumentTypes.get(i), lineNum, Register.SP);
 	  }
 
+	  /* Type createArray(Type t_, ArrayList<int> dims){
+	    Type t = t_;
+	    for(int i = dims.length() - 1; i >= 0; i--)
+	      t = new ArrayType(t, dims.get(i));
+	    return t;
+	  } */
+
 	  void printVarData(String name, Type type, Register reg){
 	    codeData += ("Variable \n\tname: "+ name + "\n\tType: " + type + "\n\tOffset:" + (SymbolTable.top.getOffset(reg) - type.size())
 	          + "\n\tVarible size: " + type.size() + "\n\n");

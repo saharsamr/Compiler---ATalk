@@ -136,6 +136,13 @@ grammar ATalkPass1;
       addVarItem(argumentsNames.get(i), argumentTypes.get(i), lineNum, Register.SP);
   }
 
+  /* Type createArray(Type t_, ArrayList<int> dims){
+    Type t = t_;
+    for(int i = dims.length() - 1; i >= 0; i--)
+      t = new ArrayType(t, dims.get(i));
+    return t;
+  } */
+
   void printVarData(String name, Type type, Register reg){
     codeData += ("Variable \n\tname: "+ name + "\n\tType: " + type + "\n\tOffset:" + (SymbolTable.top.getOffset(reg) - type.size())
           + "\n\tVarible size: " + type.size() + "\n\n");
@@ -206,14 +213,31 @@ receiver[String actorName]:
 	;
 
 type returns [Type t]:
+    {ArrayList<int> dims = new ArrayList<int>();}
 		'char'  {$t = new CharacterType();} ('[' size = CONST_NUM ']' {//TODO:
-      if($size.int <= 0)
+      if($size.int <= 0){
         printErrors($size.line, "Array size is negative.");
-      $t = new ArrayType($size.int, $t );})*
+        dims.add(0);
+      }
+      else
+        dims.add($size.int);
+      })*
+      {
+        for(int i = dims.length() - 1; i >= 0; i--)
+          $t = new ArrayType($t, dims.get(i));
+      }
 	|	'int' {$t = new IntType();} ('[' size = CONST_NUM ']' {
-    if($size.int <= 0)
-      printErrors($size.line, "Array size is negative.");
-    $t = new ArrayType($size.int, $t );})*
+      if($size.int <= 0){
+        printErrors($size.line, "Array size is negative.");
+        dims.add(0);
+      }
+      else
+        dims.add($size.int);
+      })*
+      {
+        for(int i = dims.length() - 1; i >= 0; i--)
+          $t = new ArrayType($t, dims.get(i));
+      }
 	;
 
 block:
