@@ -74,6 +74,13 @@ grammar ATalkPass2;
       else
         return printErrAndAssignNoType("Invalid combination for a array type.");
     }
+
+    Type checkEqualityExprType(Type tp1, Type tp2) {
+      if(tp1.equals(tp2) || tp2.equals(new NoType()))
+        return tp1;
+      else
+        return printErrAndAssignNoType("Incompatible typesfor checking equality.");
+    }
 }
 
 
@@ -222,14 +229,8 @@ expr_eq returns [Type t]:
 
 
 expr_eq_tmp returns [Type t]:
-    ('==' | '<>') tp1 = expr_cmp tp2 = expr_eq_tmp {
-      if($tp1.t.equals($tp2.t) || $tp2.t.equals(new NoType()))
-        $t = $tp1.t;
-      else {
-        $t = new NoType();
-        print("----------");
-      }
-    }
+    ('==' | '<>') tp1 = expr_cmp tp2 = expr_eq_tmp
+      {$t = checkEqualityExprType($tp1.t, $tp2.t);}
   | {$t = new NoType();}
   ;
 
