@@ -75,11 +75,20 @@ grammar ATalkPass2;
         return printErrAndAssignNoType("Invalid combination for a array type.");
     }
 
-    Type checkEqualityExprType(Type tp1, Type tp2) {
+    Type checkEqualityExprType_tmp(Type tp1, Type tp2) {
       if(tp1.equals(tp2) || tp2.equals(new NoType()))
         return tp1;
       else
-        return printErrAndAssignNoType("Incompatible typesfor checking equality.");
+        return printErrAndAssignNoType("Incompatible types for checking equality.");
+    }
+
+    Type checkEqualityExprType(Type tp1, Type tp2) {
+      if(tp1.equals(tp2))
+        return new IntType();//TODO: moshakhas konim 1 ya 0
+      else if(tp2.equals(new NoType()))//TODO: notype & notype
+        return tp1;
+      else
+        return printErrAndAssignNoType("Incompatible types for checking equality.")
     }
 }
 
@@ -215,22 +224,14 @@ expr_and_tmp returns [Type t]:
   ;
 
 expr_eq returns [Type t]:
-    tp1 = expr_cmp tp2 = expr_eq_tmp{
-      if($tp1.t.equals($tp2.t))
-        $t = new IntType();//TODO: moshakhas konim 1 ya 0
-    else if($tp2.t.equals(new NoType()))//TODO: notype & notype
-        $t = $tp1.t;
-      else {
-        $t = new NoType();
-        print("************");
-      }
-    }
+    tp1 = expr_cmp tp2 = expr_eq_tmp
+      {$t = checkEqualityExprType($tp1.t, $tp2.t);}
   ;
 
 
 expr_eq_tmp returns [Type t]:
     ('==' | '<>') tp1 = expr_cmp tp2 = expr_eq_tmp
-      {$t = checkEqualityExprType($tp1.t, $tp2.t);}
+      {$t = checkEqualityExprType_tmp($tp1.t, $tp2.t);}
   | {$t = new NoType();}
   ;
 
