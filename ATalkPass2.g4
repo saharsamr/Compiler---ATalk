@@ -90,6 +90,13 @@ grammar ATalkPass2;
       else
         return printErrAndAssignNoType("Incompatible types for checking equality.")
     }
+
+    Type assignAssignmentExprType(Type tp1, Type tp2) {
+      if(tp1.equals(tp2))
+        return tp1;
+      else
+        return printErrAndAssignNoType("Invalid assignment.");
+    }
 }
 
 
@@ -117,7 +124,8 @@ state:
   ;
 
 receiver:
-    'receiver' ID { SymbolTable.define(); } '(' (type ID { SymbolTable.define(); } (',' type ID { SymbolTable.define(); })*)? ')' NL
+    'receiver' ID { SymbolTable.define(); } '(' (type ID { SymbolTable.define(); }
+    (',' type ID { SymbolTable.define(); })*)? ')' NL
     {beginScope();}
       statements
     'end' {endScope();} NL
@@ -192,12 +200,8 @@ expr returns [Type t]:
   ;
 
 expr_assign returns [Type t]:
-    tp1 = expr_or '=' tp2 = expr_assign{
-      if($tp1.t.equals($tp2.t))
-        $t = $tp1.t;
-      else
-        $t = new NoType();
-    }
+    tp1 = expr_or '=' tp2 = expr_assign
+      {$t = assignAssignmentExprType($tp1.t, $tp2.t);}
   |  tp = expr_or {$t = $tp.t;}
   ;
 
