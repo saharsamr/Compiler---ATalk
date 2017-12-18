@@ -100,13 +100,11 @@ grammar ATalkPass2;
 }
 
 
-program:
-    {
+program: {
         print("Pass2 started -------------------------");
         beginScope();
     }
-    (actor | NL)*
-    {
+    (actor | NL)* {
         endScope();
         print("Pass2 finished -------------------------");
     }
@@ -285,8 +283,9 @@ expr_mem returns [Type t]:
     tp = expr_other dim = expr_mem_tmp {
       try{
         $t = $tp.t.dimensionAccess($dim.dimension);
-      }catch(UndefinedDemensionsException ex){$t = new NoType();
-      print("");}
+      }catch(UndefinedDemensionsException ex){
+        $t = printErrAndAssignNoType("Undefined demensions.");
+      }
     }
   ;
 
