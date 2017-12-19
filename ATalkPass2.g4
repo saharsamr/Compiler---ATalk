@@ -151,18 +151,18 @@ grammar ATalkPass2;
   		return key + ")";
     }
 
-    String makeRecieverkey(String currentActor, String senderName, String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes){
+    String makeRecieverkey(String currentActor, String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes){
       if(rcvrActor.equals("self"))
         return makeKey(currentActor, rcvrName, argumentTypes);
-      else if(rcvrActor.equals("sender"))
-        return makeKey(senderName, rcvrName, argumentTypes);
+      /*else if(rcvrActor.equals("sender"))
+        return makeKey(senderName, rcvrName, argumentTypes);*/
       else
         return makeKey(rcvrActor, rcvrName, argumentTypes);
     }
 
-    SymbolTableItemReceiver checkRecieverExistance(String currentActor, String senderName, String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes, int line)
+    SymbolTableItemReceiver checkRecieverExistance(String currentActor, String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes, int line)
     throws ReceiverDoseNotExistsException{
-      String key = makeRecieverkey(currentActor, senderName, rcvrActor, rcvrName, argumentTypes);
+      String key = makeRecieverkey(currentActor, rcvrActor, rcvrName, argumentTypes);
       return getRecieverFromSymTable(key, line);
     }
 
@@ -172,18 +172,18 @@ grammar ATalkPass2;
           throw new SenderInInitException();
     }
 
-    void checkCallValidation(String currentActor, String senderName, String rcvrActor, String rcvrName, ArrayList<Type> argumentsTypes, int line){
+    void checkCallValidation(String currentActor, String currentReceiver, String rcvrActor, String rcvrName, ArrayList<Type> argumentsTypes, int line){
       try{
-        checkInitAndSender(rcvrActor, rcvrName, argumentsTypes);
+        checkInitAndSender(rcvrActor, currentReceiver, argumentsTypes);
         if(!rcvrActor.equals("sender") && !rcvrActor.equals("self"))
           getActorFromSymTable(rcvrActor, line);
-        checkRecieverExistance(currentActor, senderName, rcvrActor, rcvrName, argumentsTypes, line);
-      }catch(ReceiverDoseNotExistsException ex){
-          printErrAndAssignNoType("Reciever: " + rcvrName + " does not exist.");
-      }catch(ActorDoesntExistsException ex){
-          printErrAndAssignNoType("Actor: " + rcvrActor + " does not exist.");
+        checkRecieverExistance(currentActor, rcvrActor, rcvrName, argumentsTypes, line);
       }catch(SenderInInitException ex){
           printErrAndAssignNoType("Invalid use of keyword <sender>.");
+      }catch(ActorDoesntExistsException ex){
+          printErrAndAssignNoType("Actor: " + rcvrActor + " does not exist.");
+      }catch(ReceiverDoseNotExistsException ex){
+          printErrAndAssignNoType("Reciever: " + rcvrName + " does not exist.");
       }
     }
 }
@@ -212,10 +212,10 @@ state:
   ;
 
 receiver[String actrName]:
-    'receiver' senderName = ID { SymbolTable.define(); } '(' (type ID { SymbolTable.define(); }
+    'receiver' currentReceiver = ID { SymbolTable.define(); } '(' (type ID { SymbolTable.define(); }
     (',' type ID { SymbolTable.define(); })*)? ')' NL
     {beginScope();}
-      statements[$senderName.text, actrName]
+      statements[$currentReceiver.text, actrName]
     'end' {endScope();} NL
   ;
 
@@ -230,31 +230,31 @@ block[String senderName, String currentActor]:
     'end' {endScope();} NL
   ;
 
-statements[String senderName, String currentActor]:
-    (statement[senderName, currentActor] | NL)*
+statements[String currentReceiver, String currentActor]:
+    (statement[currentReceiver, currentActor] | NL)*
   ;
 
-statement[String senderName, String currentActor]:
+statement[String currentReceiver, String currentActor]:
     stm_vardef
   |  stm_assignment
-  |  stm_foreach[senderName, currentActor]
-  |  stm_if_elseif_else[senderName, currentActor]
+  |  stm_foreach[currentReceiver, currentActor]
+  |  stm_if_elseif_else[currentReceiver, currentActor]
   |  stm_quit
   |  stm_break
-  |  stm_tell[senderName, currentActor]
+  |  stm_tell[currentReceiver, currentActor]
   |  stm_write
-  |  block[senderName, currentActor]
+  |  block[currentReceiver, currentActor]
   ;
 
 stm_vardef:
     type ID { SymbolTable.define(); }('=' expr)? (',' ID { SymbolTable.define(); } ('=' expr)?)* NL
   ;
 
-stm_tell[String senderName, String currentActor]:
+stm_tell[String currentReceiver, String currentActor]:
     {ArrayList<Type> argumentsTypes = new ArrayList<Type>();}
     rcvrActor = (ID | 'sender' | 'self') '<<' rcvrName = ID '(' (tp = expr {argumentsTypes.add($tp.t);}
                                                             (',' tp = expr {argumentsTypes.add($tp.t);})*)? ')' NL
-      {checkCallValidation(currentActor, senderName, $rcvrActor.text, $rcvrName.text, argumentsTypes, $rcvrName.line);}
+      {checkCallValidation(currentActor, currentReceiver, $rcvrActor.text, $rcvrName.text, argumentsTypes, $rcvrName.line);}
   ;
 
 stm_write:
@@ -262,25 +262,25 @@ stm_write:
       {checkWriteFuncArgument($tp.t);}
   ;
 
-stm_if_elseif_else[String senderName, String currentActor]:
+stm_if_elseif_else[String currentReceiver, String currentActor]:
     'if' {beginScope();} tp = expr
       {if(!$tp.t.equals(new IntType()))
           printErrAndAssignNoType("Invalid use of expression as a condition.");
       }
-     NL statements[senderName, currentActor] {endScope();}
+     NL statements[currentReceiver, currentActor] {endScope();}
     ('elseif' {beginScope();} tp = expr
       {if(!$tp.t.equals(new IntType()))
           printErrAndAssignNoType("Invalid use of expression as a condition.");
       }
-    NL statements[senderName, currentActor] {endScope();})*
-    ('else' {beginScope();} NL statements[senderName, currentActor] {endScope();})?
+    NL statements[currentReceiver, currentActor] {endScope();})*
+    ('else' {beginScope();} NL statements[currentReceiver, currentActor] {endScope();})?
     'end' NL
   ;
 
-stm_foreach[String senderName, String currentActor]:
+stm_foreach[String currentReceiver, String currentActor]:
     'foreach' {beginScope();} id = ID 'in' tp = expr NL
               {checkIterationExpr($id.text, $id.line, $tp.t);}
-      statements[senderName, currentActor]
+      statements[currentReceiver, currentActor]
     'end' {endScope();} NL
   ;
 
