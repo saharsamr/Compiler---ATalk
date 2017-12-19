@@ -1,6 +1,7 @@
 public abstract class SymbolTableVariableItemBase extends SymbolTableItem {
 
 	public SymbolTableVariableItemBase(Variable variable, int offset) {
+		super();
 		this.variable = variable;
 		this.offset = offset;
 	}

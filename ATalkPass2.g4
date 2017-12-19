@@ -59,7 +59,7 @@ grammar ATalkPass2;
         return printErrAndAssignNoType(line + ") Item " + idName + " doesnt exist.");
       else {
         SymbolTableVariableItemBase var = (SymbolTableVariableItemBase) item;
-        print(line + ") Variable " + idName + " used.\t\t" +   "Base Reg: " + var.getBaseRegister() + ", Offset: " + var.getOffset());
+        print(line + ") Variable " + idName +" used.\t\t" +   "Base Reg: " + var.getBaseRegister() + ", Offset: " + var.getOffset());
         return var.getVariable().getType();
       }
     }
@@ -152,9 +152,9 @@ grammar ATalkPass2;
     }
 
     String makeRecieverkey(String currentActor, String senderName, String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes){
-      if(rcvrActor == "self")
+      if(rcvrActor.equals("self"))
         return makeKey(currentActor, rcvrName, argumentTypes);
-      else if(rcvrActor == "sender")
+      else if(rcvrActor.equals("sender"))
         return makeKey(senderName, rcvrName, argumentTypes);
       else
         return makeKey(rcvrActor, rcvrName, argumentTypes);
@@ -167,21 +167,21 @@ grammar ATalkPass2;
     }
 
     void checkInitAndSender(String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes) throws SenderInInitException{
-      if(rcvrActor == "sender")
-        if(argumentTypes.size() == 0 && rcvrName == "init")
+      if(rcvrActor.equals("sender"))
+        if(argumentTypes.size() == 0 && rcvrName.equals("init"))
           throw new SenderInInitException();
     }
 
     void checkCallValidation(String currentActor, String senderName, String rcvrActor, String rcvrName, ArrayList<Type> argumentsTypes, int line){
       try{
         checkInitAndSender(rcvrActor, rcvrName, argumentsTypes);
-        if(rcvrActor != "sender" && rcvrActor != "self")
+        if(!rcvrActor.equals("sender") && !rcvrActor.equals("self"))
           getActorFromSymTable(rcvrActor, line);
         checkRecieverExistance(currentActor, senderName, rcvrActor, rcvrName, argumentsTypes, line);
       }catch(ReceiverDoseNotExistsException ex){
-          printErrAndAssignNoType("Reciever: " + rcvrName + "does not exist.");
+          printErrAndAssignNoType("Reciever: " + rcvrName + " does not exist.");
       }catch(ActorDoesntExistsException ex){
-          printErrAndAssignNoType("Actor: " + rcvrActor + "does not exist.");
+          printErrAndAssignNoType("Actor: " + rcvrActor + " does not exist.");
       }catch(SenderInInitException ex){
           printErrAndAssignNoType("Invalid use of keyword <sender>.");
       }
