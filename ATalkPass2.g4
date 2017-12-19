@@ -178,12 +178,12 @@ grammar ATalkPass2;
         if(!rcvrActor.equals("sender") && !rcvrActor.equals("self"))
           getActorFromSymTable(rcvrActor, line);
         checkRecieverExistance(currentActor, senderName, rcvrActor, rcvrName, argumentsTypes, line);
+      }catch(SenderInInitException ex){
+          printErrAndAssignNoType("Invalid use of keyword <sender>.");
       }catch(ReceiverDoseNotExistsException ex){
           printErrAndAssignNoType("Reciever: " + rcvrName + " does not exist.");
       }catch(ActorDoesntExistsException ex){
           printErrAndAssignNoType("Actor: " + rcvrActor + " does not exist.");
-      }catch(SenderInInitException ex){
-          printErrAndAssignNoType("Invalid use of keyword <sender>.");
       }
     }
 }
