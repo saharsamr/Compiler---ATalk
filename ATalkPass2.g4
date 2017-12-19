@@ -226,7 +226,7 @@ type returns [Type t]:
   ('[' size = CONST_NUM ']'{
     int size_arr = $size.int;
     if($size.int <= 0){
-      printErrors($size.line,"size of array is negative");
+      printErrAndAssignNoType($size.line + ") size of array is negative");
       size_arr = 0;
     }
     dims.add(size_arr);
@@ -263,8 +263,12 @@ statement[String currentReceiver, String currentActor , int argCnt]:
 stm_vardef:
     t = type ID { SymbolTable.define(); }('=' tp = expr{
         if(!$t.t.equals($tp.t))
-          printErrAndAssignNoType("Invalid assignment.")
-      })? (',' ID { SymbolTable.define(); } ('=' expr)?)* NL
+          printErrAndAssignNoType("Invalid assignment.");
+        }
+      )? (',' ID { SymbolTable.define(); } ('=' tp = expr{
+          if(!$t.t.equals($tp.t))
+            printErrAndAssignNoType("Invalid assignment.");
+          })?)* NL
   ;
 
 stm_tell[String currentReceiver, String currentActor, int argCnt]:
