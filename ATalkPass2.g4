@@ -181,8 +181,16 @@ stm_write:
   ;
 
 stm_if_elseif_else:
-    'if' {beginScope();} expr NL statements {endScope();}
-    ('elseif' {beginScope();} expr NL statements {endScope();})*
+    'if' {beginScope();} tp = expr
+      {if(!$tp.t.equals(new IntType()))
+          printErrAndAssignNoType("Invalid use of expression as a condition.");
+      }
+     NL statements {endScope();}
+    ('elseif' {beginScope();} tp = expr
+      {if(!$tp.t.equals(new IntType()))
+          printErrAndAssignNoType("Invalid use of expression as a condition.");
+      }
+    NL statements {endScope();})*
     ('else' {beginScope();} NL statements {endScope();})?
     'end' NL
   ;
