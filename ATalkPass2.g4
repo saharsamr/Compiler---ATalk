@@ -323,89 +323,92 @@ expr returns [Type t, boolean rvalue]:
 
 expr_assign returns [Type t, boolean rvalue]:
     tp1 = expr_or '=' tp2 = expr_assign
-      {$t = assignAssignmentExprType($tp1.t, $tp2.t);}
+      {if($tp1.rvalue)
+          printErrAndAssignNoType("Assignment to an rvalue.");
+        else
+          $t = assignAssignmentExprType($tp1.t, $tp2.t);}
   |  tp = expr_or {$t = $tp.t; $rvalue = $tp.rvalue;}
   ;
 
 expr_or returns [Type t, boolean rvalue]:
     tp1 = expr_and tp2 = expr_or_tmp
     {$t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");
-      $rvalue = $tp1.rvalue && $tp2.rvalue;}
+      $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
 expr_or_tmp returns [Type t, boolean rvalue]:
     'or' tp1 = expr_and tp2 = expr_or_tmp
-      {$t = assignExprType_tmp($tp1.t, "Invalid operands for <or> operator."); $rvalue = false;}
-  | {$t = new NoType(); $rvalue = true;}
+      {$t = assignExprType_tmp($tp1.t, "Invalid operands for <or> operator."); $rvalue = true;}
+  | {$t = new NoType(); $rvalue = false;}
   ;
 
 expr_and returns [Type t, boolean rvalue]:
     tp1 = expr_eq tp2 = expr_and_tmp
     {$t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");
-      $rvalue = $tp1.rvalue && $tp2.rvalue;}
+      $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
 expr_and_tmp returns [Type t, boolean rvalue]:
     'and' tp1 = expr_eq tp2 = expr_and_tmp
-      {$t = assignExprType_tmp($tp1.t, "Invalid operands for <and> operator."); $rvalue = false;}
-  | {$t = new NoType(); $rvalue = true;}
+      {$t = assignExprType_tmp($tp1.t, "Invalid operands for <and> operator."); $rvalue = true;}
+  | {$t = new NoType(); $rvalue = false;}
   ;
 
 expr_eq returns [Type t, boolean rvalue]:
     tp1 = expr_cmp tp2 = expr_eq_tmp
       {$t = checkEqualityExprType($tp1.t, $tp2.t);
-        $rvalue = $tp1.rvalue && $tp2.rvalue;}
+        $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
 
 expr_eq_tmp returns [Type t, boolean rvalue]:
     ('==' | '<>') tp1 = expr_cmp tp2 = expr_eq_tmp
-      {$t = checkEqualityExprType_tmp($tp1.t, $tp2.t); $rvalue = false;}
-  | {$t = new NoType(); $rvalue = true;}
+      {$t = checkEqualityExprType_tmp($tp1.t, $tp2.t); $rvalue = true;}
+  | {$t = new NoType(); $rvalue = false;}
   ;
 
 expr_cmp returns [Type t, boolean rvalue]:
     tp1 = expr_add tp2 = expr_cmp_tmp
     {$t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");
-      $rvalue = $tp1.rvalue && $tp2.rvalue;}
+      $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
 expr_cmp_tmp returns [Type t, boolean rvalue]:
     (cmp = '<' | cmp = '>') tp = expr_add
-      {$t = assignExprType_tmp($tp.t, $cmp.text); $rvalue = false;}
+      {$t = assignExprType_tmp($tp.t, $cmp.text); $rvalue = true;}
     expr_cmp_tmp
-  | {$t = new NoType(); $rvalue = true;}
+  | {$t = new NoType(); $rvalue = false;}
   ;
 
 expr_add returns [Type t, boolean rvalue]:
     tp1 = expr_mult tp2 = expr_add_tmp
     {$t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");
-      $rvalue = $tp1.rvalue && $tp2.rvalue;}
+      $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
 expr_add_tmp returns [Type t, boolean rvalue]:
     add = ('+' | '-') tp = expr_mult
-      {$t = assignExprType_tmp($tp.t, $add.text); $rvalue = false;}
+      {$t = assignExprType_tmp($tp.t, $add.text); $rvalue = true;}
     expr_add_tmp
-  | {$t = new NoType(); $rvalue = true;}
+  | {$t = new NoType(); $rvalue = false;}
   ;
 
 expr_mult returns [Type t, boolean rvalue]:
     tp1 = expr_un tp2 = expr_mult_tmp
     {$t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");
-     $rvalue = $tp1.rvalue && $tp2.rvalue;}
+     $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
 expr_mult_tmp returns [Type t, boolean rvalue]:
     mult = ('*' | '/') tp = expr_un
-      {$t = assignExprType_tmp($tp.t, $mult.text); $rvalue = false;}
+      {$t = assignExprType_tmp($tp.t, $mult.text); $rvalue = true;}
     expr_mult_tmp
-  | {$t = new NoType(); $rvalue = true;}
+  | {$t = new NoType(); $rvalue = false;}
   ;
 
 expr_un returns [Type t, boolean rvalue]:
     ('not' | '-') tp = expr_un
-      {$t = assignExprType_tmp($tp.t,  "Invalid arithmatic operands"); $rvalue = false;}
+      {$t = assignExprType_tmp($tp.t,  "Invalid arithmatic operands"); $rvalue = true;}
   |  tp1 = expr_mem {$t = $tp1.t; $rvalue = $tp1.rvalue;}
   ;
 
