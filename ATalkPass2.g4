@@ -134,7 +134,7 @@ grammar ATalkPass2;
     void checkWriteFuncArgument(Type tp){
       try{
         if(!(tp.equals(new IntType()) || tp.equals(new CharacterType())))
-          if(tp.dimensionAccess(1).equals(new CharacterType()))
+          if(!tp.dimensionAccess(1).equals(new CharacterType()))
             printErrAndAssignNoType("Invalid argument for function <write>.");
       }catch(UndefinedDemensionsException ex){
         printErrAndAssignNoType("Invalid argument for function <write>.");
@@ -160,10 +160,16 @@ grammar ATalkPass2;
         return makeKey(rcvrActor, rcvrName, argumentTypes);
     }
 
-    SymbolTableItemReceiver checkRecieverExistance(String actrName, String senderName, String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes, int line)
+    SymbolTableItemReceiver checkRecieverExistance(String currentActor, String senderName, String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes, int line)
     throws ReceiverDoseNotExistsException{
-      String key = makeRecieverkey(actrName, senderName, rcvrActor, rcvrName, argumentTypes);
+      String key = makeRecieverkey(currentActor, senderName, rcvrActor, rcvrName, argumentTypes);
       return getRecieverFromSymTable(key, line);
+    }
+
+    void checkInitAndSender(String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes) throws SenderInInitException{
+      if(rcvrActor == "sender")
+        if(argumentTypes.size() == 0 && rcvrName == "init")
+          throw new SenderInInitException();
     }
 }
 
@@ -235,13 +241,16 @@ stm_tell[String senderName, String currentActor]:
                                                             (',' tp = expr {argumentsTypes.add($tp.t);})*)? ')' NL
       {
         try{
-        if($rcvrActor.text != "sender" && $rcvrActor.text != "self")
-          getActorFromSymTable($rcvrActor.text, $rcvrActor.line);
-        checkRecieverExistance(currentActor, senderName, $rcvrActor.text, $rcvrName.text, argumentsTypes, $rcvrName.line);
+          checkInitAndSender($rcvrActor.text, $rcvrName.text, argumentsTypes);
+          if($rcvrActor.text != "sender" && $rcvrActor.text != "self")
+            getActorFromSymTable($rcvrActor.text, $rcvrActor.line);
+          checkRecieverExistance(currentActor, senderName, $rcvrActor.text, $rcvrName.text, argumentsTypes, $rcvrName.line);
         }catch(ReceiverDoseNotExistsException ex){
             printErrAndAssignNoType("Reciever: " + $rcvrName.text + "does not exist.");
         }catch(ActorDoesntExistsException ex){
             printErrAndAssignNoType("Actor: " + $rcvrActor.text + "does not exist.");
+        }catch(SenderInInitException ex){
+            printErrAndAssignNoType("Invalid use of keyword <sender>.");
         }
       }
   ;

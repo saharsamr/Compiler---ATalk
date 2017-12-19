@@ -233,7 +233,7 @@ public class ATalkPass2Parser extends Parser {
 	    void checkWriteFuncArgument(Type tp){
 	      try{
 	        if(!(tp.equals(new IntType()) || tp.equals(new CharacterType())))
-	          if(tp.dimensionAccess(1).equals(new CharacterType()))
+	          if(!tp.dimensionAccess(1).equals(new CharacterType()))
 	            printErrAndAssignNoType("Invalid argument for function <write>.");
 	      }catch(UndefinedDemensionsException ex){
 	        printErrAndAssignNoType("Invalid argument for function <write>.");
@@ -259,10 +259,16 @@ public class ATalkPass2Parser extends Parser {
 	        return makeKey(rcvrActor, rcvrName, argumentTypes);
 	    }
 
-	    SymbolTableItemReceiver checkRecieverExistance(String actrName, String senderName, String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes, int line)
+	    SymbolTableItemReceiver checkRecieverExistance(String currentActor, String senderName, String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes, int line)
 	    throws ReceiverDoseNotExistsException{
-	      String key = makeRecieverkey(actrName, senderName, rcvrActor, rcvrName, argumentTypes);
+	      String key = makeRecieverkey(currentActor, senderName, rcvrActor, rcvrName, argumentTypes);
 	      return getRecieverFromSymTable(key, line);
+	    }
+
+	    void checkInitAndSender(String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes) throws SenderInInitException{
+	      if(rcvrActor == "sender")
+	        if(argumentTypes.size() == 0 && rcvrName == "init")
+	          throw new SenderInInitException();
 	    }
 
 	public ATalkPass2Parser(TokenStream input) {
@@ -1204,13 +1210,16 @@ public class ATalkPass2Parser extends Parser {
 			match(NL);
 
 			        try{
-			        if((((Stm_tellContext)_localctx).rcvrActor!=null?((Stm_tellContext)_localctx).rcvrActor.getText():null) != "sender" && (((Stm_tellContext)_localctx).rcvrActor!=null?((Stm_tellContext)_localctx).rcvrActor.getText():null) != "self")
-			          getActorFromSymTable((((Stm_tellContext)_localctx).rcvrActor!=null?((Stm_tellContext)_localctx).rcvrActor.getText():null), (((Stm_tellContext)_localctx).rcvrActor!=null?((Stm_tellContext)_localctx).rcvrActor.getLine():0));
-			        checkRecieverExistance(currentActor, senderName, (((Stm_tellContext)_localctx).rcvrActor!=null?((Stm_tellContext)_localctx).rcvrActor.getText():null), (((Stm_tellContext)_localctx).rcvrName!=null?((Stm_tellContext)_localctx).rcvrName.getText():null), argumentsTypes, (((Stm_tellContext)_localctx).rcvrName!=null?((Stm_tellContext)_localctx).rcvrName.getLine():0));
+			          checkInitAndSender((((Stm_tellContext)_localctx).rcvrActor!=null?((Stm_tellContext)_localctx).rcvrActor.getText():null), (((Stm_tellContext)_localctx).rcvrName!=null?((Stm_tellContext)_localctx).rcvrName.getText():null), argumentsTypes);
+			          if((((Stm_tellContext)_localctx).rcvrActor!=null?((Stm_tellContext)_localctx).rcvrActor.getText():null) != "sender" && (((Stm_tellContext)_localctx).rcvrActor!=null?((Stm_tellContext)_localctx).rcvrActor.getText():null) != "self")
+			            getActorFromSymTable((((Stm_tellContext)_localctx).rcvrActor!=null?((Stm_tellContext)_localctx).rcvrActor.getText():null), (((Stm_tellContext)_localctx).rcvrActor!=null?((Stm_tellContext)_localctx).rcvrActor.getLine():0));
+			          checkRecieverExistance(currentActor, senderName, (((Stm_tellContext)_localctx).rcvrActor!=null?((Stm_tellContext)_localctx).rcvrActor.getText():null), (((Stm_tellContext)_localctx).rcvrName!=null?((Stm_tellContext)_localctx).rcvrName.getText():null), argumentsTypes, (((Stm_tellContext)_localctx).rcvrName!=null?((Stm_tellContext)_localctx).rcvrName.getLine():0));
 			        }catch(ReceiverDoseNotExistsException ex){
 			            printErrAndAssignNoType("Reciever: " + (((Stm_tellContext)_localctx).rcvrName!=null?((Stm_tellContext)_localctx).rcvrName.getText():null) + "does not exist.");
 			        }catch(ActorDoesntExistsException ex){
 			            printErrAndAssignNoType("Actor: " + (((Stm_tellContext)_localctx).rcvrActor!=null?((Stm_tellContext)_localctx).rcvrActor.getText():null) + "does not exist.");
+			        }catch(SenderInInitException ex){
+			            printErrAndAssignNoType("Invalid use of keyword <sender>.");
 			        }
 			      
 			}

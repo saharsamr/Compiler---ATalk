@@ -219,7 +219,7 @@ public class ATalkPass2Lexer extends Lexer {
 	    void checkWriteFuncArgument(Type tp){
 	      try{
 	        if(!(tp.equals(new IntType()) || tp.equals(new CharacterType())))
-	          if(tp.dimensionAccess(1).equals(new CharacterType()))
+	          if(!tp.dimensionAccess(1).equals(new CharacterType()))
 	            printErrAndAssignNoType("Invalid argument for function <write>.");
 	      }catch(UndefinedDemensionsException ex){
 	        printErrAndAssignNoType("Invalid argument for function <write>.");
@@ -245,10 +245,16 @@ public class ATalkPass2Lexer extends Lexer {
 	        return makeKey(rcvrActor, rcvrName, argumentTypes);
 	    }
 
-	    SymbolTableItemReceiver checkRecieverExistance(String actrName, String senderName, String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes, int line)
+	    SymbolTableItemReceiver checkRecieverExistance(String currentActor, String senderName, String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes, int line)
 	    throws ReceiverDoseNotExistsException{
-	      String key = makeRecieverkey(actrName, senderName, rcvrActor, rcvrName, argumentTypes);
+	      String key = makeRecieverkey(currentActor, senderName, rcvrActor, rcvrName, argumentTypes);
 	      return getRecieverFromSymTable(key, line);
+	    }
+
+	    void checkInitAndSender(String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes) throws SenderInInitException{
+	      if(rcvrActor == "sender")
+	        if(argumentTypes.size() == 0 && rcvrName == "init")
+	          throw new SenderInInitException();
 	    }
 
 
