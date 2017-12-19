@@ -10,7 +10,7 @@ public class SymbolTable {
 
 	private static Queue<SymbolTable> queue = new LinkedList<SymbolTable>();
 
-	private static int definitionsCount = -1;
+	private static int definitionsCount = 0;
 
 	// Use it in pass1 scope start
 	public static void push(SymbolTable symbolTable) {
