@@ -1,4 +1,7 @@
 // Generated from ATalkPass2.g4 by ANTLR 4.7
+
+      import java.util.ArrayList;
+
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Token;
@@ -146,6 +149,15 @@ public class ATalkPass2Lexer extends Lexer {
 	      }
 	    }
 
+	    SymbolTableItemReceiver getRecieverFromSymTable(String name, int line) throws ReceiverDoseNotExistsException{
+	      SymbolTableItem item = SymbolTable.top.get(name);
+	      if(item == null)
+	        throw new ReceiverDoseNotExistsException();
+	      SymbolTableItemReceiver var = (SymbolTableItemReceiver) item;
+	      /* print(line + ") Reciever " + name + " used.\t\t"); */
+	      return var;
+	    }
+
 	    int checkAndFindNumOfItemsInExplitArray(Type tp1,Type tp2, int size) {
 	      if(!tp2.equals(tp1))
 	        size = -1;
@@ -203,6 +215,31 @@ public class ATalkPass2Lexer extends Lexer {
 	      }catch(UndefinedDemensionsException ex){
 	        printErrAndAssignNoType("Invalid argument for function <write>.");
 	      }
+	    }
+
+	    String makeKey(String actr, String rcvr, ArrayList<Type> argumentTypes){
+	      String key = actr + ": " + rcvr + " (";
+	  		for (int i = 0; i < argumentTypes.size(); i++){
+	  			key += argumentTypes.get(i).toString();
+	  			if (i != argumentTypes.size() - 1)
+	  				key += ", ";
+	  		}
+	  		return key + ")";
+	    }
+
+	    String makeRecieverkey(String currentActor, String senderName, String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes){
+	      if(rcvrActor == "self")
+	        return makeKey(currentActor, rcvrName, argumentTypes);
+	      else if(rcvrActor == "sender")
+	        return makeKey(senderName, rcvrName, argumentTypes);
+	      else
+	        return makeKey(rcvrActor, rcvrName, argumentTypes);
+	    }
+
+	    SymbolTableItemReceiver checkRecieverExistance(String actrName, String senderName, String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes, int line)
+	    throws ReceiverDoseNotExistsException{
+	      String key = makeRecieverkey(actrName, senderName, rcvrActor, rcvrName, argumentTypes);
+	      return getRecieverFromSymTable(key, line);
 	    }
 
 

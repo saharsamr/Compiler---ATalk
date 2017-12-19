@@ -1,5 +1,9 @@
 grammar ATalkPass2;
 
+@header{
+      import java.util.ArrayList;
+}
+
 @members{
     void print(String str){
         System.out.println(str);
@@ -60,6 +64,15 @@ grammar ATalkPass2;
       }
     }
 
+    SymbolTableItemReceiver getRecieverFromSymTable(String name, int line) throws ReceiverDoseNotExistsException{
+      SymbolTableItem item = SymbolTable.top.get(name);
+      if(item == null)
+        throw new ReceiverDoseNotExistsException();
+      SymbolTableItemReceiver var = (SymbolTableItemReceiver) item;
+      /* print(line + ") Reciever " + name + " used.\t\t"); */
+      return var;
+    }
+
     int checkAndFindNumOfItemsInExplitArray(Type tp1,Type tp2, int size) {
       if(!tp2.equals(tp1))
         size = -1;
@@ -118,6 +131,31 @@ grammar ATalkPass2;
         printErrAndAssignNoType("Invalid argument for function <write>.");
       }
     }
+
+    String makeKey(String actr, String rcvr, ArrayList<Type> argumentTypes){
+      String key = actr + ": " + rcvr + " (";
+  		for (int i = 0; i < argumentTypes.size(); i++){
+  			key += argumentTypes.get(i).toString();
+  			if (i != argumentTypes.size() - 1)
+  				key += ", ";
+  		}
+  		return key + ")";
+    }
+
+    String makeRecieverkey(String currentActor, String senderName, String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes){
+      if(rcvrActor == "self")
+        return makeKey(currentActor, rcvrName, argumentTypes);
+      else if(rcvrActor == "sender")
+        return makeKey(senderName, rcvrName, argumentTypes);
+      else
+        return makeKey(rcvrActor, rcvrName, argumentTypes);
+    }
+
+    SymbolTableItemReceiver checkRecieverExistance(String actrName, String senderName, String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes, int line)
+    throws ReceiverDoseNotExistsException{
+      String key = makeRecieverkey(actrName, senderName, rcvrActor, rcvrName, argumentTypes);
+      return getRecieverFromSymTable(key, line);
+    }
 }
 
 
@@ -132,9 +170,9 @@ program: {
   ;
 
 actor:
-    'actor' ID '<' CONST_NUM '>' NL
+    'actor' actrName = ID '<' CONST_NUM '>' NL
     {beginScope();}
-      (state | receiver | NL)*
+      (state | receiver[$actrName.text] | NL)*
     'end' {endScope();} (NL | EOF)
   ;
 
@@ -143,11 +181,11 @@ state:
     type ID (',' ID)* NL
   ;
 
-receiver:
-    'receiver' ID { SymbolTable.define(); } '(' (type ID { SymbolTable.define(); }
+receiver[String actrName]:
+    'receiver' senderName = ID { SymbolTable.define(); } '(' (type ID { SymbolTable.define(); }
     (',' type ID { SymbolTable.define(); })*)? ')' NL
     {beginScope();}
-      statements
+      statements[$senderName.text, actrName]
     'end' {endScope();} NL
   ;
 
@@ -156,34 +194,43 @@ type: //TODO:{ $return_type = IntType.getInstance(); }
   |  'int' ('[' CONST_NUM ']')*
   ;
 
-block:
+block[String senderName, String currentActor]:
     'begin' {beginScope();} NL
-      statements
+      statements[senderName, currentActor]
     'end' {endScope();} NL
   ;
 
-statements:
-    (statement | NL)*
+statements[String senderName, String currentActor]:
+    (statement[senderName, currentActor] | NL)*
   ;
 
-statement:
+statement[String senderName, String currentActor]:
     stm_vardef
   |  stm_assignment
-  |  stm_foreach
-  |  stm_if_elseif_else
+  |  stm_foreach[senderName, currentActor]
+  |  stm_if_elseif_else[senderName, currentActor]
   |  stm_quit
   |  stm_break
-  |  stm_tell
+  |  stm_tell[senderName, currentActor]
   |  stm_write
-  |  block
+  |  block[senderName, currentActor]
   ;
 
 stm_vardef:
     type ID { SymbolTable.define(); }('=' expr)? (',' ID { SymbolTable.define(); } ('=' expr)?)* NL
   ;
 
-stm_tell:
-    (ID | 'sender' | 'self') '<<' ID '(' (expr (',' expr)*)? ')' NL
+stm_tell[String senderName, String currentActor]:
+    {ArrayList<Type> argumentsTypes = new ArrayList<Type>();}
+    rcvrActor = (ID | 'sender' | 'self') '<<' rcvrName = ID '(' (tp = expr {argumentsTypes.add($tp.t);}
+                                                            (',' tp = expr {argumentsTypes.add($tp.t);})*)? ')' NL
+      {
+        try{
+        checkRecieverExistance(currentActor, senderName, $rcvrActor.text, $rcvrName.text, argumentsTypes, $rcvrName.line);
+        }catch(ReceiverDoseNotExistsException ex){
+            printErrAndAssignNoType("Reciever: " + $rcvrName.text + "does not exist.");
+        }
+      }
   ;
 
 stm_write:
@@ -191,25 +238,25 @@ stm_write:
       {checkWriteFuncArgument($tp.t);}
   ;
 
-stm_if_elseif_else:
+stm_if_elseif_else[String senderName, String currentActor]:
     'if' {beginScope();} tp = expr
       {if(!$tp.t.equals(new IntType()))
           printErrAndAssignNoType("Invalid use of expression as a condition.");
       }
-     NL statements {endScope();}
+     NL statements[senderName, currentActor] {endScope();}
     ('elseif' {beginScope();} tp = expr
       {if(!$tp.t.equals(new IntType()))
           printErrAndAssignNoType("Invalid use of expression as a condition.");
       }
-    NL statements {endScope();})*
-    ('else' {beginScope();} NL statements {endScope();})?
+    NL statements[senderName, currentActor] {endScope();})*
+    ('else' {beginScope();} NL statements[senderName, currentActor] {endScope();})?
     'end' NL
   ;
 
-stm_foreach:
+stm_foreach[String senderName, String currentActor]:
     'foreach' {beginScope();} id = ID 'in' tp = expr NL
               {checkIterationExpr($id.text, $id.line, $tp.t);}
-      statements
+      statements[senderName, currentActor]
     'end' {endScope();} NL
   ;
 

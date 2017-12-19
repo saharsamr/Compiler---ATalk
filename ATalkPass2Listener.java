@@ -1,4 +1,7 @@
 // Generated from ATalkPass2.g4 by ANTLR 4.7
+
+      import java.util.ArrayList;
+
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**

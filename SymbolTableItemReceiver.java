@@ -15,7 +15,7 @@ public class SymbolTableItemReceiver extends SymbolTableItem {
 
 	@Override
 	public String getKey() {
-		String key = this.receiverName + " (";
+		String key = actorName + ": " + this.receiverName + " (";
 		for (int i = 0; i < argumentTypes.size(); i++){
 			key += argumentTypes.get(i).toString();
 			if (i != argumentTypes.size() - 1)
