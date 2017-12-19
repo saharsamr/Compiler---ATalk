@@ -219,9 +219,23 @@ receiver[String actrName]:
     'end' {endScope();} NL
   ;
 
-type: //TODO:{ $return_type = IntType.getInstance(); }
-    'char' ('[' CONST_NUM ']')*
-  |  'int' ('[' CONST_NUM ']')*
+
+type returns [Type t]:
+  {ArrayList<Integer> dims = new ArrayList<Integer>();}
+  (('int') {$t = new IntType();} | ('char') {$t = new CharacterType();})
+  ('[' size = CONST_NUM ']'{
+    int size_arr = $size.int;
+    if($size.int <= 0){
+      printErrors($size.line,"size of array is negative");
+      size_arr = 0;
+    }
+    dims.add(size_arr);
+  })*
+  {
+    for(int i=dims.size()-1; i >= 0; i--){
+      $t = new ArrayType(dims.get(i),$t);
+    }
+  }
   ;
 
 block[String currentReceiver, String currentActor, int argCnt]:
@@ -247,7 +261,10 @@ statement[String currentReceiver, String currentActor , int argCnt]:
   ;
 
 stm_vardef:
-    type ID { SymbolTable.define(); }('=' expr)? (',' ID { SymbolTable.define(); } ('=' expr)?)* NL
+    t = type ID { SymbolTable.define(); }('=' tp = expr{
+        if(!$t.t.equals($tp.t))
+          printErrAndAssignNoType("Invalid assignment.")
+      })? (',' ID { SymbolTable.define(); } ('=' expr)?)* NL
   ;
 
 stm_tell[String currentReceiver, String currentActor, int argCnt]:
