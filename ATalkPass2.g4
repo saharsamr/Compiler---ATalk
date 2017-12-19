@@ -108,6 +108,16 @@ grammar ATalkPass2;
         printErrAndAssignNoType("Undefined demensions.");
       }
     }
+
+    void checkWriteFuncArgument(Type tp){
+      try{
+        if(!(tp.equals(new IntType()) || tp.equals(new CharacterType())))
+          if(tp.dimensionAccess(1).equals(new CharacterType()))
+            printErrAndAssignNoType("Invalid argument for function <write>.");
+      }catch(UndefinedDemensionsException ex){
+        printErrAndAssignNoType("Invalid argument for function <write>.");
+      }
+    }
 }
 
 
@@ -177,7 +187,8 @@ stm_tell:
   ;
 
 stm_write:
-    'write' '(' expr ')' NL
+    'write' '(' tp = expr ')' NL
+      {checkWriteFuncArgument($tp.t);}
   ;
 
 stm_if_elseif_else:

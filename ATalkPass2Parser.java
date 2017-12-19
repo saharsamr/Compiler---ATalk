@@ -209,6 +209,16 @@ public class ATalkPass2Parser extends Parser {
 	      }
 	    }
 
+	    void checkWriteFuncArgument(Type tp){
+	      try{
+	        if(!(tp.equals(new IntType()) || tp.equals(new CharacterType())))
+	          if(tp.dimensionAccess(1).equals(new CharacterType()))
+	            printErrAndAssignNoType("Invalid argument for function <write>.");
+	      }catch(UndefinedDemensionsException ex){
+	        printErrAndAssignNoType("Invalid argument for function <write>.");
+	      }
+	    }
+
 	public ATalkPass2Parser(TokenStream input) {
 		super(input);
 		_interp = new ParserATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
@@ -1128,10 +1138,11 @@ public class ATalkPass2Parser extends Parser {
 	}
 
 	public static class Stm_writeContext extends ParserRuleContext {
+		public ExprContext tp;
+		public TerminalNode NL() { return getToken(ATalkPass2Parser.NL, 0); }
 		public ExprContext expr() {
 			return getRuleContext(ExprContext.class,0);
 		}
-		public TerminalNode NL() { return getToken(ATalkPass2Parser.NL, 0); }
 		public Stm_writeContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -1157,11 +1168,12 @@ public class ATalkPass2Parser extends Parser {
 			setState(220);
 			match(T__6);
 			setState(221);
-			expr();
+			((Stm_writeContext)_localctx).tp = expr();
 			setState(222);
 			match(T__7);
 			setState(223);
 			match(NL);
+			checkWriteFuncArgument(((Stm_writeContext)_localctx).tp.t);
 			}
 		}
 		catch (RecognitionException re) {
@@ -1214,63 +1226,63 @@ public class ATalkPass2Parser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(225);
+			setState(226);
 			match(T__18);
 			beginScope();
-			setState(227);
+			setState(228);
 			((Stm_if_elseif_elseContext)_localctx).tp = expr();
 			if(!((Stm_if_elseif_elseContext)_localctx).tp.t.equals(new IntType()))
 			          printErrAndAssignNoType("Invalid use of expression as a condition.");
 			      
-			setState(229);
-			match(NL);
 			setState(230);
+			match(NL);
+			setState(231);
 			statements();
 			endScope();
-			setState(242);
+			setState(243);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==T__19) {
 				{
 				{
-				setState(232);
+				setState(233);
 				match(T__19);
 				beginScope();
-				setState(234);
+				setState(235);
 				((Stm_if_elseif_elseContext)_localctx).tp = expr();
 				if(!((Stm_if_elseif_elseContext)_localctx).tp.t.equals(new IntType()))
 				          printErrAndAssignNoType("Invalid use of expression as a condition.");
 				      
-				setState(236);
-				match(NL);
 				setState(237);
+				match(NL);
+				setState(238);
 				statements();
 				endScope();
 				}
 				}
-				setState(244);
+				setState(245);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(251);
+			setState(252);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			if (_la==T__20) {
 				{
-				setState(245);
+				setState(246);
 				match(T__20);
 				beginScope();
-				setState(247);
-				match(NL);
 				setState(248);
+				match(NL);
+				setState(249);
 				statements();
 				endScope();
 				}
 			}
 
-			setState(253);
-			match(T__3);
 			setState(254);
+			match(T__3);
+			setState(255);
 			match(NL);
 			}
 		}
@@ -1319,24 +1331,24 @@ public class ATalkPass2Parser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(256);
+			setState(257);
 			match(T__21);
 			beginScope();
-			setState(258);
-			((Stm_foreachContext)_localctx).id = match(ID);
 			setState(259);
-			match(T__22);
+			((Stm_foreachContext)_localctx).id = match(ID);
 			setState(260);
-			((Stm_foreachContext)_localctx).tp = expr();
+			match(T__22);
 			setState(261);
+			((Stm_foreachContext)_localctx).tp = expr();
+			setState(262);
 			match(NL);
 			checkIterationExpr((((Stm_foreachContext)_localctx).id!=null?((Stm_foreachContext)_localctx).id.getText():null), (((Stm_foreachContext)_localctx).id!=null?((Stm_foreachContext)_localctx).id.getLine():0), ((Stm_foreachContext)_localctx).tp.t);
-			setState(263);
-			statements();
 			setState(264);
+			statements();
+			setState(265);
 			match(T__3);
 			endScope();
-			setState(266);
+			setState(267);
 			match(NL);
 			}
 		}
@@ -1373,9 +1385,9 @@ public class ATalkPass2Parser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(268);
-			match(T__23);
 			setState(269);
+			match(T__23);
+			setState(270);
 			match(NL);
 			}
 		}
@@ -1412,9 +1424,9 @@ public class ATalkPass2Parser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(271);
-			match(T__24);
 			setState(272);
+			match(T__24);
+			setState(273);
 			match(NL);
 			}
 		}
@@ -1454,9 +1466,9 @@ public class ATalkPass2Parser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(274);
-			expr();
 			setState(275);
+			expr();
+			setState(276);
 			match(NL);
 			}
 		}
@@ -1497,7 +1509,7 @@ public class ATalkPass2Parser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(277);
+			setState(278);
 			((ExprContext)_localctx).tp = expr_assign();
 			((ExprContext)_localctx).t =  ((ExprContext)_localctx).tp.t;
 			}
@@ -1542,17 +1554,17 @@ public class ATalkPass2Parser extends Parser {
 		Expr_assignContext _localctx = new Expr_assignContext(_ctx, getState());
 		enterRule(_localctx, 34, RULE_expr_assign);
 		try {
-			setState(288);
+			setState(289);
 			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,20,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(280);
-				((Expr_assignContext)_localctx).tp1 = expr_or();
 				setState(281);
-				match(T__13);
+				((Expr_assignContext)_localctx).tp1 = expr_or();
 				setState(282);
+				match(T__13);
+				setState(283);
 				((Expr_assignContext)_localctx).tp2 = expr_assign();
 				((Expr_assignContext)_localctx).t =  assignAssignmentExprType(((Expr_assignContext)_localctx).tp1.t, ((Expr_assignContext)_localctx).tp2.t);
 				}
@@ -1560,7 +1572,7 @@ public class ATalkPass2Parser extends Parser {
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(285);
+				setState(286);
 				((Expr_assignContext)_localctx).tp = expr_or();
 				((Expr_assignContext)_localctx).t =  ((Expr_assignContext)_localctx).tp.t;
 				}
@@ -1608,9 +1620,9 @@ public class ATalkPass2Parser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(290);
-			((Expr_orContext)_localctx).tp1 = expr_and();
 			setState(291);
+			((Expr_orContext)_localctx).tp1 = expr_and();
+			setState(292);
 			((Expr_orContext)_localctx).tp2 = expr_or_tmp();
 			((Expr_orContext)_localctx).t =  assignExprType (((Expr_orContext)_localctx).tp1.t, ((Expr_orContext)_localctx).tp2.t, "Invalid arithmatic operands");
 			}
@@ -1654,17 +1666,17 @@ public class ATalkPass2Parser extends Parser {
 		Expr_or_tmpContext _localctx = new Expr_or_tmpContext(_ctx, getState());
 		enterRule(_localctx, 38, RULE_expr_or_tmp);
 		try {
-			setState(300);
+			setState(301);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case T__25:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(294);
-				match(T__25);
 				setState(295);
-				((Expr_or_tmpContext)_localctx).tp1 = expr_and();
+				match(T__25);
 				setState(296);
+				((Expr_or_tmpContext)_localctx).tp1 = expr_and();
+				setState(297);
 				((Expr_or_tmpContext)_localctx).tp2 = expr_or_tmp();
 				((Expr_or_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_or_tmpContext)_localctx).tp1.t, "Invalid operands for <or> operator.");
 				}
@@ -1725,9 +1737,9 @@ public class ATalkPass2Parser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(302);
-			((Expr_andContext)_localctx).tp1 = expr_eq();
 			setState(303);
+			((Expr_andContext)_localctx).tp1 = expr_eq();
+			setState(304);
 			((Expr_andContext)_localctx).tp2 = expr_and_tmp();
 			((Expr_andContext)_localctx).t =  assignExprType (((Expr_andContext)_localctx).tp1.t, ((Expr_andContext)_localctx).tp2.t, "Invalid arithmatic operands");
 			}
@@ -1771,17 +1783,17 @@ public class ATalkPass2Parser extends Parser {
 		Expr_and_tmpContext _localctx = new Expr_and_tmpContext(_ctx, getState());
 		enterRule(_localctx, 42, RULE_expr_and_tmp);
 		try {
-			setState(312);
+			setState(313);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case T__26:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(306);
-				match(T__26);
 				setState(307);
-				((Expr_and_tmpContext)_localctx).tp1 = expr_eq();
+				match(T__26);
 				setState(308);
+				((Expr_and_tmpContext)_localctx).tp1 = expr_eq();
+				setState(309);
 				((Expr_and_tmpContext)_localctx).tp2 = expr_and_tmp();
 				((Expr_and_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_and_tmpContext)_localctx).tp1.t, "Invalid operands for <and> operator.");
 				}
@@ -1843,9 +1855,9 @@ public class ATalkPass2Parser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(314);
-			((Expr_eqContext)_localctx).tp1 = expr_cmp();
 			setState(315);
+			((Expr_eqContext)_localctx).tp1 = expr_cmp();
+			setState(316);
 			((Expr_eqContext)_localctx).tp2 = expr_eq_tmp();
 			((Expr_eqContext)_localctx).t =  checkEqualityExprType(((Expr_eqContext)_localctx).tp1.t, ((Expr_eqContext)_localctx).tp2.t);
 			}
@@ -1890,14 +1902,14 @@ public class ATalkPass2Parser extends Parser {
 		enterRule(_localctx, 46, RULE_expr_eq_tmp);
 		int _la;
 		try {
-			setState(324);
+			setState(325);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case T__27:
 			case T__28:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(318);
+				setState(319);
 				_la = _input.LA(1);
 				if ( !(_la==T__27 || _la==T__28) ) {
 				_errHandler.recoverInline(this);
@@ -1907,9 +1919,9 @@ public class ATalkPass2Parser extends Parser {
 					_errHandler.reportMatch(this);
 					consume();
 				}
-				setState(319);
-				((Expr_eq_tmpContext)_localctx).tp1 = expr_cmp();
 				setState(320);
+				((Expr_eq_tmpContext)_localctx).tp1 = expr_cmp();
+				setState(321);
 				((Expr_eq_tmpContext)_localctx).tp2 = expr_eq_tmp();
 				((Expr_eq_tmpContext)_localctx).t =  checkEqualityExprType_tmp(((Expr_eq_tmpContext)_localctx).tp1.t, ((Expr_eq_tmpContext)_localctx).tp2.t);
 				}
@@ -1972,9 +1984,9 @@ public class ATalkPass2Parser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(326);
-			((Expr_cmpContext)_localctx).tp1 = expr_add();
 			setState(327);
+			((Expr_cmpContext)_localctx).tp1 = expr_add();
+			setState(328);
 			((Expr_cmpContext)_localctx).tp2 = expr_cmp_tmp();
 			((Expr_cmpContext)_localctx).t =  assignExprType (((Expr_cmpContext)_localctx).tp1.t, ((Expr_cmpContext)_localctx).tp2.t, "Invalid arithmatic operands");
 			}
@@ -2018,35 +2030,35 @@ public class ATalkPass2Parser extends Parser {
 		Expr_cmp_tmpContext _localctx = new Expr_cmp_tmpContext(_ctx, getState());
 		enterRule(_localctx, 50, RULE_expr_cmp_tmp);
 		try {
-			setState(339);
+			setState(340);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case T__1:
 			case T__2:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(332);
+				setState(333);
 				_errHandler.sync(this);
 				switch (_input.LA(1)) {
 				case T__1:
 					{
-					setState(330);
+					setState(331);
 					((Expr_cmp_tmpContext)_localctx).cmp = match(T__1);
 					}
 					break;
 				case T__2:
 					{
-					setState(331);
+					setState(332);
 					((Expr_cmp_tmpContext)_localctx).cmp = match(T__2);
 					}
 					break;
 				default:
 					throw new NoViableAltException(this);
 				}
-				setState(334);
+				setState(335);
 				((Expr_cmp_tmpContext)_localctx).tp = expr_add();
 				((Expr_cmp_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_cmp_tmpContext)_localctx).tp.t, (((Expr_cmp_tmpContext)_localctx).cmp!=null?((Expr_cmp_tmpContext)_localctx).cmp.getText():null));
-				setState(336);
+				setState(337);
 				expr_cmp_tmp();
 				}
 				break;
@@ -2110,9 +2122,9 @@ public class ATalkPass2Parser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(341);
-			((Expr_addContext)_localctx).tp1 = expr_mult();
 			setState(342);
+			((Expr_addContext)_localctx).tp1 = expr_mult();
+			setState(343);
 			((Expr_addContext)_localctx).tp2 = expr_add_tmp();
 			((Expr_addContext)_localctx).t =  assignExprType (((Expr_addContext)_localctx).tp1.t, ((Expr_addContext)_localctx).tp2.t, "Invalid arithmatic operands");
 			}
@@ -2157,14 +2169,14 @@ public class ATalkPass2Parser extends Parser {
 		enterRule(_localctx, 54, RULE_expr_add_tmp);
 		int _la;
 		try {
-			setState(351);
+			setState(352);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case T__29:
 			case T__30:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(345);
+				setState(346);
 				((Expr_add_tmpContext)_localctx).add = _input.LT(1);
 				_la = _input.LA(1);
 				if ( !(_la==T__29 || _la==T__30) ) {
@@ -2175,10 +2187,10 @@ public class ATalkPass2Parser extends Parser {
 					_errHandler.reportMatch(this);
 					consume();
 				}
-				setState(346);
+				setState(347);
 				((Expr_add_tmpContext)_localctx).tp = expr_mult();
 				((Expr_add_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_add_tmpContext)_localctx).tp.t, (((Expr_add_tmpContext)_localctx).add!=null?((Expr_add_tmpContext)_localctx).add.getText():null));
-				setState(348);
+				setState(349);
 				expr_add_tmp();
 				}
 				break;
@@ -2244,9 +2256,9 @@ public class ATalkPass2Parser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(353);
-			((Expr_multContext)_localctx).tp1 = expr_un();
 			setState(354);
+			((Expr_multContext)_localctx).tp1 = expr_un();
+			setState(355);
 			((Expr_multContext)_localctx).tp2 = expr_mult_tmp();
 			((Expr_multContext)_localctx).t =  assignExprType (((Expr_multContext)_localctx).tp1.t, ((Expr_multContext)_localctx).tp2.t, "Invalid arithmatic operands");
 			}
@@ -2291,14 +2303,14 @@ public class ATalkPass2Parser extends Parser {
 		enterRule(_localctx, 58, RULE_expr_mult_tmp);
 		int _la;
 		try {
-			setState(363);
+			setState(364);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case T__31:
 			case T__32:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(357);
+				setState(358);
 				((Expr_mult_tmpContext)_localctx).mult = _input.LT(1);
 				_la = _input.LA(1);
 				if ( !(_la==T__31 || _la==T__32) ) {
@@ -2309,10 +2321,10 @@ public class ATalkPass2Parser extends Parser {
 					_errHandler.reportMatch(this);
 					consume();
 				}
-				setState(358);
+				setState(359);
 				((Expr_mult_tmpContext)_localctx).tp = expr_un();
 				((Expr_mult_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_mult_tmpContext)_localctx).tp.t, (((Expr_mult_tmpContext)_localctx).mult!=null?((Expr_mult_tmpContext)_localctx).mult.getText():null));
-				setState(360);
+				setState(361);
 				expr_mult_tmp();
 				}
 				break;
@@ -2379,14 +2391,14 @@ public class ATalkPass2Parser extends Parser {
 		enterRule(_localctx, 60, RULE_expr_un);
 		int _la;
 		try {
-			setState(372);
+			setState(373);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case T__30:
 			case T__33:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(365);
+				setState(366);
 				_la = _input.LA(1);
 				if ( !(_la==T__30 || _la==T__33) ) {
 				_errHandler.recoverInline(this);
@@ -2396,7 +2408,7 @@ public class ATalkPass2Parser extends Parser {
 					_errHandler.reportMatch(this);
 					consume();
 				}
-				setState(366);
+				setState(367);
 				((Expr_unContext)_localctx).tp = expr_un();
 				((Expr_unContext)_localctx).t =  assignExprType_tmp(((Expr_unContext)_localctx).tp.t,  "Invalid arithmatic operands");
 				}
@@ -2410,7 +2422,7 @@ public class ATalkPass2Parser extends Parser {
 			case ID:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(369);
+				setState(370);
 				((Expr_unContext)_localctx).tp1 = expr_mem();
 				((Expr_unContext)_localctx).t =  ((Expr_unContext)_localctx).tp1.t;
 				}
@@ -2460,9 +2472,9 @@ public class ATalkPass2Parser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(374);
-			((Expr_memContext)_localctx).tp = expr_other();
 			setState(375);
+			((Expr_memContext)_localctx).tp = expr_other();
+			setState(376);
 			((Expr_memContext)_localctx).dim = expr_mem_tmp();
 
 			      try{
@@ -2512,23 +2524,23 @@ public class ATalkPass2Parser extends Parser {
 		Expr_mem_tmpContext _localctx = new Expr_mem_tmpContext(_ctx, getState());
 		enterRule(_localctx, 64, RULE_expr_mem_tmp);
 		try {
-			setState(386);
+			setState(387);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case T__9:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(378);
-				match(T__9);
 				setState(379);
+				match(T__9);
+				setState(380);
 				((Expr_mem_tmpContext)_localctx).tp = expr();
 
 				      if(!((Expr_mem_tmpContext)_localctx).tp.t.equals(new IntType()))
 				        print("invalid index.");
 				      
-				setState(381);
-				match(T__10);
 				setState(382);
+				match(T__10);
+				setState(383);
 				((Expr_mem_tmpContext)_localctx).d = expr_mem_tmp();
 				((Expr_mem_tmpContext)_localctx).dimension =  ((Expr_mem_tmpContext)_localctx).d.dimension + 1;
 				}
@@ -2606,13 +2618,13 @@ public class ATalkPass2Parser extends Parser {
 		enterRule(_localctx, 66, RULE_expr_other);
 		int _la;
 		try {
-			setState(421);
+			setState(422);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case CONST_NUM:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(388);
+				setState(389);
 				match(CONST_NUM);
 				((Expr_otherContext)_localctx).t =  new IntType();
 				}
@@ -2620,7 +2632,7 @@ public class ATalkPass2Parser extends Parser {
 			case CONST_CHAR:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(390);
+				setState(391);
 				match(CONST_CHAR);
 				((Expr_otherContext)_localctx).t =  new CharacterType();
 				}
@@ -2628,7 +2640,7 @@ public class ATalkPass2Parser extends Parser {
 			case CONST_STR:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(392);
+				setState(393);
 				((Expr_otherContext)_localctx).str = match(CONST_STR);
 				((Expr_otherContext)_localctx).t =  new ArrayType((((Expr_otherContext)_localctx).str!=null?((Expr_otherContext)_localctx).str.getText():null).length()-2, new CharacterType());
 				}
@@ -2636,7 +2648,7 @@ public class ATalkPass2Parser extends Parser {
 			case ID:
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(394);
+				setState(395);
 				((Expr_otherContext)_localctx).id = match(ID);
 				((Expr_otherContext)_localctx).t =  getIDFromSymTable((((Expr_otherContext)_localctx).id!=null?((Expr_otherContext)_localctx).id.getText():null), (((Expr_otherContext)_localctx).id!=null?((Expr_otherContext)_localctx).id.getLine():0));
 				}
@@ -2644,43 +2656,43 @@ public class ATalkPass2Parser extends Parser {
 			case T__34:
 				enterOuterAlt(_localctx, 5);
 				{
-				setState(396);
-				match(T__34);
 				setState(397);
+				match(T__34);
+				setState(398);
 				((Expr_otherContext)_localctx).tp1 = expr();
 				int size = 1;
-				setState(405);
+				setState(406);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				while (_la==T__4) {
 					{
 					{
-					setState(399);
-					match(T__4);
 					setState(400);
+					match(T__4);
+					setState(401);
 					((Expr_otherContext)_localctx).tp2 = expr();
 					size = checkAndFindNumOfItemsInExplitArray(((Expr_otherContext)_localctx).tp1.t, ((Expr_otherContext)_localctx).tp2.t, size);
 					}
 					}
-					setState(407);
+					setState(408);
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 				}
 				((Expr_otherContext)_localctx).t =  assignExplitArrayType(size, ((Expr_otherContext)_localctx).tp1.t);
-				setState(409);
+				setState(410);
 				match(T__35);
 				}
 				break;
 			case T__36:
 				enterOuterAlt(_localctx, 6);
 				{
-				setState(411);
-				match(T__36);
 				setState(412);
-				match(T__6);
+				match(T__36);
 				setState(413);
-				((Expr_otherContext)_localctx).size = match(CONST_NUM);
+				match(T__6);
 				setState(414);
+				((Expr_otherContext)_localctx).size = match(CONST_NUM);
+				setState(415);
 				match(T__7);
 				((Expr_otherContext)_localctx).t =  new ArrayType((((Expr_otherContext)_localctx).size!=null?Integer.valueOf(((Expr_otherContext)_localctx).size.getText()):0), new CharacterType());
 				}
@@ -2688,11 +2700,11 @@ public class ATalkPass2Parser extends Parser {
 			case T__6:
 				enterOuterAlt(_localctx, 7);
 				{
-				setState(416);
-				match(T__6);
 				setState(417);
-				((Expr_otherContext)_localctx).tp = expr();
+				match(T__6);
 				setState(418);
+				((Expr_otherContext)_localctx).tp = expr();
+				setState(419);
 				match(T__7);
 				((Expr_otherContext)_localctx).t =  ((Expr_otherContext)_localctx).tp.t;
 				}
@@ -2713,7 +2725,7 @@ public class ATalkPass2Parser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3.\u01aa\4\2\t\2\4"+
+		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3.\u01ab\4\2\t\2\4"+
 		"\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t"+
 		"\13\4\f\t\f\4\r\t\r\4\16\t\16\4\17\t\17\4\20\t\20\4\21\t\21\4\22\t\22"+
 		"\4\23\t\23\4\24\t\24\4\25\t\25\4\26\t\26\4\27\t\27\4\30\t\30\4\31\t\31"+
@@ -2729,30 +2741,30 @@ public class ATalkPass2Parser extends Parser {
 		"\n\3\n\5\n\u00bd\n\n\3\n\3\n\3\n\3\n\3\n\5\n\u00c4\n\n\7\n\u00c6\n\n\f"+
 		"\n\16\n\u00c9\13\n\3\n\3\n\3\13\3\13\3\13\3\13\3\13\3\13\3\13\7\13\u00d4"+
 		"\n\13\f\13\16\13\u00d7\13\13\5\13\u00d9\n\13\3\13\3\13\3\13\3\f\3\f\3"+
-		"\f\3\f\3\f\3\f\3\r\3\r\3\r\3\r\3\r\3\r\3\r\3\r\3\r\3\r\3\r\3\r\3\r\3\r"+
-		"\3\r\7\r\u00f3\n\r\f\r\16\r\u00f6\13\r\3\r\3\r\3\r\3\r\3\r\3\r\5\r\u00fe"+
-		"\n\r\3\r\3\r\3\r\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16"+
-		"\3\16\3\17\3\17\3\17\3\20\3\20\3\20\3\21\3\21\3\21\3\22\3\22\3\22\3\23"+
-		"\3\23\3\23\3\23\3\23\3\23\3\23\3\23\5\23\u0123\n\23\3\24\3\24\3\24\3\24"+
-		"\3\25\3\25\3\25\3\25\3\25\3\25\5\25\u012f\n\25\3\26\3\26\3\26\3\26\3\27"+
-		"\3\27\3\27\3\27\3\27\3\27\5\27\u013b\n\27\3\30\3\30\3\30\3\30\3\31\3\31"+
-		"\3\31\3\31\3\31\3\31\5\31\u0147\n\31\3\32\3\32\3\32\3\32\3\33\3\33\5\33"+
-		"\u014f\n\33\3\33\3\33\3\33\3\33\3\33\5\33\u0156\n\33\3\34\3\34\3\34\3"+
-		"\34\3\35\3\35\3\35\3\35\3\35\3\35\5\35\u0162\n\35\3\36\3\36\3\36\3\36"+
-		"\3\37\3\37\3\37\3\37\3\37\3\37\5\37\u016e\n\37\3 \3 \3 \3 \3 \3 \3 \5"+
-		" \u0177\n \3!\3!\3!\3!\3\"\3\"\3\"\3\"\3\"\3\"\3\"\3\"\5\"\u0185\n\"\3"+
-		"#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\7#\u0196\n#\f#\16#\u0199\13"+
-		"#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\5#\u01a8\n#\3#\2\2$\2\4\6\b\n"+
-		"\f\16\20\22\24\26\30\32\34\36 \"$&(*,.\60\62\64\668:<>@BD\2\b\3\3++\4"+
-		"\2\21\22,,\3\2\36\37\3\2 !\3\2\"#\4\2!!$$\2\u01b4\2F\3\2\2\2\4P\3\2\2"+
-		"\2\6c\3\2\2\2\bn\3\2\2\2\n\u009b\3\2\2\2\f\u009d\3\2\2\2\16\u00a9\3\2"+
-		"\2\2\20\u00b5\3\2\2\2\22\u00b7\3\2\2\2\24\u00cc\3\2\2\2\26\u00dd\3\2\2"+
-		"\2\30\u00e3\3\2\2\2\32\u0102\3\2\2\2\34\u010e\3\2\2\2\36\u0111\3\2\2\2"+
-		" \u0114\3\2\2\2\"\u0117\3\2\2\2$\u0122\3\2\2\2&\u0124\3\2\2\2(\u012e\3"+
-		"\2\2\2*\u0130\3\2\2\2,\u013a\3\2\2\2.\u013c\3\2\2\2\60\u0146\3\2\2\2\62"+
-		"\u0148\3\2\2\2\64\u0155\3\2\2\2\66\u0157\3\2\2\28\u0161\3\2\2\2:\u0163"+
-		"\3\2\2\2<\u016d\3\2\2\2>\u0176\3\2\2\2@\u0178\3\2\2\2B\u0184\3\2\2\2D"+
-		"\u01a7\3\2\2\2FK\b\2\1\2GJ\5\4\3\2HJ\7+\2\2IG\3\2\2\2IH\3\2\2\2JM\3\2"+
+		"\f\3\f\3\f\3\f\3\f\3\r\3\r\3\r\3\r\3\r\3\r\3\r\3\r\3\r\3\r\3\r\3\r\3\r"+
+		"\3\r\3\r\7\r\u00f4\n\r\f\r\16\r\u00f7\13\r\3\r\3\r\3\r\3\r\3\r\3\r\5\r"+
+		"\u00ff\n\r\3\r\3\r\3\r\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3"+
+		"\16\3\16\3\16\3\17\3\17\3\17\3\20\3\20\3\20\3\21\3\21\3\21\3\22\3\22\3"+
+		"\22\3\23\3\23\3\23\3\23\3\23\3\23\3\23\3\23\5\23\u0124\n\23\3\24\3\24"+
+		"\3\24\3\24\3\25\3\25\3\25\3\25\3\25\3\25\5\25\u0130\n\25\3\26\3\26\3\26"+
+		"\3\26\3\27\3\27\3\27\3\27\3\27\3\27\5\27\u013c\n\27\3\30\3\30\3\30\3\30"+
+		"\3\31\3\31\3\31\3\31\3\31\3\31\5\31\u0148\n\31\3\32\3\32\3\32\3\32\3\33"+
+		"\3\33\5\33\u0150\n\33\3\33\3\33\3\33\3\33\3\33\5\33\u0157\n\33\3\34\3"+
+		"\34\3\34\3\34\3\35\3\35\3\35\3\35\3\35\3\35\5\35\u0163\n\35\3\36\3\36"+
+		"\3\36\3\36\3\37\3\37\3\37\3\37\3\37\3\37\5\37\u016f\n\37\3 \3 \3 \3 \3"+
+		" \3 \3 \5 \u0178\n \3!\3!\3!\3!\3\"\3\"\3\"\3\"\3\"\3\"\3\"\3\"\5\"\u0186"+
+		"\n\"\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\7#\u0197\n#\f#\16#\u019a"+
+		"\13#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\3#\5#\u01a9\n#\3#\2\2$\2\4\6"+
+		"\b\n\f\16\20\22\24\26\30\32\34\36 \"$&(*,.\60\62\64\668:<>@BD\2\b\3\3"+
+		"++\4\2\21\22,,\3\2\36\37\3\2 !\3\2\"#\4\2!!$$\2\u01b5\2F\3\2\2\2\4P\3"+
+		"\2\2\2\6c\3\2\2\2\bn\3\2\2\2\n\u009b\3\2\2\2\f\u009d\3\2\2\2\16\u00a9"+
+		"\3\2\2\2\20\u00b5\3\2\2\2\22\u00b7\3\2\2\2\24\u00cc\3\2\2\2\26\u00dd\3"+
+		"\2\2\2\30\u00e4\3\2\2\2\32\u0103\3\2\2\2\34\u010f\3\2\2\2\36\u0112\3\2"+
+		"\2\2 \u0115\3\2\2\2\"\u0118\3\2\2\2$\u0123\3\2\2\2&\u0125\3\2\2\2(\u012f"+
+		"\3\2\2\2*\u0131\3\2\2\2,\u013b\3\2\2\2.\u013d\3\2\2\2\60\u0147\3\2\2\2"+
+		"\62\u0149\3\2\2\2\64\u0156\3\2\2\2\66\u0158\3\2\2\28\u0162\3\2\2\2:\u0164"+
+		"\3\2\2\2<\u016e\3\2\2\2>\u0177\3\2\2\2@\u0179\3\2\2\2B\u0185\3\2\2\2D"+
+		"\u01a8\3\2\2\2FK\b\2\1\2GJ\5\4\3\2HJ\7+\2\2IG\3\2\2\2IH\3\2\2\2JM\3\2"+
 		"\2\2KI\3\2\2\2KL\3\2\2\2LN\3\2\2\2MK\3\2\2\2NO\b\2\1\2O\3\3\2\2\2PQ\7"+
 		"\3\2\2QR\7,\2\2RS\7\4\2\2ST\7(\2\2TU\7\5\2\2UV\7+\2\2V\\\b\3\1\2W[\5\6"+
 		"\4\2X[\5\b\5\2Y[\7+\2\2ZW\3\2\2\2ZX\3\2\2\2ZY\3\2\2\2[^\3\2\2\2\\Z\3\2"+
@@ -2794,70 +2806,70 @@ public class ATalkPass2Parser extends Parser {
 		"\3\2\2\2\u00d7\u00d5\3\2\2\2\u00d8\u00d0\3\2\2\2\u00d8\u00d9\3\2\2\2\u00d9"+
 		"\u00da\3\2\2\2\u00da\u00db\7\n\2\2\u00db\u00dc\7+\2\2\u00dc\25\3\2\2\2"+
 		"\u00dd\u00de\7\24\2\2\u00de\u00df\7\t\2\2\u00df\u00e0\5\"\22\2\u00e0\u00e1"+
-		"\7\n\2\2\u00e1\u00e2\7+\2\2\u00e2\27\3\2\2\2\u00e3\u00e4\7\25\2\2\u00e4"+
-		"\u00e5\b\r\1\2\u00e5\u00e6\5\"\22\2\u00e6\u00e7\b\r\1\2\u00e7\u00e8\7"+
-		"+\2\2\u00e8\u00e9\5\16\b\2\u00e9\u00f4\b\r\1\2\u00ea\u00eb\7\26\2\2\u00eb"+
-		"\u00ec\b\r\1\2\u00ec\u00ed\5\"\22\2\u00ed\u00ee\b\r\1\2\u00ee\u00ef\7"+
-		"+\2\2\u00ef\u00f0\5\16\b\2\u00f0\u00f1\b\r\1\2\u00f1\u00f3\3\2\2\2\u00f2"+
-		"\u00ea\3\2\2\2\u00f3\u00f6\3\2\2\2\u00f4\u00f2\3\2\2\2\u00f4\u00f5\3\2"+
-		"\2\2\u00f5\u00fd\3\2\2\2\u00f6\u00f4\3\2\2\2\u00f7\u00f8\7\27\2\2\u00f8"+
-		"\u00f9\b\r\1\2\u00f9\u00fa\7+\2\2\u00fa\u00fb\5\16\b\2\u00fb\u00fc\b\r"+
-		"\1\2\u00fc\u00fe\3\2\2\2\u00fd\u00f7\3\2\2\2\u00fd\u00fe\3\2\2\2\u00fe"+
-		"\u00ff\3\2\2\2\u00ff\u0100\7\6\2\2\u0100\u0101\7+\2\2\u0101\31\3\2\2\2"+
-		"\u0102\u0103\7\30\2\2\u0103\u0104\b\16\1\2\u0104\u0105\7,\2\2\u0105\u0106"+
-		"\7\31\2\2\u0106\u0107\5\"\22\2\u0107\u0108\7+\2\2\u0108\u0109\b\16\1\2"+
-		"\u0109\u010a\5\16\b\2\u010a\u010b\7\6\2\2\u010b\u010c\b\16\1\2\u010c\u010d"+
-		"\7+\2\2\u010d\33\3\2\2\2\u010e\u010f\7\32\2\2\u010f\u0110\7+\2\2\u0110"+
-		"\35\3\2\2\2\u0111\u0112\7\33\2\2\u0112\u0113\7+\2\2\u0113\37\3\2\2\2\u0114"+
-		"\u0115\5\"\22\2\u0115\u0116\7+\2\2\u0116!\3\2\2\2\u0117\u0118\5$\23\2"+
-		"\u0118\u0119\b\22\1\2\u0119#\3\2\2\2\u011a\u011b\5&\24\2\u011b\u011c\7"+
-		"\20\2\2\u011c\u011d\5$\23\2\u011d\u011e\b\23\1\2\u011e\u0123\3\2\2\2\u011f"+
-		"\u0120\5&\24\2\u0120\u0121\b\23\1\2\u0121\u0123\3\2\2\2\u0122\u011a\3"+
-		"\2\2\2\u0122\u011f\3\2\2\2\u0123%\3\2\2\2\u0124\u0125\5*\26\2\u0125\u0126"+
-		"\5(\25\2\u0126\u0127\b\24\1\2\u0127\'\3\2\2\2\u0128\u0129\7\34\2\2\u0129"+
-		"\u012a\5*\26\2\u012a\u012b\5(\25\2\u012b\u012c\b\25\1\2\u012c\u012f\3"+
-		"\2\2\2\u012d\u012f\b\25\1\2\u012e\u0128\3\2\2\2\u012e\u012d\3\2\2\2\u012f"+
-		")\3\2\2\2\u0130\u0131\5.\30\2\u0131\u0132\5,\27\2\u0132\u0133\b\26\1\2"+
-		"\u0133+\3\2\2\2\u0134\u0135\7\35\2\2\u0135\u0136\5.\30\2\u0136\u0137\5"+
-		",\27\2\u0137\u0138\b\27\1\2\u0138\u013b\3\2\2\2\u0139\u013b\b\27\1\2\u013a"+
-		"\u0134\3\2\2\2\u013a\u0139\3\2\2\2\u013b-\3\2\2\2\u013c\u013d\5\62\32"+
-		"\2\u013d\u013e\5\60\31\2\u013e\u013f\b\30\1\2\u013f/\3\2\2\2\u0140\u0141"+
-		"\t\4\2\2\u0141\u0142\5\62\32\2\u0142\u0143\5\60\31\2\u0143\u0144\b\31"+
-		"\1\2\u0144\u0147\3\2\2\2\u0145\u0147\b\31\1\2\u0146\u0140\3\2\2\2\u0146"+
-		"\u0145\3\2\2\2\u0147\61\3\2\2\2\u0148\u0149\5\66\34\2\u0149\u014a\5\64"+
-		"\33\2\u014a\u014b\b\32\1\2\u014b\63\3\2\2\2\u014c\u014f\7\4\2\2\u014d"+
-		"\u014f\7\5\2\2\u014e\u014c\3\2\2\2\u014e\u014d\3\2\2\2\u014f\u0150\3\2"+
-		"\2\2\u0150\u0151\5\66\34\2\u0151\u0152\b\33\1\2\u0152\u0153\5\64\33\2"+
-		"\u0153\u0156\3\2\2\2\u0154\u0156\b\33\1\2\u0155\u014e\3\2\2\2\u0155\u0154"+
-		"\3\2\2\2\u0156\65\3\2\2\2\u0157\u0158\5:\36\2\u0158\u0159\58\35\2\u0159"+
-		"\u015a\b\34\1\2\u015a\67\3\2\2\2\u015b\u015c\t\5\2\2\u015c\u015d\5:\36"+
-		"\2\u015d\u015e\b\35\1\2\u015e\u015f\58\35\2\u015f\u0162\3\2\2\2\u0160"+
-		"\u0162\b\35\1\2\u0161\u015b\3\2\2\2\u0161\u0160\3\2\2\2\u01629\3\2\2\2"+
-		"\u0163\u0164\5> \2\u0164\u0165\5<\37\2\u0165\u0166\b\36\1\2\u0166;\3\2"+
-		"\2\2\u0167\u0168\t\6\2\2\u0168\u0169\5> \2\u0169\u016a\b\37\1\2\u016a"+
-		"\u016b\5<\37\2\u016b\u016e\3\2\2\2\u016c\u016e\b\37\1\2\u016d\u0167\3"+
-		"\2\2\2\u016d\u016c\3\2\2\2\u016e=\3\2\2\2\u016f\u0170\t\7\2\2\u0170\u0171"+
-		"\5> \2\u0171\u0172\b \1\2\u0172\u0177\3\2\2\2\u0173\u0174\5@!\2\u0174"+
-		"\u0175\b \1\2\u0175\u0177\3\2\2\2\u0176\u016f\3\2\2\2\u0176\u0173\3\2"+
-		"\2\2\u0177?\3\2\2\2\u0178\u0179\5D#\2\u0179\u017a\5B\"\2\u017a\u017b\b"+
-		"!\1\2\u017bA\3\2\2\2\u017c\u017d\7\f\2\2\u017d\u017e\5\"\22\2\u017e\u017f"+
-		"\b\"\1\2\u017f\u0180\7\r\2\2\u0180\u0181\5B\"\2\u0181\u0182\b\"\1\2\u0182"+
-		"\u0185\3\2\2\2\u0183\u0185\b\"\1\2\u0184\u017c\3\2\2\2\u0184\u0183\3\2"+
-		"\2\2\u0185C\3\2\2\2\u0186\u0187\7(\2\2\u0187\u01a8\b#\1\2\u0188\u0189"+
-		"\7)\2\2\u0189\u01a8\b#\1\2\u018a\u018b\7*\2\2\u018b\u01a8\b#\1\2\u018c"+
-		"\u018d\7,\2\2\u018d\u01a8\b#\1\2\u018e\u018f\7%\2\2\u018f\u0190\5\"\22"+
-		"\2\u0190\u0197\b#\1\2\u0191\u0192\7\7\2\2\u0192\u0193\5\"\22\2\u0193\u0194"+
-		"\b#\1\2\u0194\u0196\3\2\2\2\u0195\u0191\3\2\2\2\u0196\u0199\3\2\2\2\u0197"+
-		"\u0195\3\2\2\2\u0197\u0198\3\2\2\2\u0198\u019a\3\2\2\2\u0199\u0197\3\2"+
-		"\2\2\u019a\u019b\b#\1\2\u019b\u019c\7&\2\2\u019c\u01a8\3\2\2\2\u019d\u019e"+
-		"\7\'\2\2\u019e\u019f\7\t\2\2\u019f\u01a0\7(\2\2\u01a0\u01a1\7\n\2\2\u01a1"+
-		"\u01a8\b#\1\2\u01a2\u01a3\7\t\2\2\u01a3\u01a4\5\"\22\2\u01a4\u01a5\7\n"+
-		"\2\2\u01a5\u01a6\b#\1\2\u01a6\u01a8\3\2\2\2\u01a7\u0186\3\2\2\2\u01a7"+
-		"\u0188\3\2\2\2\u01a7\u018a\3\2\2\2\u01a7\u018c\3\2\2\2\u01a7\u018e\3\2"+
-		"\2\2\u01a7\u019d\3\2\2\2\u01a7\u01a2\3\2\2\2\u01a8E\3\2\2\2\"IKZ\\i|\177"+
-		"\u008f\u0098\u009b\u00a7\u00a9\u00b5\u00bc\u00c3\u00c7\u00d5\u00d8\u00f4"+
-		"\u00fd\u0122\u012e\u013a\u0146\u014e\u0155\u0161\u016d\u0176\u0184\u0197"+
-		"\u01a7";
+		"\7\n\2\2\u00e1\u00e2\7+\2\2\u00e2\u00e3\b\f\1\2\u00e3\27\3\2\2\2\u00e4"+
+		"\u00e5\7\25\2\2\u00e5\u00e6\b\r\1\2\u00e6\u00e7\5\"\22\2\u00e7\u00e8\b"+
+		"\r\1\2\u00e8\u00e9\7+\2\2\u00e9\u00ea\5\16\b\2\u00ea\u00f5\b\r\1\2\u00eb"+
+		"\u00ec\7\26\2\2\u00ec\u00ed\b\r\1\2\u00ed\u00ee\5\"\22\2\u00ee\u00ef\b"+
+		"\r\1\2\u00ef\u00f0\7+\2\2\u00f0\u00f1\5\16\b\2\u00f1\u00f2\b\r\1\2\u00f2"+
+		"\u00f4\3\2\2\2\u00f3\u00eb\3\2\2\2\u00f4\u00f7\3\2\2\2\u00f5\u00f3\3\2"+
+		"\2\2\u00f5\u00f6\3\2\2\2\u00f6\u00fe\3\2\2\2\u00f7\u00f5\3\2\2\2\u00f8"+
+		"\u00f9\7\27\2\2\u00f9\u00fa\b\r\1\2\u00fa\u00fb\7+\2\2\u00fb\u00fc\5\16"+
+		"\b\2\u00fc\u00fd\b\r\1\2\u00fd\u00ff\3\2\2\2\u00fe\u00f8\3\2\2\2\u00fe"+
+		"\u00ff\3\2\2\2\u00ff\u0100\3\2\2\2\u0100\u0101\7\6\2\2\u0101\u0102\7+"+
+		"\2\2\u0102\31\3\2\2\2\u0103\u0104\7\30\2\2\u0104\u0105\b\16\1\2\u0105"+
+		"\u0106\7,\2\2\u0106\u0107\7\31\2\2\u0107\u0108\5\"\22\2\u0108\u0109\7"+
+		"+\2\2\u0109\u010a\b\16\1\2\u010a\u010b\5\16\b\2\u010b\u010c\7\6\2\2\u010c"+
+		"\u010d\b\16\1\2\u010d\u010e\7+\2\2\u010e\33\3\2\2\2\u010f\u0110\7\32\2"+
+		"\2\u0110\u0111\7+\2\2\u0111\35\3\2\2\2\u0112\u0113\7\33\2\2\u0113\u0114"+
+		"\7+\2\2\u0114\37\3\2\2\2\u0115\u0116\5\"\22\2\u0116\u0117\7+\2\2\u0117"+
+		"!\3\2\2\2\u0118\u0119\5$\23\2\u0119\u011a\b\22\1\2\u011a#\3\2\2\2\u011b"+
+		"\u011c\5&\24\2\u011c\u011d\7\20\2\2\u011d\u011e\5$\23\2\u011e\u011f\b"+
+		"\23\1\2\u011f\u0124\3\2\2\2\u0120\u0121\5&\24\2\u0121\u0122\b\23\1\2\u0122"+
+		"\u0124\3\2\2\2\u0123\u011b\3\2\2\2\u0123\u0120\3\2\2\2\u0124%\3\2\2\2"+
+		"\u0125\u0126\5*\26\2\u0126\u0127\5(\25\2\u0127\u0128\b\24\1\2\u0128\'"+
+		"\3\2\2\2\u0129\u012a\7\34\2\2\u012a\u012b\5*\26\2\u012b\u012c\5(\25\2"+
+		"\u012c\u012d\b\25\1\2\u012d\u0130\3\2\2\2\u012e\u0130\b\25\1\2\u012f\u0129"+
+		"\3\2\2\2\u012f\u012e\3\2\2\2\u0130)\3\2\2\2\u0131\u0132\5.\30\2\u0132"+
+		"\u0133\5,\27\2\u0133\u0134\b\26\1\2\u0134+\3\2\2\2\u0135\u0136\7\35\2"+
+		"\2\u0136\u0137\5.\30\2\u0137\u0138\5,\27\2\u0138\u0139\b\27\1\2\u0139"+
+		"\u013c\3\2\2\2\u013a\u013c\b\27\1\2\u013b\u0135\3\2\2\2\u013b\u013a\3"+
+		"\2\2\2\u013c-\3\2\2\2\u013d\u013e\5\62\32\2\u013e\u013f\5\60\31\2\u013f"+
+		"\u0140\b\30\1\2\u0140/\3\2\2\2\u0141\u0142\t\4\2\2\u0142\u0143\5\62\32"+
+		"\2\u0143\u0144\5\60\31\2\u0144\u0145\b\31\1\2\u0145\u0148\3\2\2\2\u0146"+
+		"\u0148\b\31\1\2\u0147\u0141\3\2\2\2\u0147\u0146\3\2\2\2\u0148\61\3\2\2"+
+		"\2\u0149\u014a\5\66\34\2\u014a\u014b\5\64\33\2\u014b\u014c\b\32\1\2\u014c"+
+		"\63\3\2\2\2\u014d\u0150\7\4\2\2\u014e\u0150\7\5\2\2\u014f\u014d\3\2\2"+
+		"\2\u014f\u014e\3\2\2\2\u0150\u0151\3\2\2\2\u0151\u0152\5\66\34\2\u0152"+
+		"\u0153\b\33\1\2\u0153\u0154\5\64\33\2\u0154\u0157\3\2\2\2\u0155\u0157"+
+		"\b\33\1\2\u0156\u014f\3\2\2\2\u0156\u0155\3\2\2\2\u0157\65\3\2\2\2\u0158"+
+		"\u0159\5:\36\2\u0159\u015a\58\35\2\u015a\u015b\b\34\1\2\u015b\67\3\2\2"+
+		"\2\u015c\u015d\t\5\2\2\u015d\u015e\5:\36\2\u015e\u015f\b\35\1\2\u015f"+
+		"\u0160\58\35\2\u0160\u0163\3\2\2\2\u0161\u0163\b\35\1\2\u0162\u015c\3"+
+		"\2\2\2\u0162\u0161\3\2\2\2\u01639\3\2\2\2\u0164\u0165\5> \2\u0165\u0166"+
+		"\5<\37\2\u0166\u0167\b\36\1\2\u0167;\3\2\2\2\u0168\u0169\t\6\2\2\u0169"+
+		"\u016a\5> \2\u016a\u016b\b\37\1\2\u016b\u016c\5<\37\2\u016c\u016f\3\2"+
+		"\2\2\u016d\u016f\b\37\1\2\u016e\u0168\3\2\2\2\u016e\u016d\3\2\2\2\u016f"+
+		"=\3\2\2\2\u0170\u0171\t\7\2\2\u0171\u0172\5> \2\u0172\u0173\b \1\2\u0173"+
+		"\u0178\3\2\2\2\u0174\u0175\5@!\2\u0175\u0176\b \1\2\u0176\u0178\3\2\2"+
+		"\2\u0177\u0170\3\2\2\2\u0177\u0174\3\2\2\2\u0178?\3\2\2\2\u0179\u017a"+
+		"\5D#\2\u017a\u017b\5B\"\2\u017b\u017c\b!\1\2\u017cA\3\2\2\2\u017d\u017e"+
+		"\7\f\2\2\u017e\u017f\5\"\22\2\u017f\u0180\b\"\1\2\u0180\u0181\7\r\2\2"+
+		"\u0181\u0182\5B\"\2\u0182\u0183\b\"\1\2\u0183\u0186\3\2\2\2\u0184\u0186"+
+		"\b\"\1\2\u0185\u017d\3\2\2\2\u0185\u0184\3\2\2\2\u0186C\3\2\2\2\u0187"+
+		"\u0188\7(\2\2\u0188\u01a9\b#\1\2\u0189\u018a\7)\2\2\u018a\u01a9\b#\1\2"+
+		"\u018b\u018c\7*\2\2\u018c\u01a9\b#\1\2\u018d\u018e\7,\2\2\u018e\u01a9"+
+		"\b#\1\2\u018f\u0190\7%\2\2\u0190\u0191\5\"\22\2\u0191\u0198\b#\1\2\u0192"+
+		"\u0193\7\7\2\2\u0193\u0194\5\"\22\2\u0194\u0195\b#\1\2\u0195\u0197\3\2"+
+		"\2\2\u0196\u0192\3\2\2\2\u0197\u019a\3\2\2\2\u0198\u0196\3\2\2\2\u0198"+
+		"\u0199\3\2\2\2\u0199\u019b\3\2\2\2\u019a\u0198\3\2\2\2\u019b\u019c\b#"+
+		"\1\2\u019c\u019d\7&\2\2\u019d\u01a9\3\2\2\2\u019e\u019f\7\'\2\2\u019f"+
+		"\u01a0\7\t\2\2\u01a0\u01a1\7(\2\2\u01a1\u01a2\7\n\2\2\u01a2\u01a9\b#\1"+
+		"\2\u01a3\u01a4\7\t\2\2\u01a4\u01a5\5\"\22\2\u01a5\u01a6\7\n\2\2\u01a6"+
+		"\u01a7\b#\1\2\u01a7\u01a9\3\2\2\2\u01a8\u0187\3\2\2\2\u01a8\u0189\3\2"+
+		"\2\2\u01a8\u018b\3\2\2\2\u01a8\u018d\3\2\2\2\u01a8\u018f\3\2\2\2\u01a8"+
+		"\u019e\3\2\2\2\u01a8\u01a3\3\2\2\2\u01a9E\3\2\2\2\"IKZ\\i|\177\u008f\u0098"+
+		"\u009b\u00a7\u00a9\u00b5\u00bc\u00c3\u00c7\u00d5\u00d8\u00f5\u00fe\u0123"+
+		"\u012f\u013b\u0147\u014f\u0156\u0162\u016e\u0177\u0185\u0198\u01a8";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

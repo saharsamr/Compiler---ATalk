@@ -195,6 +195,16 @@ public class ATalkPass2Lexer extends Lexer {
 	      }
 	    }
 
+	    void checkWriteFuncArgument(Type tp){
+	      try{
+	        if(!(tp.equals(new IntType()) || tp.equals(new CharacterType())))
+	          if(tp.dimensionAccess(1).equals(new CharacterType()))
+	            printErrAndAssignNoType("Invalid argument for function <write>.");
+	      }catch(UndefinedDemensionsException ex){
+	        printErrAndAssignNoType("Invalid argument for function <write>.");
+	      }
+	    }
+
 
 	public ATalkPass2Lexer(CharStream input) {
 		super(input);
