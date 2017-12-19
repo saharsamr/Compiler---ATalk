@@ -184,6 +184,17 @@ public class ATalkPass2Lexer extends Lexer {
 	        return printErrAndAssignNoType("Invalid assignment.");
 	    }
 
+	    void checkIterationExpr(String id, int line, Type tp){
+	      try{
+	      Type t = getIDFromSymTable(id, line);
+	      tp = tp.dimensionAccess(1);
+	      if(!t.equals(new NoType()))
+	        printErrAndAssignNoType("variable <" + id + "> already declared in this scope.");
+	      }catch(UndefinedDemensionsException ex){
+	        printErrAndAssignNoType("Undefined demensions.");
+	      }
+	    }
+
 
 	public ATalkPass2Lexer(CharStream input) {
 		super(input);

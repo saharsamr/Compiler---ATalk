@@ -97,6 +97,17 @@ grammar ATalkPass2;
       else
         return printErrAndAssignNoType("Invalid assignment.");
     }
+
+    void checkIterationExpr(String id, int line, Type tp){
+      try{
+      Type t = getIDFromSymTable(id, line);
+      tp = tp.dimensionAccess(1);
+      if(!t.equals(new NoType()))
+        printErrAndAssignNoType("variable <" + id + "> already declared in this scope.");
+      }catch(UndefinedDemensionsException ex){
+        printErrAndAssignNoType("Undefined demensions.");
+      }
+    }
 }
 
 
@@ -118,7 +129,8 @@ actor:
   ;
 
 state:
-    type ID { SymbolTable.define(); } (',' ID { SymbolTable.define(); })* NL
+    /* type ID { SymbolTable.define(); } (',' ID { SymbolTable.define(); })* NL */
+    type ID (',' ID)* NL
   ;
 
 receiver:
@@ -176,7 +188,8 @@ stm_if_elseif_else:
   ;
 
 stm_foreach:
-    'foreach' {beginScope();} ID 'in' expr NL
+    'foreach' {beginScope();} id = ID 'in' tp = expr NL
+              {checkIterationExpr($id.text, $id.line, $tp.t);}
       statements
     'end' {endScope();} NL
   ;
