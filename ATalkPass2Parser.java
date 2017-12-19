@@ -271,6 +271,21 @@ public class ATalkPass2Parser extends Parser {
 	          throw new SenderInInitException();
 	    }
 
+	    void checkCallValidation(String currentActor, String senderName, String rcvrActor, String rcvrName, ArrayList<Type> argumentsTypes, int line){
+	      try{
+	        checkInitAndSender(rcvrActor, rcvrName, argumentsTypes);
+	        if(rcvrActor != "sender" && rcvrActor != "self")
+	          getActorFromSymTable(rcvrActor, line);
+	        checkRecieverExistance(currentActor, senderName, rcvrActor, rcvrName, argumentsTypes, line);
+	      }catch(ReceiverDoseNotExistsException ex){
+	          printErrAndAssignNoType("Reciever: " + rcvrName + "does not exist.");
+	      }catch(ActorDoesntExistsException ex){
+	          printErrAndAssignNoType("Actor: " + rcvrActor + "does not exist.");
+	      }catch(SenderInInitException ex){
+	          printErrAndAssignNoType("Invalid use of keyword <sender>.");
+	      }
+	    }
+
 	public ATalkPass2Parser(TokenStream input) {
 		super(input);
 		_interp = new ParserATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
@@ -1208,20 +1223,7 @@ public class ATalkPass2Parser extends Parser {
 			match(T__7);
 			setState(221);
 			match(NL);
-
-			        try{
-			          checkInitAndSender((((Stm_tellContext)_localctx).rcvrActor!=null?((Stm_tellContext)_localctx).rcvrActor.getText():null), (((Stm_tellContext)_localctx).rcvrName!=null?((Stm_tellContext)_localctx).rcvrName.getText():null), argumentsTypes);
-			          if((((Stm_tellContext)_localctx).rcvrActor!=null?((Stm_tellContext)_localctx).rcvrActor.getText():null) != "sender" && (((Stm_tellContext)_localctx).rcvrActor!=null?((Stm_tellContext)_localctx).rcvrActor.getText():null) != "self")
-			            getActorFromSymTable((((Stm_tellContext)_localctx).rcvrActor!=null?((Stm_tellContext)_localctx).rcvrActor.getText():null), (((Stm_tellContext)_localctx).rcvrActor!=null?((Stm_tellContext)_localctx).rcvrActor.getLine():0));
-			          checkRecieverExistance(currentActor, senderName, (((Stm_tellContext)_localctx).rcvrActor!=null?((Stm_tellContext)_localctx).rcvrActor.getText():null), (((Stm_tellContext)_localctx).rcvrName!=null?((Stm_tellContext)_localctx).rcvrName.getText():null), argumentsTypes, (((Stm_tellContext)_localctx).rcvrName!=null?((Stm_tellContext)_localctx).rcvrName.getLine():0));
-			        }catch(ReceiverDoseNotExistsException ex){
-			            printErrAndAssignNoType("Reciever: " + (((Stm_tellContext)_localctx).rcvrName!=null?((Stm_tellContext)_localctx).rcvrName.getText():null) + "does not exist.");
-			        }catch(ActorDoesntExistsException ex){
-			            printErrAndAssignNoType("Actor: " + (((Stm_tellContext)_localctx).rcvrActor!=null?((Stm_tellContext)_localctx).rcvrActor.getText():null) + "does not exist.");
-			        }catch(SenderInInitException ex){
-			            printErrAndAssignNoType("Invalid use of keyword <sender>.");
-			        }
-			      
+			checkCallValidation(currentActor, senderName, (((Stm_tellContext)_localctx).rcvrActor!=null?((Stm_tellContext)_localctx).rcvrActor.getText():null), (((Stm_tellContext)_localctx).rcvrName!=null?((Stm_tellContext)_localctx).rcvrName.getText():null), argumentsTypes, (((Stm_tellContext)_localctx).rcvrName!=null?((Stm_tellContext)_localctx).rcvrName.getLine():0));
 			}
 		}
 		catch (RecognitionException re) {
@@ -1593,6 +1595,7 @@ public class ATalkPass2Parser extends Parser {
 
 	public static class ExprContext extends ParserRuleContext {
 		public Type t;
+		public boolean rvalue;
 		public Expr_assignContext tp;
 		public Expr_assignContext expr_assign() {
 			return getRuleContext(Expr_assignContext.class,0);
@@ -1619,7 +1622,7 @@ public class ATalkPass2Parser extends Parser {
 			{
 			setState(283);
 			((ExprContext)_localctx).tp = expr_assign();
-			((ExprContext)_localctx).t =  ((ExprContext)_localctx).tp.t;
+			((ExprContext)_localctx).t =  ((ExprContext)_localctx).tp.t; ((ExprContext)_localctx).rvalue =  ((ExprContext)_localctx).tp.rvalue;
 			}
 		}
 		catch (RecognitionException re) {
@@ -1635,6 +1638,7 @@ public class ATalkPass2Parser extends Parser {
 
 	public static class Expr_assignContext extends ParserRuleContext {
 		public Type t;
+		public boolean rvalue;
 		public Expr_orContext tp1;
 		public Expr_assignContext tp2;
 		public Expr_orContext tp;
@@ -1682,7 +1686,7 @@ public class ATalkPass2Parser extends Parser {
 				{
 				setState(291);
 				((Expr_assignContext)_localctx).tp = expr_or();
-				((Expr_assignContext)_localctx).t =  ((Expr_assignContext)_localctx).tp.t;
+				((Expr_assignContext)_localctx).t =  ((Expr_assignContext)_localctx).tp.t; ((Expr_assignContext)_localctx).rvalue =  ((Expr_assignContext)_localctx).tp.rvalue;
 				}
 				break;
 			}
@@ -1700,6 +1704,7 @@ public class ATalkPass2Parser extends Parser {
 
 	public static class Expr_orContext extends ParserRuleContext {
 		public Type t;
+		public boolean rvalue;
 		public Expr_andContext tp1;
 		public Expr_or_tmpContext tp2;
 		public Expr_andContext expr_and() {
@@ -1733,6 +1738,7 @@ public class ATalkPass2Parser extends Parser {
 			setState(297);
 			((Expr_orContext)_localctx).tp2 = expr_or_tmp();
 			((Expr_orContext)_localctx).t =  assignExprType (((Expr_orContext)_localctx).tp1.t, ((Expr_orContext)_localctx).tp2.t, "Invalid arithmatic operands");
+			      ((Expr_orContext)_localctx).rvalue =  ((Expr_orContext)_localctx).tp1.rvalue && ((Expr_orContext)_localctx).tp2.rvalue;
 			}
 		}
 		catch (RecognitionException re) {
@@ -1748,6 +1754,7 @@ public class ATalkPass2Parser extends Parser {
 
 	public static class Expr_or_tmpContext extends ParserRuleContext {
 		public Type t;
+		public boolean rvalue;
 		public Expr_andContext tp1;
 		public Expr_or_tmpContext tp2;
 		public Expr_andContext expr_and() {
@@ -1786,7 +1793,7 @@ public class ATalkPass2Parser extends Parser {
 				((Expr_or_tmpContext)_localctx).tp1 = expr_and();
 				setState(302);
 				((Expr_or_tmpContext)_localctx).tp2 = expr_or_tmp();
-				((Expr_or_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_or_tmpContext)_localctx).tp1.t, "Invalid operands for <or> operator.");
+				((Expr_or_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_or_tmpContext)_localctx).tp1.t, "Invalid operands for <or> operator."); ((Expr_or_tmpContext)_localctx).rvalue =  false;
 				}
 				break;
 			case T__4:
@@ -1797,7 +1804,7 @@ public class ATalkPass2Parser extends Parser {
 			case NL:
 				enterOuterAlt(_localctx, 2);
 				{
-				((Expr_or_tmpContext)_localctx).t =  new NoType();
+				((Expr_or_tmpContext)_localctx).t =  new NoType(); ((Expr_or_tmpContext)_localctx).rvalue =  true;
 				}
 				break;
 			default:
@@ -1817,6 +1824,7 @@ public class ATalkPass2Parser extends Parser {
 
 	public static class Expr_andContext extends ParserRuleContext {
 		public Type t;
+		public boolean rvalue;
 		public Expr_eqContext tp1;
 		public Expr_and_tmpContext tp2;
 		public Expr_eqContext expr_eq() {
@@ -1850,6 +1858,7 @@ public class ATalkPass2Parser extends Parser {
 			setState(309);
 			((Expr_andContext)_localctx).tp2 = expr_and_tmp();
 			((Expr_andContext)_localctx).t =  assignExprType (((Expr_andContext)_localctx).tp1.t, ((Expr_andContext)_localctx).tp2.t, "Invalid arithmatic operands");
+			      ((Expr_andContext)_localctx).rvalue =  ((Expr_andContext)_localctx).tp1.rvalue && ((Expr_andContext)_localctx).tp2.rvalue;
 			}
 		}
 		catch (RecognitionException re) {
@@ -1865,6 +1874,7 @@ public class ATalkPass2Parser extends Parser {
 
 	public static class Expr_and_tmpContext extends ParserRuleContext {
 		public Type t;
+		public boolean rvalue;
 		public Expr_eqContext tp1;
 		public Expr_and_tmpContext tp2;
 		public Expr_eqContext expr_eq() {
@@ -1903,7 +1913,7 @@ public class ATalkPass2Parser extends Parser {
 				((Expr_and_tmpContext)_localctx).tp1 = expr_eq();
 				setState(314);
 				((Expr_and_tmpContext)_localctx).tp2 = expr_and_tmp();
-				((Expr_and_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_and_tmpContext)_localctx).tp1.t, "Invalid operands for <and> operator.");
+				((Expr_and_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_and_tmpContext)_localctx).tp1.t, "Invalid operands for <and> operator."); ((Expr_and_tmpContext)_localctx).rvalue =  false;
 				}
 				break;
 			case T__4:
@@ -1915,7 +1925,7 @@ public class ATalkPass2Parser extends Parser {
 			case NL:
 				enterOuterAlt(_localctx, 2);
 				{
-				((Expr_and_tmpContext)_localctx).t =  new NoType();
+				((Expr_and_tmpContext)_localctx).t =  new NoType(); ((Expr_and_tmpContext)_localctx).rvalue =  true;
 				}
 				break;
 			default:
@@ -1935,6 +1945,7 @@ public class ATalkPass2Parser extends Parser {
 
 	public static class Expr_eqContext extends ParserRuleContext {
 		public Type t;
+		public boolean rvalue;
 		public Expr_cmpContext tp1;
 		public Expr_eq_tmpContext tp2;
 		public Expr_cmpContext expr_cmp() {
@@ -1968,6 +1979,7 @@ public class ATalkPass2Parser extends Parser {
 			setState(321);
 			((Expr_eqContext)_localctx).tp2 = expr_eq_tmp();
 			((Expr_eqContext)_localctx).t =  checkEqualityExprType(((Expr_eqContext)_localctx).tp1.t, ((Expr_eqContext)_localctx).tp2.t);
+			        ((Expr_eqContext)_localctx).rvalue =  ((Expr_eqContext)_localctx).tp1.rvalue && ((Expr_eqContext)_localctx).tp2.rvalue;
 			}
 		}
 		catch (RecognitionException re) {
@@ -1983,6 +1995,7 @@ public class ATalkPass2Parser extends Parser {
 
 	public static class Expr_eq_tmpContext extends ParserRuleContext {
 		public Type t;
+		public boolean rvalue;
 		public Expr_cmpContext tp1;
 		public Expr_eq_tmpContext tp2;
 		public Expr_cmpContext expr_cmp() {
@@ -2031,7 +2044,7 @@ public class ATalkPass2Parser extends Parser {
 				((Expr_eq_tmpContext)_localctx).tp1 = expr_cmp();
 				setState(326);
 				((Expr_eq_tmpContext)_localctx).tp2 = expr_eq_tmp();
-				((Expr_eq_tmpContext)_localctx).t =  checkEqualityExprType_tmp(((Expr_eq_tmpContext)_localctx).tp1.t, ((Expr_eq_tmpContext)_localctx).tp2.t);
+				((Expr_eq_tmpContext)_localctx).t =  checkEqualityExprType_tmp(((Expr_eq_tmpContext)_localctx).tp1.t, ((Expr_eq_tmpContext)_localctx).tp2.t); ((Expr_eq_tmpContext)_localctx).rvalue =  false;
 				}
 				break;
 			case T__4:
@@ -2044,7 +2057,7 @@ public class ATalkPass2Parser extends Parser {
 			case NL:
 				enterOuterAlt(_localctx, 2);
 				{
-				((Expr_eq_tmpContext)_localctx).t =  new NoType();
+				((Expr_eq_tmpContext)_localctx).t =  new NoType(); ((Expr_eq_tmpContext)_localctx).rvalue =  true;
 				}
 				break;
 			default:
@@ -2064,6 +2077,7 @@ public class ATalkPass2Parser extends Parser {
 
 	public static class Expr_cmpContext extends ParserRuleContext {
 		public Type t;
+		public boolean rvalue;
 		public Expr_addContext tp1;
 		public Expr_cmp_tmpContext tp2;
 		public Expr_addContext expr_add() {
@@ -2097,6 +2111,7 @@ public class ATalkPass2Parser extends Parser {
 			setState(333);
 			((Expr_cmpContext)_localctx).tp2 = expr_cmp_tmp();
 			((Expr_cmpContext)_localctx).t =  assignExprType (((Expr_cmpContext)_localctx).tp1.t, ((Expr_cmpContext)_localctx).tp2.t, "Invalid arithmatic operands");
+			      ((Expr_cmpContext)_localctx).rvalue =  ((Expr_cmpContext)_localctx).tp1.rvalue && ((Expr_cmpContext)_localctx).tp2.rvalue;
 			}
 		}
 		catch (RecognitionException re) {
@@ -2112,6 +2127,7 @@ public class ATalkPass2Parser extends Parser {
 
 	public static class Expr_cmp_tmpContext extends ParserRuleContext {
 		public Type t;
+		public boolean rvalue;
 		public Token cmp;
 		public Expr_addContext tp;
 		public Expr_cmp_tmpContext expr_cmp_tmp() {
@@ -2165,7 +2181,7 @@ public class ATalkPass2Parser extends Parser {
 				}
 				setState(340);
 				((Expr_cmp_tmpContext)_localctx).tp = expr_add();
-				((Expr_cmp_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_cmp_tmpContext)_localctx).tp.t, (((Expr_cmp_tmpContext)_localctx).cmp!=null?((Expr_cmp_tmpContext)_localctx).cmp.getText():null));
+				((Expr_cmp_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_cmp_tmpContext)_localctx).tp.t, (((Expr_cmp_tmpContext)_localctx).cmp!=null?((Expr_cmp_tmpContext)_localctx).cmp.getText():null)); ((Expr_cmp_tmpContext)_localctx).rvalue =  false;
 				setState(342);
 				expr_cmp_tmp();
 				}
@@ -2182,7 +2198,7 @@ public class ATalkPass2Parser extends Parser {
 			case NL:
 				enterOuterAlt(_localctx, 2);
 				{
-				((Expr_cmp_tmpContext)_localctx).t =  new NoType();
+				((Expr_cmp_tmpContext)_localctx).t =  new NoType(); ((Expr_cmp_tmpContext)_localctx).rvalue =  true;
 				}
 				break;
 			default:
@@ -2202,6 +2218,7 @@ public class ATalkPass2Parser extends Parser {
 
 	public static class Expr_addContext extends ParserRuleContext {
 		public Type t;
+		public boolean rvalue;
 		public Expr_multContext tp1;
 		public Expr_add_tmpContext tp2;
 		public Expr_multContext expr_mult() {
@@ -2235,6 +2252,7 @@ public class ATalkPass2Parser extends Parser {
 			setState(348);
 			((Expr_addContext)_localctx).tp2 = expr_add_tmp();
 			((Expr_addContext)_localctx).t =  assignExprType (((Expr_addContext)_localctx).tp1.t, ((Expr_addContext)_localctx).tp2.t, "Invalid arithmatic operands");
+			      ((Expr_addContext)_localctx).rvalue =  ((Expr_addContext)_localctx).tp1.rvalue && ((Expr_addContext)_localctx).tp2.rvalue;
 			}
 		}
 		catch (RecognitionException re) {
@@ -2250,6 +2268,7 @@ public class ATalkPass2Parser extends Parser {
 
 	public static class Expr_add_tmpContext extends ParserRuleContext {
 		public Type t;
+		public boolean rvalue;
 		public Token add;
 		public Expr_multContext tp;
 		public Expr_add_tmpContext expr_add_tmp() {
@@ -2297,7 +2316,7 @@ public class ATalkPass2Parser extends Parser {
 				}
 				setState(352);
 				((Expr_add_tmpContext)_localctx).tp = expr_mult();
-				((Expr_add_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_add_tmpContext)_localctx).tp.t, (((Expr_add_tmpContext)_localctx).add!=null?((Expr_add_tmpContext)_localctx).add.getText():null));
+				((Expr_add_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_add_tmpContext)_localctx).tp.t, (((Expr_add_tmpContext)_localctx).add!=null?((Expr_add_tmpContext)_localctx).add.getText():null)); ((Expr_add_tmpContext)_localctx).rvalue =  false;
 				setState(354);
 				expr_add_tmp();
 				}
@@ -2316,7 +2335,7 @@ public class ATalkPass2Parser extends Parser {
 			case NL:
 				enterOuterAlt(_localctx, 2);
 				{
-				((Expr_add_tmpContext)_localctx).t =  new NoType();
+				((Expr_add_tmpContext)_localctx).t =  new NoType(); ((Expr_add_tmpContext)_localctx).rvalue =  true;
 				}
 				break;
 			default:
@@ -2336,6 +2355,7 @@ public class ATalkPass2Parser extends Parser {
 
 	public static class Expr_multContext extends ParserRuleContext {
 		public Type t;
+		public boolean rvalue;
 		public Expr_unContext tp1;
 		public Expr_mult_tmpContext tp2;
 		public Expr_unContext expr_un() {
@@ -2369,6 +2389,7 @@ public class ATalkPass2Parser extends Parser {
 			setState(360);
 			((Expr_multContext)_localctx).tp2 = expr_mult_tmp();
 			((Expr_multContext)_localctx).t =  assignExprType (((Expr_multContext)_localctx).tp1.t, ((Expr_multContext)_localctx).tp2.t, "Invalid arithmatic operands");
+			     ((Expr_multContext)_localctx).rvalue =  ((Expr_multContext)_localctx).tp1.rvalue && ((Expr_multContext)_localctx).tp2.rvalue;
 			}
 		}
 		catch (RecognitionException re) {
@@ -2384,6 +2405,7 @@ public class ATalkPass2Parser extends Parser {
 
 	public static class Expr_mult_tmpContext extends ParserRuleContext {
 		public Type t;
+		public boolean rvalue;
 		public Token mult;
 		public Expr_unContext tp;
 		public Expr_mult_tmpContext expr_mult_tmp() {
@@ -2431,7 +2453,7 @@ public class ATalkPass2Parser extends Parser {
 				}
 				setState(364);
 				((Expr_mult_tmpContext)_localctx).tp = expr_un();
-				((Expr_mult_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_mult_tmpContext)_localctx).tp.t, (((Expr_mult_tmpContext)_localctx).mult!=null?((Expr_mult_tmpContext)_localctx).mult.getText():null));
+				((Expr_mult_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_mult_tmpContext)_localctx).tp.t, (((Expr_mult_tmpContext)_localctx).mult!=null?((Expr_mult_tmpContext)_localctx).mult.getText():null)); ((Expr_mult_tmpContext)_localctx).rvalue =  false;
 				setState(366);
 				expr_mult_tmp();
 				}
@@ -2452,7 +2474,7 @@ public class ATalkPass2Parser extends Parser {
 			case NL:
 				enterOuterAlt(_localctx, 2);
 				{
-				((Expr_mult_tmpContext)_localctx).t =  new NoType();
+				((Expr_mult_tmpContext)_localctx).t =  new NoType(); ((Expr_mult_tmpContext)_localctx).rvalue =  true;
 				}
 				break;
 			default:
@@ -2472,6 +2494,7 @@ public class ATalkPass2Parser extends Parser {
 
 	public static class Expr_unContext extends ParserRuleContext {
 		public Type t;
+		public boolean rvalue;
 		public Expr_unContext tp;
 		public Expr_memContext tp1;
 		public Expr_unContext expr_un() {
@@ -2518,7 +2541,7 @@ public class ATalkPass2Parser extends Parser {
 				}
 				setState(372);
 				((Expr_unContext)_localctx).tp = expr_un();
-				((Expr_unContext)_localctx).t =  assignExprType_tmp(((Expr_unContext)_localctx).tp.t,  "Invalid arithmatic operands");
+				((Expr_unContext)_localctx).t =  assignExprType_tmp(((Expr_unContext)_localctx).tp.t,  "Invalid arithmatic operands"); ((Expr_unContext)_localctx).rvalue =  false;
 				}
 				break;
 			case T__6:
@@ -2532,7 +2555,7 @@ public class ATalkPass2Parser extends Parser {
 				{
 				setState(375);
 				((Expr_unContext)_localctx).tp1 = expr_mem();
-				((Expr_unContext)_localctx).t =  ((Expr_unContext)_localctx).tp1.t;
+				((Expr_unContext)_localctx).t =  ((Expr_unContext)_localctx).tp1.t; ((Expr_unContext)_localctx).rvalue =  ((Expr_unContext)_localctx).tp1.rvalue;
 				}
 				break;
 			default:
@@ -2552,6 +2575,7 @@ public class ATalkPass2Parser extends Parser {
 
 	public static class Expr_memContext extends ParserRuleContext {
 		public Type t;
+		public boolean rvalue;
 		public Expr_otherContext tp;
 		public Expr_mem_tmpContext dim;
 		public Expr_otherContext expr_other() {
@@ -2587,8 +2611,13 @@ public class ATalkPass2Parser extends Parser {
 
 			      try{
 			        ((Expr_memContext)_localctx).t =  ((Expr_memContext)_localctx).tp.t.dimensionAccess(((Expr_memContext)_localctx).dim.dimension);
+			        if(((Expr_memContext)_localctx).dim.dimension == 0)
+			          ((Expr_memContext)_localctx).rvalue =  ((Expr_memContext)_localctx).tp.rvalue;
+			        else
+			          ((Expr_memContext)_localctx).rvalue =  false;
 			      }catch(UndefinedDemensionsException ex){
 			        ((Expr_memContext)_localctx).t =  printErrAndAssignNoType("Undefined demensions.");
+			        ((Expr_memContext)_localctx).rvalue =  false;
 			      }
 			    
 			}
@@ -2691,6 +2720,7 @@ public class ATalkPass2Parser extends Parser {
 
 	public static class Expr_otherContext extends ParserRuleContext {
 		public Type t;
+		public boolean rvalue;
 		public Token str;
 		public Token id;
 		public ExprContext tp1;
@@ -2734,7 +2764,7 @@ public class ATalkPass2Parser extends Parser {
 				{
 				setState(394);
 				match(CONST_NUM);
-				((Expr_otherContext)_localctx).t =  new IntType();
+				((Expr_otherContext)_localctx).t =  new IntType(); ((Expr_otherContext)_localctx).rvalue =  true;
 				}
 				break;
 			case CONST_CHAR:
@@ -2742,7 +2772,7 @@ public class ATalkPass2Parser extends Parser {
 				{
 				setState(396);
 				match(CONST_CHAR);
-				((Expr_otherContext)_localctx).t =  new CharacterType();
+				((Expr_otherContext)_localctx).t =  new CharacterType(); ((Expr_otherContext)_localctx).rvalue =  true;
 				}
 				break;
 			case CONST_STR:
@@ -2750,7 +2780,7 @@ public class ATalkPass2Parser extends Parser {
 				{
 				setState(398);
 				((Expr_otherContext)_localctx).str = match(CONST_STR);
-				((Expr_otherContext)_localctx).t =  new ArrayType((((Expr_otherContext)_localctx).str!=null?((Expr_otherContext)_localctx).str.getText():null).length()-2, new CharacterType());
+				((Expr_otherContext)_localctx).t =  new ArrayType((((Expr_otherContext)_localctx).str!=null?((Expr_otherContext)_localctx).str.getText():null).length()-2, new CharacterType()); ((Expr_otherContext)_localctx).rvalue =  true;
 				}
 				break;
 			case ID:
@@ -2786,7 +2816,7 @@ public class ATalkPass2Parser extends Parser {
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 				}
-				((Expr_otherContext)_localctx).t =  assignExplitArrayType(size, ((Expr_otherContext)_localctx).tp1.t);
+				((Expr_otherContext)_localctx).t =  assignExplitArrayType(size, ((Expr_otherContext)_localctx).tp1.t); ((Expr_otherContext)_localctx).rvalue =  false;
 				setState(415);
 				match(T__35);
 				}
@@ -2802,7 +2832,7 @@ public class ATalkPass2Parser extends Parser {
 				((Expr_otherContext)_localctx).size = match(CONST_NUM);
 				setState(420);
 				match(T__7);
-				((Expr_otherContext)_localctx).t =  new ArrayType((((Expr_otherContext)_localctx).size!=null?Integer.valueOf(((Expr_otherContext)_localctx).size.getText()):0), new CharacterType());
+				((Expr_otherContext)_localctx).t =  new ArrayType((((Expr_otherContext)_localctx).size!=null?Integer.valueOf(((Expr_otherContext)_localctx).size.getText()):0), new CharacterType()); ((Expr_otherContext)_localctx).rvalue =  true;
 				}
 				break;
 			case T__6:
@@ -2814,7 +2844,7 @@ public class ATalkPass2Parser extends Parser {
 				((Expr_otherContext)_localctx).tp = expr();
 				setState(424);
 				match(T__7);
-				((Expr_otherContext)_localctx).t =  ((Expr_otherContext)_localctx).tp.t;
+				((Expr_otherContext)_localctx).t =  ((Expr_otherContext)_localctx).tp.t; ((Expr_otherContext)_localctx).rvalue =  ((Expr_otherContext)_localctx).tp.rvalue;
 				}
 				break;
 			default:

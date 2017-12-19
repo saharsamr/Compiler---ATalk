@@ -257,6 +257,21 @@ public class ATalkPass2Lexer extends Lexer {
 	          throw new SenderInInitException();
 	    }
 
+	    void checkCallValidation(String currentActor, String senderName, String rcvrActor, String rcvrName, ArrayList<Type> argumentsTypes, int line){
+	      try{
+	        checkInitAndSender(rcvrActor, rcvrName, argumentsTypes);
+	        if(rcvrActor != "sender" && rcvrActor != "self")
+	          getActorFromSymTable(rcvrActor, line);
+	        checkRecieverExistance(currentActor, senderName, rcvrActor, rcvrName, argumentsTypes, line);
+	      }catch(ReceiverDoseNotExistsException ex){
+	          printErrAndAssignNoType("Reciever: " + rcvrName + "does not exist.");
+	      }catch(ActorDoesntExistsException ex){
+	          printErrAndAssignNoType("Actor: " + rcvrActor + "does not exist.");
+	      }catch(SenderInInitException ex){
+	          printErrAndAssignNoType("Invalid use of keyword <sender>.");
+	      }
+	    }
+
 
 	public ATalkPass2Lexer(CharStream input) {
 		super(input);

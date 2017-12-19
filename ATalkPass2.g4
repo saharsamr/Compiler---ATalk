@@ -171,6 +171,21 @@ grammar ATalkPass2;
         if(argumentTypes.size() == 0 && rcvrName == "init")
           throw new SenderInInitException();
     }
+
+    void checkCallValidation(String currentActor, String senderName, String rcvrActor, String rcvrName, ArrayList<Type> argumentsTypes, int line){
+      try{
+        checkInitAndSender(rcvrActor, rcvrName, argumentsTypes);
+        if(rcvrActor != "sender" && rcvrActor != "self")
+          getActorFromSymTable(rcvrActor, line);
+        checkRecieverExistance(currentActor, senderName, rcvrActor, rcvrName, argumentsTypes, line);
+      }catch(ReceiverDoseNotExistsException ex){
+          printErrAndAssignNoType("Reciever: " + rcvrName + "does not exist.");
+      }catch(ActorDoesntExistsException ex){
+          printErrAndAssignNoType("Actor: " + rcvrActor + "does not exist.");
+      }catch(SenderInInitException ex){
+          printErrAndAssignNoType("Invalid use of keyword <sender>.");
+      }
+    }
 }
 
 
@@ -239,20 +254,7 @@ stm_tell[String senderName, String currentActor]:
     {ArrayList<Type> argumentsTypes = new ArrayList<Type>();}
     rcvrActor = (ID | 'sender' | 'self') '<<' rcvrName = ID '(' (tp = expr {argumentsTypes.add($tp.t);}
                                                             (',' tp = expr {argumentsTypes.add($tp.t);})*)? ')' NL
-      {
-        try{
-          checkInitAndSender($rcvrActor.text, $rcvrName.text, argumentsTypes);
-          if($rcvrActor.text != "sender" && $rcvrActor.text != "self")
-            getActorFromSymTable($rcvrActor.text, $rcvrActor.line);
-          checkRecieverExistance(currentActor, senderName, $rcvrActor.text, $rcvrName.text, argumentsTypes, $rcvrName.line);
-        }catch(ReceiverDoseNotExistsException ex){
-            printErrAndAssignNoType("Reciever: " + $rcvrName.text + "does not exist.");
-        }catch(ActorDoesntExistsException ex){
-            printErrAndAssignNoType("Actor: " + $rcvrActor.text + "does not exist.");
-        }catch(SenderInInitException ex){
-            printErrAndAssignNoType("Invalid use of keyword <sender>.");
-        }
-      }
+      {checkCallValidation(currentActor, senderName, $rcvrActor.text, $rcvrName.text, argumentsTypes, $rcvrName.line);}
   ;
 
 stm_write:
@@ -294,98 +296,109 @@ stm_assignment:
     expr NL
   ;
 
-expr returns [Type t]:
-    tp = expr_assign {$t = $tp.t;}
+expr returns [Type t, boolean rvalue]:
+    tp = expr_assign {$t = $tp.t; $rvalue = $tp.rvalue;}
   ;
 
-expr_assign returns [Type t]:
+expr_assign returns [Type t, boolean rvalue]:
     tp1 = expr_or '=' tp2 = expr_assign
       {$t = assignAssignmentExprType($tp1.t, $tp2.t);}
-  |  tp = expr_or {$t = $tp.t;}
+  |  tp = expr_or {$t = $tp.t; $rvalue = $tp.rvalue;}
   ;
 
-expr_or returns [Type t]:
+expr_or returns [Type t, boolean rvalue]:
     tp1 = expr_and tp2 = expr_or_tmp
-    {$t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");}
+    {$t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");
+      $rvalue = $tp1.rvalue && $tp2.rvalue;}
   ;
 
-expr_or_tmp returns [Type t]:
+expr_or_tmp returns [Type t, boolean rvalue]:
     'or' tp1 = expr_and tp2 = expr_or_tmp
-      {$t = assignExprType_tmp($tp1.t, "Invalid operands for <or> operator.");}
-  | {$t = new NoType();}
+      {$t = assignExprType_tmp($tp1.t, "Invalid operands for <or> operator."); $rvalue = false;}
+  | {$t = new NoType(); $rvalue = true;}
   ;
 
-expr_and returns [Type t]:
+expr_and returns [Type t, boolean rvalue]:
     tp1 = expr_eq tp2 = expr_and_tmp
-    {$t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");}
+    {$t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");
+      $rvalue = $tp1.rvalue && $tp2.rvalue;}
   ;
 
-expr_and_tmp returns [Type t]:
+expr_and_tmp returns [Type t, boolean rvalue]:
     'and' tp1 = expr_eq tp2 = expr_and_tmp
-      {$t = assignExprType_tmp($tp1.t, "Invalid operands for <and> operator.");}
-  | {$t = new NoType();}
+      {$t = assignExprType_tmp($tp1.t, "Invalid operands for <and> operator."); $rvalue = false;}
+  | {$t = new NoType(); $rvalue = true;}
   ;
 
-expr_eq returns [Type t]:
+expr_eq returns [Type t, boolean rvalue]:
     tp1 = expr_cmp tp2 = expr_eq_tmp
-      {$t = checkEqualityExprType($tp1.t, $tp2.t);}
+      {$t = checkEqualityExprType($tp1.t, $tp2.t);
+        $rvalue = $tp1.rvalue && $tp2.rvalue;}
   ;
 
 
-expr_eq_tmp returns [Type t]:
+expr_eq_tmp returns [Type t, boolean rvalue]:
     ('==' | '<>') tp1 = expr_cmp tp2 = expr_eq_tmp
-      {$t = checkEqualityExprType_tmp($tp1.t, $tp2.t);}
-  | {$t = new NoType();}
+      {$t = checkEqualityExprType_tmp($tp1.t, $tp2.t); $rvalue = false;}
+  | {$t = new NoType(); $rvalue = true;}
   ;
 
-expr_cmp returns [Type t]:
+expr_cmp returns [Type t, boolean rvalue]:
     tp1 = expr_add tp2 = expr_cmp_tmp
-    {$t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");}
+    {$t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");
+      $rvalue = $tp1.rvalue && $tp2.rvalue;}
   ;
 
-expr_cmp_tmp returns [Type t]:
+expr_cmp_tmp returns [Type t, boolean rvalue]:
     (cmp = '<' | cmp = '>') tp = expr_add
-      {$t = assignExprType_tmp($tp.t, $cmp.text);}
+      {$t = assignExprType_tmp($tp.t, $cmp.text); $rvalue = false;}
     expr_cmp_tmp
-  | {$t = new NoType();}
+  | {$t = new NoType(); $rvalue = true;}
   ;
 
-expr_add returns [Type t]:
+expr_add returns [Type t, boolean rvalue]:
     tp1 = expr_mult tp2 = expr_add_tmp
-    {$t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");}
+    {$t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");
+      $rvalue = $tp1.rvalue && $tp2.rvalue;}
   ;
 
-expr_add_tmp returns [Type t]:
+expr_add_tmp returns [Type t, boolean rvalue]:
     add = ('+' | '-') tp = expr_mult
-      {$t = assignExprType_tmp($tp.t, $add.text);}
+      {$t = assignExprType_tmp($tp.t, $add.text); $rvalue = false;}
     expr_add_tmp
-  | {$t = new NoType();}
+  | {$t = new NoType(); $rvalue = true;}
   ;
 
-expr_mult returns [Type t]:
+expr_mult returns [Type t, boolean rvalue]:
     tp1 = expr_un tp2 = expr_mult_tmp
-    {$t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");}
+    {$t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");
+     $rvalue = $tp1.rvalue && $tp2.rvalue;}
   ;
 
-expr_mult_tmp returns [Type t]:
+expr_mult_tmp returns [Type t, boolean rvalue]:
     mult = ('*' | '/') tp = expr_un
-      {$t = assignExprType_tmp($tp.t, $mult.text);}
+      {$t = assignExprType_tmp($tp.t, $mult.text); $rvalue = false;}
     expr_mult_tmp
-  | {$t = new NoType();}
+  | {$t = new NoType(); $rvalue = true;}
   ;
 
-expr_un returns [Type t]:
+expr_un returns [Type t, boolean rvalue]:
     ('not' | '-') tp = expr_un
-      {$t = assignExprType_tmp($tp.t,  "Invalid arithmatic operands");}
-  |  tp1 = expr_mem {$t = $tp1.t;}
+      {$t = assignExprType_tmp($tp.t,  "Invalid arithmatic operands"); $rvalue = false;}
+  |  tp1 = expr_mem {$t = $tp1.t; $rvalue = $tp1.rvalue;}
   ;
 
-expr_mem returns [Type t]:
+expr_mem returns [Type t, boolean rvalue]:
     tp = expr_other dim = expr_mem_tmp {
       try{
         $t = $tp.t.dimensionAccess($dim.dimension);
+        if($dim.dimension == 0)
+          $rvalue = $tp.rvalue;
+        else
+          $rvalue = false;
       }catch(UndefinedDemensionsException ex){
         $t = printErrAndAssignNoType("Undefined demensions.");
+        $rvalue = false;
       }
     }
   ;
@@ -398,17 +411,17 @@ expr_mem_tmp returns [int dimension]:
   | {$dimension = 0;}
   ;
 
-expr_other returns [Type t]:
-     CONST_NUM {$t = new IntType();}
-  |  CONST_CHAR {$t = new CharacterType();}
-  |  str = CONST_STR {$t = new ArrayType($str.text.length()-2, new CharacterType());}
+expr_other returns [Type t, boolean rvalue]:
+     CONST_NUM {$t = new IntType(); $rvalue = true;}
+  |  CONST_CHAR {$t = new CharacterType(); $rvalue = true;}
+  |  str = CONST_STR {$t = new ArrayType($str.text.length()-2, new CharacterType()); $rvalue = true;}
   |  id = ID {$t = getIDFromSymTable($id.text, $id.line);}
   |  '{' tp1 = expr {int size = 1;} (',' tp2 = expr
           {size = checkAndFindNumOfItemsInExplitArray($tp1.t, $tp2.t, size);})*
-          {$t = assignExplitArrayType(size, $tp1.t);}
+          {$t = assignExplitArrayType(size, $tp1.t); $rvalue = false;}
      '}'
-  |  'read' '(' size = CONST_NUM ')' {$t = new ArrayType($size.int, new CharacterType());}
-  |  '(' tp = expr ')' {$t = $tp.t;}
+  |  'read' '(' size = CONST_NUM ')' {$t = new ArrayType($size.int, new CharacterType()); $rvalue = true;}
+  |  '(' tp = expr ')' {$t = $tp.t; $rvalue = $tp.rvalue;}
   ;
 
 CONST_NUM:
