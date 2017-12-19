@@ -158,6 +158,15 @@ public class ATalkPass2Lexer extends Lexer {
 	      return var;
 	    }
 
+	    SymbolTableItemActor getActorFromSymTable(String name, int line)throws ActorDoesntExistsException{
+	      SymbolTableItem item = SymbolTable.top.get(name);
+	      if(item == null)
+	        throw new ActorDoesntExistsException();
+	      SymbolTableItemActor var = (SymbolTableItemActor) item;
+	      /* print(line + ") Reciever " + name + " used.\t\t"); */
+	      return var;
+	    }
+
 	    int checkAndFindNumOfItemsInExplitArray(Type tp1,Type tp2, int size) {
 	      if(!tp2.equals(tp1))
 	        size = -1;

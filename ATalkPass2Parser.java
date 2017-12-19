@@ -172,6 +172,15 @@ public class ATalkPass2Parser extends Parser {
 	      return var;
 	    }
 
+	    SymbolTableItemActor getActorFromSymTable(String name, int line)throws ActorDoesntExistsException{
+	      SymbolTableItem item = SymbolTable.top.get(name);
+	      if(item == null)
+	        throw new ActorDoesntExistsException();
+	      SymbolTableItemActor var = (SymbolTableItemActor) item;
+	      /* print(line + ") Reciever " + name + " used.\t\t"); */
+	      return var;
+	    }
+
 	    int checkAndFindNumOfItemsInExplitArray(Type tp1,Type tp2, int size) {
 	      if(!tp2.equals(tp1))
 	        size = -1;
@@ -1195,9 +1204,13 @@ public class ATalkPass2Parser extends Parser {
 			match(NL);
 
 			        try{
+			        if((((Stm_tellContext)_localctx).rcvrActor!=null?((Stm_tellContext)_localctx).rcvrActor.getText():null) != "sender" && (((Stm_tellContext)_localctx).rcvrActor!=null?((Stm_tellContext)_localctx).rcvrActor.getText():null) != "self")
+			          getActorFromSymTable((((Stm_tellContext)_localctx).rcvrActor!=null?((Stm_tellContext)_localctx).rcvrActor.getText():null), (((Stm_tellContext)_localctx).rcvrActor!=null?((Stm_tellContext)_localctx).rcvrActor.getLine():0));
 			        checkRecieverExistance(currentActor, senderName, (((Stm_tellContext)_localctx).rcvrActor!=null?((Stm_tellContext)_localctx).rcvrActor.getText():null), (((Stm_tellContext)_localctx).rcvrName!=null?((Stm_tellContext)_localctx).rcvrName.getText():null), argumentsTypes, (((Stm_tellContext)_localctx).rcvrName!=null?((Stm_tellContext)_localctx).rcvrName.getLine():0));
 			        }catch(ReceiverDoseNotExistsException ex){
 			            printErrAndAssignNoType("Reciever: " + (((Stm_tellContext)_localctx).rcvrName!=null?((Stm_tellContext)_localctx).rcvrName.getText():null) + "does not exist.");
+			        }catch(ActorDoesntExistsException ex){
+			            printErrAndAssignNoType("Actor: " + (((Stm_tellContext)_localctx).rcvrActor!=null?((Stm_tellContext)_localctx).rcvrActor.getText():null) + "does not exist.");
 			        }
 			      
 			}

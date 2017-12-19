@@ -73,6 +73,15 @@ grammar ATalkPass2;
       return var;
     }
 
+    SymbolTableItemActor getActorFromSymTable(String name, int line)throws ActorDoesntExistsException{
+      SymbolTableItem item = SymbolTable.top.get(name);
+      if(item == null)
+        throw new ActorDoesntExistsException();
+      SymbolTableItemActor var = (SymbolTableItemActor) item;
+      /* print(line + ") Reciever " + name + " used.\t\t"); */
+      return var;
+    }
+
     int checkAndFindNumOfItemsInExplitArray(Type tp1,Type tp2, int size) {
       if(!tp2.equals(tp1))
         size = -1;
@@ -226,9 +235,13 @@ stm_tell[String senderName, String currentActor]:
                                                             (',' tp = expr {argumentsTypes.add($tp.t);})*)? ')' NL
       {
         try{
+        if($rcvrActor.text != "sender" && $rcvrActor.text != "self")
+          getActorFromSymTable($rcvrActor.text, $rcvrActor.line);
         checkRecieverExistance(currentActor, senderName, $rcvrActor.text, $rcvrName.text, argumentsTypes, $rcvrName.line);
         }catch(ReceiverDoseNotExistsException ex){
             printErrAndAssignNoType("Reciever: " + $rcvrName.text + "does not exist.");
+        }catch(ActorDoesntExistsException ex){
+            printErrAndAssignNoType("Actor: " + $rcvrActor.text + "does not exist.");
         }
       }
   ;
