@@ -24,35 +24,42 @@ grammar HandleExprsTypesFuncs;
      return tp1;
  }
 
-  Type assignExprType(Type tp1, Type tp2, String msg) {
+  Type assignExprType(Type tp1, Type tp2, String msg, int line) {
     try {
       return checkCombinedArithExprTypes(tp1, tp2);
     } catch(ArithmaticsOperandsException ex) {
-      return printErrAndAssignNoType(msg);
+      printErrors(line, msg);
+      return new NoType();
     }
   }
 
-  Type checkEqualityExprType_tmp(Type tp1, Type tp2) {
+  Type checkEqualityExprType_tmp(Type tp1, Type tp2, int line) {
     if(tp1.equals(tp2) || tp2.equals(new NoType()))
       return tp1;
-    else
-      return printErrAndAssignNoType("Incompatible types for checking equality.");
+    else{
+      printErrors(line, "Incompatible types for checking equality.");
+      return new NoType();
+    }
   }
 
-  Type checkEqualityExprType(Type tp1, Type tp2) {
+  Type checkEqualityExprType(Type tp1, Type tp2, int line) {
     if(tp1.equals(tp2))
       return new IntType();
     else if(tp2.equals(new NoType()))//NOTE: notype & notype is not handled?
       return tp1;
-    else
-      return printErrAndAssignNoType("Incompatible types for checking equality.");
+    else{
+      printErrors(line, "Incompatible types for checking equality.");
+      return new NoType();
+    }
   }
 
-  Type assignAssignmentExprType(Type tp1, Type tp2) {
+  Type assignAssignmentExprType(Type tp1, Type tp2, int line) {
     if(tp1.equals(tp2))
       return tp1;
-    else
-      return printErrAndAssignNoType("Invalid assignment.");
+    else{
+      printErrors(line, "Invalid assignment.");
+      return new NoType();
+    }
   }
 
   void checkIterationExpr(String id, int line, Type tp){
@@ -60,9 +67,9 @@ grammar HandleExprsTypesFuncs;
     Type t = getIDFromSymTable(id, line);
     tp = tp.dimensionAccess(1);
     if(!t.equals(new NoType()))
-      printErrAndAssignNoType("variable <" + id + "> already declared in this scope.");
+      printErrors(line, "variable <" + id + "> already declared in this scope.");
     }catch(UndefinedDemensionsException ex){
-      printErrAndAssignNoType("Undefined demensions.");
+      printErrors(line, "Undefined demensions.");
     }
   }
 }

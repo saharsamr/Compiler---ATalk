@@ -146,17 +146,18 @@ expr returns [Type t, boolean rvalue, int ln_]:
 
 expr_assign returns [Type t, boolean rvalue, int ln_]:
     tp1 = expr_or ln = '=' tp2 = expr_assign
-      {if($tp1.rvalue)
+      {$ln_ = findLine($tp1.ln_, $tp2.ln_);
+        if($tp1.rvalue)
           printErrors($ln.line, "Assignment to an rvalue.");
         else
-          $t = assignAssignmentExprType($tp1.t, $tp2.t);}
+          $t = assignAssignmentExprType($tp1.t, $tp2.t, $ln_);}
   |  tp = expr_or {$t = $tp.t; $rvalue = $tp.rvalue;}
   ;
 
 expr_or returns [Type t, boolean rvalue, int ln_]:
     tp1 = expr_and tp2 = expr_or_tmp
     {$ln_ = findLine($tp1.ln_, $tp2.ln_);
-      $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");
+      $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands", $ln_);
       $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
@@ -169,7 +170,7 @@ expr_or_tmp returns [Type t, boolean rvalue, int ln_]:
 expr_and returns [Type t, boolean rvalue, int ln_]:
     tp1 = expr_eq tp2 = expr_and_tmp
     {$ln_ = findLine($tp1.ln_, $tp2.ln_);
-      $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");
+      $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands", $ln_);
       $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
@@ -182,21 +183,21 @@ expr_and_tmp returns [Type t, boolean rvalue, int ln_]:
 expr_eq returns [Type t, boolean rvalue, int ln_]:
     tp1 = expr_cmp tp2 = expr_eq_tmp
       {$ln_ = findLine($tp1.ln_, $tp2.ln_);
-        $t = checkEqualityExprType($tp1.t, $tp2.t);
+        $t = checkEqualityExprType($tp1.t, $tp2.t, $ln_);
         $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
 
 expr_eq_tmp returns [Type t, boolean rvalue, int ln_]:
     ln = ('==' | '<>') tp1 = expr_cmp tp2 = expr_eq_tmp
-      {$t = checkEqualityExprType_tmp($tp1.t, $tp2.t); $rvalue = true; $ln_ = $ln.line;}
+      {$t = checkEqualityExprType_tmp($tp1.t, $tp2.t, $ln.line); $rvalue = true; $ln_ = $ln.line;}
   | {$t = new NoType(); $rvalue = false; $ln_ = -1;}
   ;
 
 expr_cmp returns [Type t, boolean rvalue, int ln_]:
     tp1 = expr_add tp2 = expr_cmp_tmp
     {$ln_ = findLine($tp1.ln_, $tp2.ln_);
-      $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");
+      $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands", $ln_);
       $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
@@ -210,7 +211,7 @@ expr_cmp_tmp returns [Type t, boolean rvalue, int ln_]:
 expr_add returns [Type t, boolean rvalue, int ln_]:
     tp1 = expr_mult tp2 = expr_add_tmp
     {$ln_ = findLine($tp1.ln_, $tp2.ln_);
-      $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");
+      $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands", $ln_);
       $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
@@ -224,7 +225,7 @@ expr_add_tmp returns [Type t, boolean rvalue, int ln_]:
 expr_mult returns [Type t, boolean rvalue, int ln_]:
     tp1 = expr_un tp2 = expr_mult_tmp
     {$ln_ = findLine($tp1.ln_, $tp2.ln_);
-     $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");
+     $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands", $ln_);
      $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
@@ -251,7 +252,8 @@ expr_mem returns [Type t, boolean rvalue, int ln_]:
         else
           $rvalue = false;
       }catch(UndefinedDemensionsException ex){
-        $t = printErrAndAssignNoType("Undefined demensions.");
+        printErrors($ln_, "Undefined demensions.");
+        $t = new NoType();
         $rvalue = false;
       }
     }
