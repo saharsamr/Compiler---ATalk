@@ -124,16 +124,4 @@ javac-services.0.log.lck
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 
-ATlkPass*.java
-ATalkBaseListener.java
-AtalkBaseListener.java
-ATalkParser.java
-AtalkParser.java
-AtalkListener.java
-ATalkLexer.java
-AtalkLexer.java
-ATalkBaseListener.java
-ATalkParser.java
-ATalkLexer.java
-AtalkLexer.java
-LolLexer.java
+ATalkPass*.java
