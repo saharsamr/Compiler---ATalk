@@ -39,7 +39,8 @@ public class ArrayType extends Type {
 		}
 	}
 
-	public Type getIterationType(){
+	@Override
+	public Type getIterationType() throws UndefinedDemensionsException{
 		return this.arrType;
 	}
 

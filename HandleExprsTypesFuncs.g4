@@ -2,6 +2,15 @@ grammar HandleExprsTypesFuncs;
 
 @members{
 
+  void putForeachVar(String name, Type type) throws ItemAlreadyExistsException {
+      SymbolTable.top.put(
+          new SymbolTableItemForeachIterator(
+              new Variable(name, type),
+              SymbolTable.top.getOffset(Register.TEMP0)
+          )
+      );
+  }
+
   void putLocalVar(String name, Type type) throws ItemAlreadyExistsException {
       SymbolTable.top.put(
           new SymbolTableLocalVariableItem(
@@ -74,14 +83,14 @@ grammar HandleExprsTypesFuncs;
 
   void checkIterationExpr(String id, int line, Type tp){
     try{
-    Type t = getIDFromSymTable(id, line);
-    tp = tp.getIterationType();
-    if(!t.equals(new NoType()))
-      printErrors(line, "variable <" + id + "> already declared in this scope.");
-    else
-      putLocalVar(id, tp);
+      tp = tp.getIterationType();
+      SymbolTableItem item = SymbolTable.top.get(id);
+      if(item == null)
+        putForeachVar(id, tp);
+      else
+        printErrors(line, "variable <" + id + "> already declared in this scope.");
     }catch(UndefinedDemensionsException ex){
-      printErrors(line, "Undefined demensions.");
+      printErrors(line, "Invalid iteration on variable.");
     }catch(ItemAlreadyExistsException ex){}
   }
 

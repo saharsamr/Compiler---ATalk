@@ -30,4 +30,9 @@ public class CharacterType extends Type {
 			return this;
 		throw new UndefinedDemensionsException();
 	}
+
+	@Override
+	public Type getIterationType() throws UndefinedDemensionsException{
+		throw new UndefinedDemensionsException();
+	}
 }
