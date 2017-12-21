@@ -1,6 +1,6 @@
 grammar ATalkPass1;
 
-import FillSymbolTalbesFuncs, PrintLogs, CheckValidationsFuncs;
+import FillSymbolTalbesFuncs, PrintLogsPass1, ArrayFuncs;
 
 @members{
   String codeData = "";
@@ -54,7 +54,7 @@ receiver[String actorName]:
     {ArrayList<Integer> dims = new ArrayList<Integer>();}
     (('int') {$t = new IntType();} | ('char') {$t = new CharacterType();})
     ('[' size = CONST_NUM ']'{
-      dims.add(checkDimLenValidationInArray($size.int));})*
+      dims.add(checkDimLenValidationInArray($size.int,$size.line));})*
     {
       for(int i=dims.size()-1; i >= 0; i--)
         $t = new ArrayType(dims.get(i),$t);

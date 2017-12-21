@@ -1,4 +1,4 @@
-grammar PrintLogs;
+grammar PrintLogsPass1;
 
 @members{
   void printVarData(String name, Type type, Register reg){

@@ -90,9 +90,7 @@ public class ATalkPass2Lexer extends Lexer {
 	}
 
 
-	    void print(String str){
-	        System.out.println(str);
-	    }
+	    int errorOccured = 0;
 
 	    void beginScope() {
 	        SymbolTable.push();
@@ -103,174 +101,204 @@ public class ATalkPass2Lexer extends Lexer {
 	        SymbolTable.pop();
 	    }
 
-	    Type printErrAndAssignNoType(String msg){
-	      print(msg);
+
+	  Type checkArithOperandValidation(Type tp)throws ArithmaticsOperandsException{
+	    if(!tp.equals(new IntType()))
+	      throw new ArithmaticsOperandsException();
+	    else
+	      return tp;
+	  }
+
+	  Type assignExprType_tmp (Type tp, String msg, int line) {
+	    try {
+	      return checkArithOperandValidation(tp);
+	    } catch(ArithmaticsOperandsException ex) {
+	      printErrors(line, msg);
 	      return new NoType();
 	    }
+	  }
 
-	    Type checkArithOperandValidation(Type tp)throws ArithmaticsOperandsException{
-	      if(!tp.equals(new IntType()))
-	        throw new ArithmaticsOperandsException();
-	      else
-	        return tp;
+	  Type checkCombinedArithExprTypes(Type tp1,Type tp2)throws ArithmaticsOperandsException{
+	    if((!tp1.equals(new IntType())) && (!tp2.equals(new NoType())))
+	     throw new ArithmaticsOperandsException();
+	   else
+	     return tp1;
+	 }
+
+	  Type assignExprType(Type tp1, Type tp2, String msg) {
+	    try {
+	      return checkCombinedArithExprTypes(tp1, tp2);
+	    } catch(ArithmaticsOperandsException ex) {
+	      return printErrAndAssignNoType(msg);
 	    }
+	  }
 
-	    Type assignExprType_tmp (Type tp, String msg) {
-	      try {
-	        return checkArithOperandValidation(tp);
-	      } catch(ArithmaticsOperandsException ex) {
-	        return printErrAndAssignNoType(msg);
-	      }
+	  Type checkEqualityExprType_tmp(Type tp1, Type tp2) {
+	    if(tp1.equals(tp2) || tp2.equals(new NoType()))
+	      return tp1;
+	    else
+	      return printErrAndAssignNoType("Incompatible types for checking equality.");
+	  }
+
+	  Type checkEqualityExprType(Type tp1, Type tp2) {
+	    if(tp1.equals(tp2))
+	      return new IntType();
+	    else if(tp2.equals(new NoType()))//NOTE: notype & notype is not handled?
+	      return tp1;
+	    else
+	      return printErrAndAssignNoType("Incompatible types for checking equality.");
+	  }
+
+	  Type assignAssignmentExprType(Type tp1, Type tp2) {
+	    if(tp1.equals(tp2))
+	      return tp1;
+	    else
+	      return printErrAndAssignNoType("Invalid assignment.");
+	  }
+
+	  void checkIterationExpr(String id, int line, Type tp){
+	    try{
+	    Type t = getIDFromSymTable(id, line);
+	    tp = tp.dimensionAccess(1);
+	    if(!t.equals(new NoType()))
+	      printErrAndAssignNoType("variable <" + id + "> already declared in this scope.");
+	    }catch(UndefinedDemensionsException ex){
+	      printErrAndAssignNoType("Undefined demensions.");
 	    }
+	  }
 
-	    Type checkCombinedArithExprTypes(Type tp1,Type tp2)throws ArithmaticsOperandsException{
-	      if((!tp1.equals(new IntType())) && (!tp2.equals(new NoType())))
-	       throw new ArithmaticsOperandsException();
-	     else
-	       return tp1;
-	   }
 
-	    Type assignExprType(Type tp1, Type tp2, String msg) {
-	      try {
-	        return checkCombinedArithExprTypes(tp1, tp2);
-	      } catch(ArithmaticsOperandsException ex) {
-	        return printErrAndAssignNoType(msg);
-	      }
+	  Type getIDFromSymTable(String idName, int line) {
+	    SymbolTableItem item = SymbolTable.top.get(idName);
+	    if(item == null){
+	      printErrors(line, "Variable " + idName + " doesnt exist.");
+	      return new NoType();
 	    }
-
-	    Type getIDFromSymTable(String idName, int line) {
-	      SymbolTableItem item = SymbolTable.top.get(idName);
-	      if(item == null)
-	        return printErrAndAssignNoType(line + ") Item " + idName + " doesnt exist.");
-	      else {
-	        SymbolTableVariableItemBase var = (SymbolTableVariableItemBase) item;
-	        print(line + ") Variable " + idName +" used.\t\t" +   "Base Reg: " + var.getBaseRegister() + ", Offset: " + var.getOffset());
-	        return var.getVariable().getType();
-	      }
+	    else {
+	      SymbolTableVariableItemBase var = (SymbolTableVariableItemBase) item;
+	      print(line + ") Variable " + idName +" used.\t\t" +   "Base Reg: " + var.getBaseRegister() + ", Offset: " + var.getOffset());
+	      return var.getVariable().getType();
 	    }
+	  }
 
-	    SymbolTableItemReceiver getRecieverFromSymTable(String name, int line) throws ReceiverDoseNotExistsException{
-	      SymbolTableItem item = SymbolTable.top.get(name);
-	      if(item == null)
-	        throw new ReceiverDoseNotExistsException();
-	      SymbolTableItemReceiver var = (SymbolTableItemReceiver) item;
-	      /* print(line + ") Reciever " + name + " used.\t\t"); */
-	      return var;
-	    }
+	  SymbolTableItemReceiver getRecieverFromSymTable(String name, int line) throws ReceiverDoseNotExistsException{
+	    SymbolTableItem item = SymbolTable.top.get(name);
+	    if(item == null)
+	      throw new ReceiverDoseNotExistsException();
+	    SymbolTableItemReceiver var = (SymbolTableItemReceiver) item;
+	    /* print(line + ") Reciever " + name + " used.\t\t"); */
+	    return var;
+	  }
 
-	    SymbolTableItemActor getActorFromSymTable(String name, int line)throws ActorDoesntExistsException{
-	      SymbolTableItem item = SymbolTable.top.get(name);
-	      if(item == null)
-	        throw new ActorDoesntExistsException();
-	      SymbolTableItemActor var = (SymbolTableItemActor) item;
-	      /* print(line + ") Reciever " + name + " used.\t\t"); */
-	      return var;
-	    }
+	  SymbolTableItemActor getActorFromSymTable(String name, int line)throws ActorDoesntExistsException{
+	    SymbolTableItem item = SymbolTable.top.get(name);
+	    if(item == null)
+	      throw new ActorDoesntExistsException();
+	    SymbolTableItemActor var = (SymbolTableItemActor) item;
+	    /* print(line + ") Reciever " + name + " used.\t\t"); */
+	    return var;
+	  }
 
-	    int checkAndFindNumOfItemsInExplitArray(Type tp1,Type tp2, int size) {
-	      if(!tp2.equals(tp1))
-	        size = -1;
-	      else if(size != -1)
-	        size ++;
-	      return size;
+	  String makeKey(String actr, String rcvr, ArrayList<Type> argumentTypes){
+	    String key = actr + ": " + rcvr + " (";
+	    for (int i = 0; i < argumentTypes.size(); i++){
+	      key += argumentTypes.get(i).toString();
+	      if (i != argumentTypes.size() - 1)
+	        key += ", ";
 	    }
+	    return key + ")";
+	  }
 
-	    Type assignExplitArrayType(int size, Type tp) {
-	      if(size != -1)
-	        return new ArrayType(size, tp);
-	      else
-	        return printErrAndAssignNoType("Invalid combination for a array type.");
-	    }
+	  String makeRecieverkey(String currentActor, String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes){
+	    if(rcvrActor.equals("self"))
+	      return makeKey(currentActor, rcvrName, argumentTypes);
+	    /*else if(rcvrActor.equals("sender"))
+	      return makeKey(senderName, rcvrName, argumentTypes);*/
+	    else
+	      return makeKey(rcvrActor, rcvrName, argumentTypes);
+	  }
 
-	    Type checkEqualityExprType_tmp(Type tp1, Type tp2) {
-	      if(tp1.equals(tp2) || tp2.equals(new NoType()))
-	        return tp1;
-	      else
-	        return printErrAndAssignNoType("Incompatible types for checking equality.");
-	    }
+	  SymbolTableItemReceiver checkRecieverExistance(String currentActor, String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes, int line)
+	  throws ReceiverDoseNotExistsException{
+	    String key = makeRecieverkey(currentActor, rcvrActor, rcvrName, argumentTypes);
+	    return getRecieverFromSymTable(key, line);
+	  }
 
-	    Type checkEqualityExprType(Type tp1, Type tp2) {
-	      if(tp1.equals(tp2))
-	        return new IntType();
-	      else if(tp2.equals(new NoType()))//NOTE: notype & notype is not handled?
-	        return tp1;
-	      else
-	        return printErrAndAssignNoType("Incompatible types for checking equality.");
-	    }
 
-	    Type assignAssignmentExprType(Type tp1, Type tp2) {
-	      if(tp1.equals(tp2))
-	        return tp1;
-	      else
-	        return printErrAndAssignNoType("Invalid assignment.");
-	    }
+	  int checkAndFindNumOfItemsInExplitArray(Type tp1,Type tp2, int size) {
+	    if(!tp2.equals(tp1))
+	      size = -1;
+	    else if(size != -1)
+	      size ++;
+	    return size;
+	  }
 
-	    void checkIterationExpr(String id, int line, Type tp){
-	      try{
-	      Type t = getIDFromSymTable(id, line);
-	      tp = tp.dimensionAccess(1);
-	      if(!t.equals(new NoType()))
-	        printErrAndAssignNoType("variable <" + id + "> already declared in this scope.");
-	      }catch(UndefinedDemensionsException ex){
-	        printErrAndAssignNoType("Undefined demensions.");
-	      }
+	  Type assignExplitArrayType(int size, Type tp, int line) {
+	    if(size != -1)
+	      return new ArrayType(size, tp);
+	    else{
+	      printErrors(line, "Invalid combination for a array type.");
+	      return new NoType();
 	    }
+	  }
 
-	    void checkWriteFuncArgument(Type tp){
-	      try{
-	        if(!(tp.equals(new IntType()) || tp.equals(new CharacterType())))
-	          if(!tp.dimensionAccess(1).equals(new CharacterType()))
-	            printErrAndAssignNoType("Invalid argument for function <write>.");
-	      }catch(UndefinedDemensionsException ex){
-	        printErrAndAssignNoType("Invalid argument for function <write>.");
-	      }
+	  int checkDimLenValidationInArray(int size, int line){
+	    if(size <= 0){
+	      printErrors(line,"size of array is negative");
+	      size = 0;
 	    }
+	    return size;
+	  }
 
-	    String makeKey(String actr, String rcvr, ArrayList<Type> argumentTypes){
-	      String key = actr + ": " + rcvr + " (";
-	  		for (int i = 0; i < argumentTypes.size(); i++){
-	  			key += argumentTypes.get(i).toString();
-	  			if (i != argumentTypes.size() - 1)
-	  				key += ", ";
-	  		}
-	  		return key + ")";
-	    }
 
-	    String makeRecieverkey(String currentActor, String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes){
-	      if(rcvrActor.equals("self"))
-	        return makeKey(currentActor, rcvrName, argumentTypes);
-	      /*else if(rcvrActor.equals("sender"))
-	        return makeKey(senderName, rcvrName, argumentTypes);*/
-	      else
-	        return makeKey(rcvrActor, rcvrName, argumentTypes);
+	  void checkWriteFuncArgument(Type tp, int line){
+	    try{
+	      if(!(tp.equals(new IntType()) || tp.equals(new CharacterType())))
+	        if(!tp.dimensionAccess(1).equals(new CharacterType()))
+	          printErrors(line, "Invalid argument for function <write>.");
+	    }catch(UndefinedDemensionsException ex){
+	      printErrors(line, "Invalid argument for function <write>.");
 	    }
+	  }
 
-	    SymbolTableItemReceiver checkRecieverExistance(String currentActor, String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes, int line)
-	    throws ReceiverDoseNotExistsException{
-	      String key = makeRecieverkey(currentActor, rcvrActor, rcvrName, argumentTypes);
-	      return getRecieverFromSymTable(key, line);
-	    }
+	  void checkInitAndSender(String rcvrActor, String rcvrName, int argCnt) throws SenderInInitException{
+	    if(rcvrActor.equals("sender"))
+	      if(argCnt == 0 && rcvrName.equals("init"))
+	        throw new SenderInInitException();
+	  }
 
-	    void checkInitAndSender(String rcvrActor, String rcvrName, int argCnt) throws SenderInInitException{
-	      if(rcvrActor.equals("sender"))
-	        if(argCnt == 0 && rcvrName.equals("init"))
-	          throw new SenderInInitException();
+	  void checkCallValidation(String currentActor, String currentReceiver, String rcvrActor, String rcvrName, ArrayList<Type> argumentsTypes, int line, int argCnt){
+	    try{
+	      checkInitAndSender(rcvrActor, currentReceiver, argCnt);
+	      if(!rcvrActor.equals("sender") && !rcvrActor.equals("self"))
+	        getActorFromSymTable(rcvrActor, line);
+	      checkRecieverExistance(currentActor, rcvrActor, rcvrName, argumentsTypes, line);
+	    }catch(SenderInInitException ex){
+	        printErrors(line, "Invalid use of keyword <sender>.");
+	    }catch(ActorDoesntExistsException ex){
+	        printErrors(line, "Actor: " + rcvrActor + " does not exist.");
+	    }catch(ReceiverDoseNotExistsException ex){
+	        printErrors(line, "Reciever: " + rcvrName + " does not exist.");
 	    }
+	  }
 
-	    void checkCallValidation(String currentActor, String currentReceiver, String rcvrActor, String rcvrName, ArrayList<Type> argumentsTypes, int line, int argCnt){
-	      try{
-	        checkInitAndSender(rcvrActor, currentReceiver, argCnt);
-	        if(!rcvrActor.equals("sender") && !rcvrActor.equals("self"))
-	          getActorFromSymTable(rcvrActor, line);
-	        checkRecieverExistance(currentActor, rcvrActor, rcvrName, argumentsTypes, line);
-	      }catch(SenderInInitException ex){
-	          printErrAndAssignNoType("Invalid use of keyword <sender>.");
-	      }catch(ActorDoesntExistsException ex){
-	          printErrAndAssignNoType("Actor: " + rcvrActor + " does not exist.");
-	      }catch(ReceiverDoseNotExistsException ex){
-	          printErrAndAssignNoType("Reciever: " + rcvrName + " does not exist.");
-	      }
-	    }
+
+	  void printErrors(int lineNum, String err){
+	    errorOccured ++;
+	    if(lineNum >= 0)
+	      print("Error(" + lineNum + "): " + err + "\n");
+	    else
+	      print("Error: " + err + "\n");
+	  }
+
+	  void print(String str){
+	      System.out.println(str);
+	  }
+
+	  Type printErrAndAssignNoType(String msg){
+	    print(msg);
+	    return new NoType();
+	  }
 
 
 	public ATalkPass2Lexer(CharStream input) {

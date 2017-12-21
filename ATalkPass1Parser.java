@@ -266,9 +266,26 @@ public class ATalkPass1Parser extends Parser {
 	  }
 
 
-	  int checkDimLenValidationInArray(int size){
+	  int checkAndFindNumOfItemsInExplitArray(Type tp1,Type tp2, int size) {
+	    if(!tp2.equals(tp1))
+	      size = -1;
+	    else if(size != -1)
+	      size ++;
+	    return size;
+	  }
+
+	  Type assignExplitArrayType(int size, Type tp, int line) {
+	    if(size != -1)
+	      return new ArrayType(size, tp);
+	    else{
+	      printErrors(line, "Invalid combination for a array type.");
+	      return new NoType();
+	    }
+	  }
+
+	  int checkDimLenValidationInArray(int size, int line){
 	    if(size <= 0){
-	      printErrors(size,"size of array is negative");
+	      printErrors(line,"size of array is negative");
 	      size = 0;
 	    }
 	    return size;
@@ -730,7 +747,7 @@ public class ATalkPass1Parser extends Parser {
 				setState(150);
 				match(T__11);
 
-				      dims.add(checkDimLenValidationInArray((((TypeContext)_localctx).size!=null?Integer.valueOf(((TypeContext)_localctx).size.getText()):0)));
+				      dims.add(checkDimLenValidationInArray((((TypeContext)_localctx).size!=null?Integer.valueOf(((TypeContext)_localctx).size.getText()):0),(((TypeContext)_localctx).size!=null?((TypeContext)_localctx).size.getLine():0)));
 				}
 				}
 				setState(156);

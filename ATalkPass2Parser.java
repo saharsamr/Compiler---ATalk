@@ -104,9 +104,7 @@ public class ATalkPass2Parser extends Parser {
 	public ATN getATN() { return _ATN; }
 
 
-	    void print(String str){
-	        System.out.println(str);
-	    }
+	    int errorOccured = 0;
 
 	    void beginScope() {
 	        SymbolTable.push();
@@ -117,174 +115,204 @@ public class ATalkPass2Parser extends Parser {
 	        SymbolTable.pop();
 	    }
 
-	    Type printErrAndAssignNoType(String msg){
-	      print(msg);
+
+	  Type checkArithOperandValidation(Type tp)throws ArithmaticsOperandsException{
+	    if(!tp.equals(new IntType()))
+	      throw new ArithmaticsOperandsException();
+	    else
+	      return tp;
+	  }
+
+	  Type assignExprType_tmp (Type tp, String msg, int line) {
+	    try {
+	      return checkArithOperandValidation(tp);
+	    } catch(ArithmaticsOperandsException ex) {
+	      printErrors(line, msg);
 	      return new NoType();
 	    }
+	  }
 
-	    Type checkArithOperandValidation(Type tp)throws ArithmaticsOperandsException{
-	      if(!tp.equals(new IntType()))
-	        throw new ArithmaticsOperandsException();
-	      else
-	        return tp;
+	  Type checkCombinedArithExprTypes(Type tp1,Type tp2)throws ArithmaticsOperandsException{
+	    if((!tp1.equals(new IntType())) && (!tp2.equals(new NoType())))
+	     throw new ArithmaticsOperandsException();
+	   else
+	     return tp1;
+	 }
+
+	  Type assignExprType(Type tp1, Type tp2, String msg) {
+	    try {
+	      return checkCombinedArithExprTypes(tp1, tp2);
+	    } catch(ArithmaticsOperandsException ex) {
+	      return printErrAndAssignNoType(msg);
 	    }
+	  }
 
-	    Type assignExprType_tmp (Type tp, String msg) {
-	      try {
-	        return checkArithOperandValidation(tp);
-	      } catch(ArithmaticsOperandsException ex) {
-	        return printErrAndAssignNoType(msg);
-	      }
+	  Type checkEqualityExprType_tmp(Type tp1, Type tp2) {
+	    if(tp1.equals(tp2) || tp2.equals(new NoType()))
+	      return tp1;
+	    else
+	      return printErrAndAssignNoType("Incompatible types for checking equality.");
+	  }
+
+	  Type checkEqualityExprType(Type tp1, Type tp2) {
+	    if(tp1.equals(tp2))
+	      return new IntType();
+	    else if(tp2.equals(new NoType()))//NOTE: notype & notype is not handled?
+	      return tp1;
+	    else
+	      return printErrAndAssignNoType("Incompatible types for checking equality.");
+	  }
+
+	  Type assignAssignmentExprType(Type tp1, Type tp2) {
+	    if(tp1.equals(tp2))
+	      return tp1;
+	    else
+	      return printErrAndAssignNoType("Invalid assignment.");
+	  }
+
+	  void checkIterationExpr(String id, int line, Type tp){
+	    try{
+	    Type t = getIDFromSymTable(id, line);
+	    tp = tp.dimensionAccess(1);
+	    if(!t.equals(new NoType()))
+	      printErrAndAssignNoType("variable <" + id + "> already declared in this scope.");
+	    }catch(UndefinedDemensionsException ex){
+	      printErrAndAssignNoType("Undefined demensions.");
 	    }
+	  }
 
-	    Type checkCombinedArithExprTypes(Type tp1,Type tp2)throws ArithmaticsOperandsException{
-	      if((!tp1.equals(new IntType())) && (!tp2.equals(new NoType())))
-	       throw new ArithmaticsOperandsException();
-	     else
-	       return tp1;
-	   }
 
-	    Type assignExprType(Type tp1, Type tp2, String msg) {
-	      try {
-	        return checkCombinedArithExprTypes(tp1, tp2);
-	      } catch(ArithmaticsOperandsException ex) {
-	        return printErrAndAssignNoType(msg);
-	      }
+	  Type getIDFromSymTable(String idName, int line) {
+	    SymbolTableItem item = SymbolTable.top.get(idName);
+	    if(item == null){
+	      printErrors(line, "Variable " + idName + " doesnt exist.");
+	      return new NoType();
 	    }
-
-	    Type getIDFromSymTable(String idName, int line) {
-	      SymbolTableItem item = SymbolTable.top.get(idName);
-	      if(item == null)
-	        return printErrAndAssignNoType(line + ") Item " + idName + " doesnt exist.");
-	      else {
-	        SymbolTableVariableItemBase var = (SymbolTableVariableItemBase) item;
-	        print(line + ") Variable " + idName +" used.\t\t" +   "Base Reg: " + var.getBaseRegister() + ", Offset: " + var.getOffset());
-	        return var.getVariable().getType();
-	      }
+	    else {
+	      SymbolTableVariableItemBase var = (SymbolTableVariableItemBase) item;
+	      print(line + ") Variable " + idName +" used.\t\t" +   "Base Reg: " + var.getBaseRegister() + ", Offset: " + var.getOffset());
+	      return var.getVariable().getType();
 	    }
+	  }
 
-	    SymbolTableItemReceiver getRecieverFromSymTable(String name, int line) throws ReceiverDoseNotExistsException{
-	      SymbolTableItem item = SymbolTable.top.get(name);
-	      if(item == null)
-	        throw new ReceiverDoseNotExistsException();
-	      SymbolTableItemReceiver var = (SymbolTableItemReceiver) item;
-	      /* print(line + ") Reciever " + name + " used.\t\t"); */
-	      return var;
-	    }
+	  SymbolTableItemReceiver getRecieverFromSymTable(String name, int line) throws ReceiverDoseNotExistsException{
+	    SymbolTableItem item = SymbolTable.top.get(name);
+	    if(item == null)
+	      throw new ReceiverDoseNotExistsException();
+	    SymbolTableItemReceiver var = (SymbolTableItemReceiver) item;
+	    /* print(line + ") Reciever " + name + " used.\t\t"); */
+	    return var;
+	  }
 
-	    SymbolTableItemActor getActorFromSymTable(String name, int line)throws ActorDoesntExistsException{
-	      SymbolTableItem item = SymbolTable.top.get(name);
-	      if(item == null)
-	        throw new ActorDoesntExistsException();
-	      SymbolTableItemActor var = (SymbolTableItemActor) item;
-	      /* print(line + ") Reciever " + name + " used.\t\t"); */
-	      return var;
-	    }
+	  SymbolTableItemActor getActorFromSymTable(String name, int line)throws ActorDoesntExistsException{
+	    SymbolTableItem item = SymbolTable.top.get(name);
+	    if(item == null)
+	      throw new ActorDoesntExistsException();
+	    SymbolTableItemActor var = (SymbolTableItemActor) item;
+	    /* print(line + ") Reciever " + name + " used.\t\t"); */
+	    return var;
+	  }
 
-	    int checkAndFindNumOfItemsInExplitArray(Type tp1,Type tp2, int size) {
-	      if(!tp2.equals(tp1))
-	        size = -1;
-	      else if(size != -1)
-	        size ++;
-	      return size;
+	  String makeKey(String actr, String rcvr, ArrayList<Type> argumentTypes){
+	    String key = actr + ": " + rcvr + " (";
+	    for (int i = 0; i < argumentTypes.size(); i++){
+	      key += argumentTypes.get(i).toString();
+	      if (i != argumentTypes.size() - 1)
+	        key += ", ";
 	    }
+	    return key + ")";
+	  }
 
-	    Type assignExplitArrayType(int size, Type tp) {
-	      if(size != -1)
-	        return new ArrayType(size, tp);
-	      else
-	        return printErrAndAssignNoType("Invalid combination for a array type.");
-	    }
+	  String makeRecieverkey(String currentActor, String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes){
+	    if(rcvrActor.equals("self"))
+	      return makeKey(currentActor, rcvrName, argumentTypes);
+	    /*else if(rcvrActor.equals("sender"))
+	      return makeKey(senderName, rcvrName, argumentTypes);*/
+	    else
+	      return makeKey(rcvrActor, rcvrName, argumentTypes);
+	  }
 
-	    Type checkEqualityExprType_tmp(Type tp1, Type tp2) {
-	      if(tp1.equals(tp2) || tp2.equals(new NoType()))
-	        return tp1;
-	      else
-	        return printErrAndAssignNoType("Incompatible types for checking equality.");
-	    }
+	  SymbolTableItemReceiver checkRecieverExistance(String currentActor, String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes, int line)
+	  throws ReceiverDoseNotExistsException{
+	    String key = makeRecieverkey(currentActor, rcvrActor, rcvrName, argumentTypes);
+	    return getRecieverFromSymTable(key, line);
+	  }
 
-	    Type checkEqualityExprType(Type tp1, Type tp2) {
-	      if(tp1.equals(tp2))
-	        return new IntType();
-	      else if(tp2.equals(new NoType()))//NOTE: notype & notype is not handled?
-	        return tp1;
-	      else
-	        return printErrAndAssignNoType("Incompatible types for checking equality.");
-	    }
 
-	    Type assignAssignmentExprType(Type tp1, Type tp2) {
-	      if(tp1.equals(tp2))
-	        return tp1;
-	      else
-	        return printErrAndAssignNoType("Invalid assignment.");
-	    }
+	  int checkAndFindNumOfItemsInExplitArray(Type tp1,Type tp2, int size) {
+	    if(!tp2.equals(tp1))
+	      size = -1;
+	    else if(size != -1)
+	      size ++;
+	    return size;
+	  }
 
-	    void checkIterationExpr(String id, int line, Type tp){
-	      try{
-	      Type t = getIDFromSymTable(id, line);
-	      tp = tp.dimensionAccess(1);
-	      if(!t.equals(new NoType()))
-	        printErrAndAssignNoType("variable <" + id + "> already declared in this scope.");
-	      }catch(UndefinedDemensionsException ex){
-	        printErrAndAssignNoType("Undefined demensions.");
-	      }
+	  Type assignExplitArrayType(int size, Type tp, int line) {
+	    if(size != -1)
+	      return new ArrayType(size, tp);
+	    else{
+	      printErrors(line, "Invalid combination for a array type.");
+	      return new NoType();
 	    }
+	  }
 
-	    void checkWriteFuncArgument(Type tp){
-	      try{
-	        if(!(tp.equals(new IntType()) || tp.equals(new CharacterType())))
-	          if(!tp.dimensionAccess(1).equals(new CharacterType()))
-	            printErrAndAssignNoType("Invalid argument for function <write>.");
-	      }catch(UndefinedDemensionsException ex){
-	        printErrAndAssignNoType("Invalid argument for function <write>.");
-	      }
+	  int checkDimLenValidationInArray(int size, int line){
+	    if(size <= 0){
+	      printErrors(line,"size of array is negative");
+	      size = 0;
 	    }
+	    return size;
+	  }
 
-	    String makeKey(String actr, String rcvr, ArrayList<Type> argumentTypes){
-	      String key = actr + ": " + rcvr + " (";
-	  		for (int i = 0; i < argumentTypes.size(); i++){
-	  			key += argumentTypes.get(i).toString();
-	  			if (i != argumentTypes.size() - 1)
-	  				key += ", ";
-	  		}
-	  		return key + ")";
-	    }
 
-	    String makeRecieverkey(String currentActor, String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes){
-	      if(rcvrActor.equals("self"))
-	        return makeKey(currentActor, rcvrName, argumentTypes);
-	      /*else if(rcvrActor.equals("sender"))
-	        return makeKey(senderName, rcvrName, argumentTypes);*/
-	      else
-	        return makeKey(rcvrActor, rcvrName, argumentTypes);
+	  void checkWriteFuncArgument(Type tp, int line){
+	    try{
+	      if(!(tp.equals(new IntType()) || tp.equals(new CharacterType())))
+	        if(!tp.dimensionAccess(1).equals(new CharacterType()))
+	          printErrors(line, "Invalid argument for function <write>.");
+	    }catch(UndefinedDemensionsException ex){
+	      printErrors(line, "Invalid argument for function <write>.");
 	    }
+	  }
 
-	    SymbolTableItemReceiver checkRecieverExistance(String currentActor, String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes, int line)
-	    throws ReceiverDoseNotExistsException{
-	      String key = makeRecieverkey(currentActor, rcvrActor, rcvrName, argumentTypes);
-	      return getRecieverFromSymTable(key, line);
-	    }
+	  void checkInitAndSender(String rcvrActor, String rcvrName, int argCnt) throws SenderInInitException{
+	    if(rcvrActor.equals("sender"))
+	      if(argCnt == 0 && rcvrName.equals("init"))
+	        throw new SenderInInitException();
+	  }
 
-	    void checkInitAndSender(String rcvrActor, String rcvrName, int argCnt) throws SenderInInitException{
-	      if(rcvrActor.equals("sender"))
-	        if(argCnt == 0 && rcvrName.equals("init"))
-	          throw new SenderInInitException();
+	  void checkCallValidation(String currentActor, String currentReceiver, String rcvrActor, String rcvrName, ArrayList<Type> argumentsTypes, int line, int argCnt){
+	    try{
+	      checkInitAndSender(rcvrActor, currentReceiver, argCnt);
+	      if(!rcvrActor.equals("sender") && !rcvrActor.equals("self"))
+	        getActorFromSymTable(rcvrActor, line);
+	      checkRecieverExistance(currentActor, rcvrActor, rcvrName, argumentsTypes, line);
+	    }catch(SenderInInitException ex){
+	        printErrors(line, "Invalid use of keyword <sender>.");
+	    }catch(ActorDoesntExistsException ex){
+	        printErrors(line, "Actor: " + rcvrActor + " does not exist.");
+	    }catch(ReceiverDoseNotExistsException ex){
+	        printErrors(line, "Reciever: " + rcvrName + " does not exist.");
 	    }
+	  }
 
-	    void checkCallValidation(String currentActor, String currentReceiver, String rcvrActor, String rcvrName, ArrayList<Type> argumentsTypes, int line, int argCnt){
-	      try{
-	        checkInitAndSender(rcvrActor, currentReceiver, argCnt);
-	        if(!rcvrActor.equals("sender") && !rcvrActor.equals("self"))
-	          getActorFromSymTable(rcvrActor, line);
-	        checkRecieverExistance(currentActor, rcvrActor, rcvrName, argumentsTypes, line);
-	      }catch(SenderInInitException ex){
-	          printErrAndAssignNoType("Invalid use of keyword <sender>.");
-	      }catch(ActorDoesntExistsException ex){
-	          printErrAndAssignNoType("Actor: " + rcvrActor + " does not exist.");
-	      }catch(ReceiverDoseNotExistsException ex){
-	          printErrAndAssignNoType("Reciever: " + rcvrName + " does not exist.");
-	      }
-	    }
+
+	  void printErrors(int lineNum, String err){
+	    errorOccured ++;
+	    if(lineNum >= 0)
+	      print("Error(" + lineNum + "): " + err + "\n");
+	    else
+	      print("Error: " + err + "\n");
+	  }
+
+	  void print(String str){
+	      System.out.println(str);
+	  }
+
+	  Type printErrAndAssignNoType(String msg){
+	    print(msg);
+	    return new NoType();
+	  }
 
 	public ATalkPass2Parser(TokenStream input) {
 		super(input);
@@ -323,7 +351,7 @@ public class ATalkPass2Parser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 
-			        print("Pass2 started -------------------------");
+			        print("------------------------- Pass2 started -------------------------");
 			        beginScope();
 			    
 			setState(73);
@@ -356,7 +384,7 @@ public class ATalkPass2Parser extends Parser {
 			}
 
 			        endScope();
-			        print("Pass2 finished -------------------------");
+			        print("------------------------- Pass2 finished -------------------------");
 			    
 			}
 		}
@@ -725,13 +753,7 @@ public class ATalkPass2Parser extends Parser {
 				setState(144);
 				match(T__11);
 
-				    int size_arr = (((TypeContext)_localctx).size!=null?Integer.valueOf(((TypeContext)_localctx).size.getText()):0);
-				    if((((TypeContext)_localctx).size!=null?Integer.valueOf(((TypeContext)_localctx).size.getText()):0) <= 0){
-				      printErrAndAssignNoType((((TypeContext)_localctx).size!=null?((TypeContext)_localctx).size.getLine():0) + ") size of array is negative");
-				      size_arr = 0;
-				    }
-				    dims.add(size_arr);
-				  
+				    dims.add(checkDimLenValidationInArray((((TypeContext)_localctx).size!=null?Integer.valueOf(((TypeContext)_localctx).size.getText()):0), (((TypeContext)_localctx).size!=null?((TypeContext)_localctx).size.getLine():0)));
 				}
 				}
 				setState(150);
@@ -739,9 +761,8 @@ public class ATalkPass2Parser extends Parser {
 				_la = _input.LA(1);
 			}
 
-			    for(int i=dims.size()-1; i >= 0; i--){
+			    for(int i=dims.size()-1; i >= 0; i--)
 			      ((TypeContext)_localctx).t =  new ArrayType(dims.get(i),_localctx.t);
-			    }
 			  
 			}
 		}
@@ -1048,14 +1069,15 @@ public class ATalkPass2Parser extends Parser {
 
 	public static class Stm_vardefContext extends ParserRuleContext {
 		public TypeContext t;
+		public Token ln;
 		public ExprContext tp;
-		public List<TerminalNode> ID() { return getTokens(ATalkPass2Parser.ID); }
-		public TerminalNode ID(int i) {
-			return getToken(ATalkPass2Parser.ID, i);
-		}
 		public TerminalNode NL() { return getToken(ATalkPass2Parser.NL, 0); }
 		public TypeContext type() {
 			return getRuleContext(TypeContext.class,0);
+		}
+		public List<TerminalNode> ID() { return getTokens(ATalkPass2Parser.ID); }
+		public TerminalNode ID(int i) {
+			return getToken(ATalkPass2Parser.ID, i);
 		}
 		public List<ExprContext> expr() {
 			return getRuleContexts(ExprContext.class);
@@ -1087,7 +1109,7 @@ public class ATalkPass2Parser extends Parser {
 			setState(179);
 			((Stm_vardefContext)_localctx).t = type();
 			setState(180);
-			match(ID);
+			((Stm_vardefContext)_localctx).ln = match(ID);
 			 SymbolTable.define(); 
 			setState(186);
 			_errHandler.sync(this);
@@ -1100,7 +1122,7 @@ public class ATalkPass2Parser extends Parser {
 				((Stm_vardefContext)_localctx).tp = expr();
 
 				        if(!((Stm_vardefContext)_localctx).t.t.equals(((Stm_vardefContext)_localctx).tp.t))
-				          printErrAndAssignNoType("Invalid assignment.");
+				          printErrors((((Stm_vardefContext)_localctx).ln!=null?((Stm_vardefContext)_localctx).ln.getLine():0), "Invalid assignment.");
 				        
 				}
 			}
@@ -1127,7 +1149,7 @@ public class ATalkPass2Parser extends Parser {
 					((Stm_vardefContext)_localctx).tp = expr();
 
 					          if(!((Stm_vardefContext)_localctx).t.t.equals(((Stm_vardefContext)_localctx).tp.t))
-					            printErrAndAssignNoType("Invalid assignment.");
+					            printErrors((((Stm_vardefContext)_localctx).ln!=null?((Stm_vardefContext)_localctx).ln.getLine():0), "Invalid assignment.");
 					          
 					}
 				}
@@ -1261,6 +1283,7 @@ public class ATalkPass2Parser extends Parser {
 	}
 
 	public static class Stm_writeContext extends ParserRuleContext {
+		public Token ln;
 		public ExprContext tp;
 		public TerminalNode NL() { return getToken(ATalkPass2Parser.NL, 0); }
 		public ExprContext expr() {
@@ -1287,7 +1310,7 @@ public class ATalkPass2Parser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(226);
-			match(T__17);
+			((Stm_writeContext)_localctx).ln = match(T__17);
 			setState(227);
 			match(T__6);
 			setState(228);
@@ -1296,7 +1319,7 @@ public class ATalkPass2Parser extends Parser {
 			match(T__7);
 			setState(230);
 			match(NL);
-			checkWriteFuncArgument(((Stm_writeContext)_localctx).tp.t);
+			checkWriteFuncArgument(((Stm_writeContext)_localctx).tp.t, (((Stm_writeContext)_localctx).ln!=null?((Stm_writeContext)_localctx).ln.getLine():0));
 			}
 		}
 		catch (RecognitionException re) {
@@ -1314,6 +1337,7 @@ public class ATalkPass2Parser extends Parser {
 		public String currentReceiver;
 		public String currentActor;
 		public int argCnt;
+		public Token ln;
 		public ExprContext tp;
 		public List<TerminalNode> NL() { return getTokens(ATalkPass2Parser.NL); }
 		public TerminalNode NL(int i) {
@@ -1357,12 +1381,12 @@ public class ATalkPass2Parser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(233);
-			match(T__18);
+			((Stm_if_elseif_elseContext)_localctx).ln = match(T__18);
 			beginScope();
 			setState(235);
 			((Stm_if_elseif_elseContext)_localctx).tp = expr();
 			if(!((Stm_if_elseif_elseContext)_localctx).tp.t.equals(new IntType()))
-			          printErrAndAssignNoType("Invalid use of expression as a condition.");
+			          printErrors((((Stm_if_elseif_elseContext)_localctx).ln!=null?((Stm_if_elseif_elseContext)_localctx).ln.getLine():0), "Invalid use of expression as a condition.");
 			      
 			setState(237);
 			match(NL);
@@ -1376,12 +1400,12 @@ public class ATalkPass2Parser extends Parser {
 				{
 				{
 				setState(240);
-				match(T__19);
+				((Stm_if_elseif_elseContext)_localctx).ln = match(T__19);
 				beginScope();
 				setState(242);
 				((Stm_if_elseif_elseContext)_localctx).tp = expr();
 				if(!((Stm_if_elseif_elseContext)_localctx).tp.t.equals(new IntType()))
-				          printErrAndAssignNoType("Invalid use of expression as a condition.");
+				          printErrors((((Stm_if_elseif_elseContext)_localctx).ln!=null?((Stm_if_elseif_elseContext)_localctx).ln.getLine():0), "Invalid use of expression as a condition.");
 				      
 				setState(244);
 				match(NL);
@@ -1667,6 +1691,7 @@ public class ATalkPass2Parser extends Parser {
 		public Type t;
 		public boolean rvalue;
 		public Expr_orContext tp1;
+		public Token ln;
 		public Expr_assignContext tp2;
 		public Expr_orContext tp;
 		public Expr_orContext expr_or() {
@@ -1702,11 +1727,11 @@ public class ATalkPass2Parser extends Parser {
 				setState(288);
 				((Expr_assignContext)_localctx).tp1 = expr_or();
 				setState(289);
-				match(T__13);
+				((Expr_assignContext)_localctx).ln = match(T__13);
 				setState(290);
 				((Expr_assignContext)_localctx).tp2 = expr_assign();
 				if(((Expr_assignContext)_localctx).tp1.rvalue)
-				          printErrAndAssignNoType("Assignment to an rvalue.");
+				          printErrors((((Expr_assignContext)_localctx).ln!=null?((Expr_assignContext)_localctx).ln.getLine():0), "Assignment to an rvalue.");
 				        else
 				          ((Expr_assignContext)_localctx).t =  assignAssignmentExprType(((Expr_assignContext)_localctx).tp1.t, ((Expr_assignContext)_localctx).tp2.t);
 				}
@@ -1785,6 +1810,7 @@ public class ATalkPass2Parser extends Parser {
 	public static class Expr_or_tmpContext extends ParserRuleContext {
 		public Type t;
 		public boolean rvalue;
+		public Token ln;
 		public Expr_andContext tp1;
 		public Expr_or_tmpContext tp2;
 		public Expr_andContext expr_and() {
@@ -1818,12 +1844,12 @@ public class ATalkPass2Parser extends Parser {
 				enterOuterAlt(_localctx, 1);
 				{
 				setState(302);
-				match(T__25);
+				((Expr_or_tmpContext)_localctx).ln = match(T__25);
 				setState(303);
 				((Expr_or_tmpContext)_localctx).tp1 = expr_and();
 				setState(304);
 				((Expr_or_tmpContext)_localctx).tp2 = expr_or_tmp();
-				((Expr_or_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_or_tmpContext)_localctx).tp1.t, "Invalid operands for <or> operator."); ((Expr_or_tmpContext)_localctx).rvalue =  true;
+				((Expr_or_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_or_tmpContext)_localctx).tp1.t, "Invalid operands for <or> operator.", (((Expr_or_tmpContext)_localctx).ln!=null?((Expr_or_tmpContext)_localctx).ln.getLine():0)); ((Expr_or_tmpContext)_localctx).rvalue =  true;
 				}
 				break;
 			case T__4:
@@ -1905,6 +1931,7 @@ public class ATalkPass2Parser extends Parser {
 	public static class Expr_and_tmpContext extends ParserRuleContext {
 		public Type t;
 		public boolean rvalue;
+		public Token ln;
 		public Expr_eqContext tp1;
 		public Expr_and_tmpContext tp2;
 		public Expr_eqContext expr_eq() {
@@ -1938,12 +1965,12 @@ public class ATalkPass2Parser extends Parser {
 				enterOuterAlt(_localctx, 1);
 				{
 				setState(314);
-				match(T__26);
+				((Expr_and_tmpContext)_localctx).ln = match(T__26);
 				setState(315);
 				((Expr_and_tmpContext)_localctx).tp1 = expr_eq();
 				setState(316);
 				((Expr_and_tmpContext)_localctx).tp2 = expr_and_tmp();
-				((Expr_and_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_and_tmpContext)_localctx).tp1.t, "Invalid operands for <and> operator."); ((Expr_and_tmpContext)_localctx).rvalue =  true;
+				((Expr_and_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_and_tmpContext)_localctx).tp1.t, "Invalid operands for <and> operator.", (((Expr_and_tmpContext)_localctx).ln!=null?((Expr_and_tmpContext)_localctx).ln.getLine():0)); ((Expr_and_tmpContext)_localctx).rvalue =  true;
 				}
 				break;
 			case T__4:
@@ -2211,7 +2238,7 @@ public class ATalkPass2Parser extends Parser {
 				}
 				setState(342);
 				((Expr_cmp_tmpContext)_localctx).tp = expr_add();
-				((Expr_cmp_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_cmp_tmpContext)_localctx).tp.t, (((Expr_cmp_tmpContext)_localctx).cmp!=null?((Expr_cmp_tmpContext)_localctx).cmp.getText():null)); ((Expr_cmp_tmpContext)_localctx).rvalue =  true;
+				((Expr_cmp_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_cmp_tmpContext)_localctx).tp.t, "Invalid operands for comparision operators.", (((Expr_cmp_tmpContext)_localctx).cmp!=null?((Expr_cmp_tmpContext)_localctx).cmp.getLine():0)); ((Expr_cmp_tmpContext)_localctx).rvalue =  true;
 				setState(344);
 				expr_cmp_tmp();
 				}
@@ -2346,7 +2373,7 @@ public class ATalkPass2Parser extends Parser {
 				}
 				setState(354);
 				((Expr_add_tmpContext)_localctx).tp = expr_mult();
-				((Expr_add_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_add_tmpContext)_localctx).tp.t, (((Expr_add_tmpContext)_localctx).add!=null?((Expr_add_tmpContext)_localctx).add.getText():null)); ((Expr_add_tmpContext)_localctx).rvalue =  true;
+				((Expr_add_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_add_tmpContext)_localctx).tp.t, "Invalid operands for +/- operators.", (((Expr_add_tmpContext)_localctx).add!=null?((Expr_add_tmpContext)_localctx).add.getLine():0)); ((Expr_add_tmpContext)_localctx).rvalue =  true;
 				setState(356);
 				expr_add_tmp();
 				}
@@ -2483,7 +2510,7 @@ public class ATalkPass2Parser extends Parser {
 				}
 				setState(366);
 				((Expr_mult_tmpContext)_localctx).tp = expr_un();
-				((Expr_mult_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_mult_tmpContext)_localctx).tp.t, (((Expr_mult_tmpContext)_localctx).mult!=null?((Expr_mult_tmpContext)_localctx).mult.getText():null)); ((Expr_mult_tmpContext)_localctx).rvalue =  true;
+				((Expr_mult_tmpContext)_localctx).t =  assignExprType_tmp(((Expr_mult_tmpContext)_localctx).tp.t, "Invalid operands for multiplication operands.", (((Expr_mult_tmpContext)_localctx).mult!=null?((Expr_mult_tmpContext)_localctx).mult.getLine():0)); ((Expr_mult_tmpContext)_localctx).rvalue =  true;
 				setState(368);
 				expr_mult_tmp();
 				}
@@ -2525,6 +2552,7 @@ public class ATalkPass2Parser extends Parser {
 	public static class Expr_unContext extends ParserRuleContext {
 		public Type t;
 		public boolean rvalue;
+		public Token ln;
 		public Expr_unContext tp;
 		public Expr_memContext tp1;
 		public Expr_unContext expr_un() {
@@ -2560,9 +2588,10 @@ public class ATalkPass2Parser extends Parser {
 				enterOuterAlt(_localctx, 1);
 				{
 				setState(373);
+				((Expr_unContext)_localctx).ln = _input.LT(1);
 				_la = _input.LA(1);
 				if ( !(_la==T__30 || _la==T__33) ) {
-				_errHandler.recoverInline(this);
+					((Expr_unContext)_localctx).ln = (Token)_errHandler.recoverInline(this);
 				}
 				else {
 					if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
@@ -2571,7 +2600,7 @@ public class ATalkPass2Parser extends Parser {
 				}
 				setState(374);
 				((Expr_unContext)_localctx).tp = expr_un();
-				((Expr_unContext)_localctx).t =  assignExprType_tmp(((Expr_unContext)_localctx).tp.t,  "Invalid arithmatic operands"); ((Expr_unContext)_localctx).rvalue =  true;
+				((Expr_unContext)_localctx).t =  assignExprType_tmp(((Expr_unContext)_localctx).tp.t,  "Invalid arithmatic operands", (((Expr_unContext)_localctx).ln!=null?((Expr_unContext)_localctx).ln.getLine():0)); ((Expr_unContext)_localctx).rvalue =  true;
 				}
 				break;
 			case T__6:
@@ -2665,6 +2694,7 @@ public class ATalkPass2Parser extends Parser {
 
 	public static class Expr_mem_tmpContext extends ParserRuleContext {
 		public int dimension;
+		public Token ln;
 		public ExprContext tp;
 		public Expr_mem_tmpContext d;
 		public ExprContext expr() {
@@ -2698,12 +2728,12 @@ public class ATalkPass2Parser extends Parser {
 				enterOuterAlt(_localctx, 1);
 				{
 				setState(386);
-				match(T__10);
+				((Expr_mem_tmpContext)_localctx).ln = match(T__10);
 				setState(387);
 				((Expr_mem_tmpContext)_localctx).tp = expr();
 
 				      if(!((Expr_mem_tmpContext)_localctx).tp.t.equals(new IntType()))
-				        print("invalid index.");
+				        printErrors((((Expr_mem_tmpContext)_localctx).ln!=null?((Expr_mem_tmpContext)_localctx).ln.getLine():0), "invalid index.");
 				      
 				setState(389);
 				match(T__11);
@@ -2753,6 +2783,7 @@ public class ATalkPass2Parser extends Parser {
 		public boolean rvalue;
 		public Token str;
 		public Token id;
+		public Token ln;
 		public ExprContext tp1;
 		public ExprContext tp2;
 		public Token size;
@@ -2825,7 +2856,7 @@ public class ATalkPass2Parser extends Parser {
 				enterOuterAlt(_localctx, 5);
 				{
 				setState(404);
-				match(T__34);
+				((Expr_otherContext)_localctx).ln = match(T__34);
 				setState(405);
 				((Expr_otherContext)_localctx).tp1 = expr();
 				int size = 1;
@@ -2846,7 +2877,7 @@ public class ATalkPass2Parser extends Parser {
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 				}
-				((Expr_otherContext)_localctx).t =  assignExplitArrayType(size, ((Expr_otherContext)_localctx).tp1.t); ((Expr_otherContext)_localctx).rvalue =  false;
+				((Expr_otherContext)_localctx).t =  assignExplitArrayType(size, ((Expr_otherContext)_localctx).tp1.t, (((Expr_otherContext)_localctx).ln!=null?((Expr_otherContext)_localctx).ln.getLine():0)); ((Expr_otherContext)_localctx).rvalue =  false;
 				setState(417);
 				match(T__35);
 				}
