@@ -283,6 +283,17 @@ public class ATalkPass2Lexer extends Lexer {
 	  }
 
 
+	  int findLine(int ln1, int ln2){
+	    if(ln1 == -1 && ln2 == -1)
+	       return -1;
+	    else if(ln1 == -1)
+	       return ln2;
+	    else if(ln2 == -1)
+	       return ln1;
+	    else
+	      return ln1;
+	  }
+
 	  void printErrors(int lineNum, String err){
 	    errorOccured ++;
 	    if(lineNum >= 0)

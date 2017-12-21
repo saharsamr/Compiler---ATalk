@@ -140,11 +140,11 @@ stm_assignment:
     expr NL
   ;
 
-expr returns [Type t, boolean rvalue]:
+expr returns [Type t, boolean rvalue, int ln_]:
     tp = expr_assign {$t = $tp.t; $rvalue = $tp.rvalue;}
   ;
 
-expr_assign returns [Type t, boolean rvalue]:
+expr_assign returns [Type t, boolean rvalue, int ln_]:
     tp1 = expr_or ln = '=' tp2 = expr_assign
       {if($tp1.rvalue)
           printErrors($ln.line, "Assignment to an rvalue.");
@@ -153,90 +153,97 @@ expr_assign returns [Type t, boolean rvalue]:
   |  tp = expr_or {$t = $tp.t; $rvalue = $tp.rvalue;}
   ;
 
-expr_or returns [Type t, boolean rvalue]:
+expr_or returns [Type t, boolean rvalue, int ln_]:
     tp1 = expr_and tp2 = expr_or_tmp
-    {$t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");
+    {$ln_ = findLine($tp1.ln_, $tp2.ln_);
+      $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");
       $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
-expr_or_tmp returns [Type t, boolean rvalue]:
+expr_or_tmp returns [Type t, boolean rvalue, int ln_]:
     ln = 'or' tp1 = expr_and tp2 = expr_or_tmp
-      {$t = assignExprType_tmp($tp1.t, "Invalid operands for <or> operator.", $ln.line); $rvalue = true;}
-  | {$t = new NoType(); $rvalue = false;}
+      {$t = assignExprType_tmp($tp1.t, "Invalid operands for <or> operator.", $ln.line); $rvalue = true; $ln_ = $ln.line;}
+  | {$t = new NoType(); $rvalue = false; $ln_ = -1;}
   ;
 
-expr_and returns [Type t, boolean rvalue]:
+expr_and returns [Type t, boolean rvalue, int ln_]:
     tp1 = expr_eq tp2 = expr_and_tmp
-    {$t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");
+    {$ln_ = findLine($tp1.ln_, $tp2.ln_);
+      $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");
       $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
-expr_and_tmp returns [Type t, boolean rvalue]:
+expr_and_tmp returns [Type t, boolean rvalue, int ln_]:
     ln = 'and' tp1 = expr_eq tp2 = expr_and_tmp
-      {$t = assignExprType_tmp($tp1.t, "Invalid operands for <and> operator.", $ln.line); $rvalue = true;}
-  | {$t = new NoType(); $rvalue = false;}
+      {$t = assignExprType_tmp($tp1.t, "Invalid operands for <and> operator.", $ln.line); $rvalue = true; $ln_ = $ln.line;}
+  | {$t = new NoType(); $rvalue = false; $ln_ = -1;}
   ;
 
-expr_eq returns [Type t, boolean rvalue]:
+expr_eq returns [Type t, boolean rvalue, int ln_]:
     tp1 = expr_cmp tp2 = expr_eq_tmp
-      {$t = checkEqualityExprType($tp1.t, $tp2.t);
+      {$ln_ = findLine($tp1.ln_, $tp2.ln_);
+        $t = checkEqualityExprType($tp1.t, $tp2.t);
         $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
 
-expr_eq_tmp returns [Type t, boolean rvalue]:
-    ('==' | '<>') tp1 = expr_cmp tp2 = expr_eq_tmp
-      {$t = checkEqualityExprType_tmp($tp1.t, $tp2.t); $rvalue = true;}
-  | {$t = new NoType(); $rvalue = false;}
+expr_eq_tmp returns [Type t, boolean rvalue, int ln_]:
+    ln = ('==' | '<>') tp1 = expr_cmp tp2 = expr_eq_tmp
+      {$t = checkEqualityExprType_tmp($tp1.t, $tp2.t); $rvalue = true; $ln_ = $ln.line;}
+  | {$t = new NoType(); $rvalue = false; $ln_ = -1;}
   ;
 
-expr_cmp returns [Type t, boolean rvalue]:
+expr_cmp returns [Type t, boolean rvalue, int ln_]:
     tp1 = expr_add tp2 = expr_cmp_tmp
-    {$t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");
+    {$ln_ = findLine($tp1.ln_, $tp2.ln_);
+      $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");
       $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
-expr_cmp_tmp returns [Type t, boolean rvalue]:
+expr_cmp_tmp returns [Type t, boolean rvalue, int ln_]:
     (cmp = '<' | cmp = '>') tp = expr_add
-      {$t = assignExprType_tmp($tp.t, "Invalid operands for comparision operators.", $cmp.line); $rvalue = true;}
+      {$t = assignExprType_tmp($tp.t, "Invalid operands for comparision operators.", $cmp.line); $rvalue = true; $ln_ = $cmp.line;}
     expr_cmp_tmp
-  | {$t = new NoType(); $rvalue = false;}
+  | {$t = new NoType(); $rvalue = false; $ln_ = -1;}
   ;
 
-expr_add returns [Type t, boolean rvalue]:
+expr_add returns [Type t, boolean rvalue, int ln_]:
     tp1 = expr_mult tp2 = expr_add_tmp
-    {$t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");
+    {$ln_ = findLine($tp1.ln_, $tp2.ln_);
+      $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");
       $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
-expr_add_tmp returns [Type t, boolean rvalue]:
+expr_add_tmp returns [Type t, boolean rvalue, int ln_]:
     add = ('+' | '-') tp = expr_mult
-      {$t = assignExprType_tmp($tp.t, "Invalid operands for +/- operators.", $add.line); $rvalue = true;}
+      {$t = assignExprType_tmp($tp.t, "Invalid operands for +/- operators.", $add.line); $rvalue = true; $ln_ = $add.line;}
     expr_add_tmp
-  | {$t = new NoType(); $rvalue = false;}
+  | {$t = new NoType(); $rvalue = false; $ln_ = -1;}
   ;
 
-expr_mult returns [Type t, boolean rvalue]:
+expr_mult returns [Type t, boolean rvalue, int ln_]:
     tp1 = expr_un tp2 = expr_mult_tmp
-    {$t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");
+    {$ln_ = findLine($tp1.ln_, $tp2.ln_);
+     $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands");
      $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
-expr_mult_tmp returns [Type t, boolean rvalue]:
+expr_mult_tmp returns [Type t, boolean rvalue, int ln_]:
     mult = ('*' | '/') tp = expr_un
-      {$t = assignExprType_tmp($tp.t, "Invalid operands for multiplication operands.", $mult.line); $rvalue = true;}
+      {$t = assignExprType_tmp($tp.t, "Invalid operands for multiplication operands.", $mult.line); $rvalue = true;  $ln_ = $mult.line;}
     expr_mult_tmp
-  | {$t = new NoType(); $rvalue = false;}
+  | {$t = new NoType(); $rvalue = false; $ln_ = -1;}
   ;
 
-expr_un returns [Type t, boolean rvalue]:
+expr_un returns [Type t, boolean rvalue, int ln_]:
     ln = ('not' | '-') tp = expr_un
-      {$t = assignExprType_tmp($tp.t,  "Invalid arithmatic operands", $ln.line); $rvalue = true;}
-  |  tp1 = expr_mem {$t = $tp1.t; $rvalue = $tp1.rvalue;}
+      {$t = assignExprType_tmp($tp.t,  "Invalid arithmatic operands", $ln.line); $rvalue = true; $ln_ = $ln.line;}
+  |  tp1 = expr_mem {$t = $tp1.t; $rvalue = $tp1.rvalue; $ln_ = $tp1.ln_;}
   ;
 
-expr_mem returns [Type t, boolean rvalue]:
+expr_mem returns [Type t, boolean rvalue, int ln_]:
     tp = expr_other dim = expr_mem_tmp {
+      $ln_ = findLine($tp.ln_, $dim.ln_);
       try{
         $t = $tp.t.dimensionAccess($dim.dimension);
         if($dim.dimension == 0)
@@ -250,25 +257,26 @@ expr_mem returns [Type t, boolean rvalue]:
     }
   ;
 
-expr_mem_tmp returns [int dimension]:
+expr_mem_tmp returns [int dimension, int ln_]:
     ln = '[' tp = expr {
+       $ln_ = $ln.line;
       if(!$tp.t.equals(new IntType()))
         printErrors($ln.line, "invalid index.");
       } ']' d = expr_mem_tmp {$dimension = $d.dimension + 1;}
-  | {$dimension = 0;}
+  | {$dimension = 0;  $ln_ = -1;}
   ;
 
-expr_other returns [Type t, boolean rvalue]:
-     CONST_NUM {$t = new IntType(); $rvalue = true;}
-  |  CONST_CHAR {$t = new CharacterType(); $rvalue = true;}
-  |  str = CONST_STR {$t = new ArrayType($str.text.length()-2, new CharacterType()); $rvalue = true;}
-  |  id = ID {$t = getIDFromSymTable($id.text, $id.line);}
+expr_other returns [Type t, boolean rvalue, int ln_]:
+     ln = CONST_NUM {$t = new IntType(); $rvalue = true; $ln_ = $ln.line;}
+  |  ln = CONST_CHAR {$t = new CharacterType(); $rvalue = true; $ln_ = $ln.line;}
+  |  str = CONST_STR {$t = new ArrayType($str.text.length()-2, new CharacterType()); $rvalue = true; $ln_ = $str.line;}
+  |  id = ID {$t = getIDFromSymTable($id.text, $id.line); $ln_ = $id.line;}
   |  ln = '{' tp1 = expr {int size = 1;} (',' tp2 = expr
           {size = checkAndFindNumOfItemsInExplitArray($tp1.t, $tp2.t, size);})*
-          {$t = assignExplitArrayType(size, $tp1.t, $ln.line); $rvalue = false;}
+          {$t = assignExplitArrayType(size, $tp1.t, $ln.line); $rvalue = false; $ln_ = $ln.line;}
      '}'
-  |  'read' '(' size = CONST_NUM ')' {$t = new ArrayType($size.int, new CharacterType()); $rvalue = true;}
-  |  '(' tp = expr ')' {$t = $tp.t; $rvalue = $tp.rvalue;}
+  |  'read' '(' size = CONST_NUM ')' {$t = new ArrayType($size.int, new CharacterType()); $rvalue = true; $ln_ = $size.line;}
+  |  ln = '(' tp = expr ')' {$t = $tp.t; $rvalue = $tp.rvalue; $ln_ = $ln.line;}
   ;
 
 CONST_NUM:
