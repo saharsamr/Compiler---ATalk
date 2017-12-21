@@ -84,4 +84,9 @@ grammar HandleExprsTypesFuncs;
       printErrors(line, "Undefined demensions.");
     }catch(ItemAlreadyExistsException ex){}
   }
+
+  void checkConditionExprType(Type tp, int line){
+    if(!tp.equals(new IntType()))
+      printErrors(line, "Invalid use of expression as a condition.");
+  }
 }

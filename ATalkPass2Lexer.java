@@ -178,17 +178,27 @@ public class ATalkPass2Lexer extends Lexer {
 	    }catch(ItemAlreadyExistsException ex){}
 	  }
 
+	  void checkConditionExprType(Type tp, int line){
+	    if(!tp.equals(new IntType()))
+	      printErrors(line, "Invalid use of expression as a condition.");
+	  }
+
 
 	  Type getIDFromSymTable(String idName, int line) {
 	    SymbolTableItem item = SymbolTable.top.get(idName);
-	    if(item == null){
-	      printErrors(line, "Variable " + idName + " doesnt exist.");
+	    try{
+	      if(item == null){
+	        printErrors(line, "Variable <" + idName + "> doesnt exist.");
+	        putLocalVar(idName, new NoType());
+	        return new NoType();
+	      }
+	      else {
+	        SymbolTableVariableItemBase var = (SymbolTableVariableItemBase) item;
+	        codeData += (line + ") Variable " + idName +" used.\t\t" +   "Base Reg: " + var.getBaseRegister() + ", Offset: " + var.getOffset());
+	        return var.getVariable().getType();
+	      }
+	    }catch(ItemAlreadyExistsException ex){
 	      return new NoType();
-	    }
-	    else {
-	      SymbolTableVariableItemBase var = (SymbolTableVariableItemBase) item;
-	      codeData += (line + ") Variable " + idName +" used.\t\t" +   "Base Reg: " + var.getBaseRegister() + ", Offset: " + var.getOffset());
-	      return var.getVariable().getType();
 	    }
 	  }
 

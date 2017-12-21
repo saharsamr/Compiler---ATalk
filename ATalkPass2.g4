@@ -57,7 +57,7 @@ type returns [Type t]:
 
 block[String currentReceiver, String currentActor, int argCnt]:
     'begin' {beginScope();} NL
-      statement[currentReceiver, currentActor, argCnt]
+      statements[currentReceiver, currentActor, argCnt]
     'end' {endScope();} NL
   ;
 
@@ -102,23 +102,21 @@ stm_write:
 
 stm_if_elseif_else[String currentReceiver, String currentActor, int argCnt]:
     ln = 'if' {beginScope();} tp = expr
-      {if(!$tp.t.equals(new IntType()))
-          printErrors($ln.line, "Invalid use of expression as a condition.");}
-     NL statement[currentReceiver, currentActor, argCnt] {endScope();}
+      {checkConditionExprType($tp.t, $ln.line);}
+     NL statements[currentReceiver, currentActor, argCnt] {endScope();}
 
     (ln = 'elseif' {beginScope();} tp = expr
-      {if(!$tp.t.equals(new IntType()))
-          printErrors($ln.line, "Invalid use of expression as a condition.");}
-    NL statement[currentReceiver, currentActor, argCnt] {endScope();})*
+      {checkConditionExprType($tp.t, $ln.line);}
+    NL statements[currentReceiver, currentActor, argCnt] {endScope();})*
 
-    ('else' {beginScope();} NL statement[currentReceiver, currentActor, argCnt] {endScope();})?
+    ('else' {beginScope();} NL statements[currentReceiver, currentActor, argCnt] {endScope();})?
     'end' NL
   ;
 
 stm_foreach[String currentReceiver, String currentActor, int argCnt]:
     'foreach' {beginScope();} id = ID 'in' tp = expr NL
               {checkIterationExpr($id.text, $id.line, $tp.t);}
-      statement[currentReceiver, currentActor, argCnt]
+      statements[currentReceiver, currentActor, argCnt]
     'end' {endScope();} NL
   ;
 

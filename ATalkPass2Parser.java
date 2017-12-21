@@ -192,17 +192,27 @@ public class ATalkPass2Parser extends Parser {
 	    }catch(ItemAlreadyExistsException ex){}
 	  }
 
+	  void checkConditionExprType(Type tp, int line){
+	    if(!tp.equals(new IntType()))
+	      printErrors(line, "Invalid use of expression as a condition.");
+	  }
+
 
 	  Type getIDFromSymTable(String idName, int line) {
 	    SymbolTableItem item = SymbolTable.top.get(idName);
-	    if(item == null){
-	      printErrors(line, "Variable " + idName + " doesnt exist.");
+	    try{
+	      if(item == null){
+	        printErrors(line, "Variable <" + idName + "> doesnt exist.");
+	        putLocalVar(idName, new NoType());
+	        return new NoType();
+	      }
+	      else {
+	        SymbolTableVariableItemBase var = (SymbolTableVariableItemBase) item;
+	        codeData += (line + ") Variable " + idName +" used.\t\t" +   "Base Reg: " + var.getBaseRegister() + ", Offset: " + var.getOffset());
+	        return var.getVariable().getType();
+	      }
+	    }catch(ItemAlreadyExistsException ex){
 	      return new NoType();
-	    }
-	    else {
-	      SymbolTableVariableItemBase var = (SymbolTableVariableItemBase) item;
-	      codeData += (line + ") Variable " + idName +" used.\t\t" +   "Base Reg: " + var.getBaseRegister() + ", Offset: " + var.getOffset());
-	      return var.getVariable().getType();
 	    }
 	  }
 
@@ -819,8 +829,8 @@ public class ATalkPass2Parser extends Parser {
 		public TerminalNode NL(int i) {
 			return getToken(ATalkPass2Parser.NL, i);
 		}
-		public StatementContext statement() {
-			return getRuleContext(StatementContext.class,0);
+		public StatementsContext statements() {
+			return getRuleContext(StatementsContext.class,0);
 		}
 		public BlockContext(ParserRuleContext parent, int invokingState) { super(parent, invokingState); }
 		public BlockContext(ParserRuleContext parent, int invokingState, String currentReceiver, String currentActor, int argCnt) {
@@ -852,7 +862,7 @@ public class ATalkPass2Parser extends Parser {
 			setState(155);
 			match(NL);
 			setState(156);
-			statement(currentReceiver, currentActor, argCnt);
+			statements(currentReceiver, currentActor, argCnt);
 			setState(157);
 			match(T__3);
 			endScope();
@@ -1377,11 +1387,11 @@ public class ATalkPass2Parser extends Parser {
 		public TerminalNode NL(int i) {
 			return getToken(ATalkPass2Parser.NL, i);
 		}
-		public List<StatementContext> statement() {
-			return getRuleContexts(StatementContext.class);
+		public List<StatementsContext> statements() {
+			return getRuleContexts(StatementsContext.class);
 		}
-		public StatementContext statement(int i) {
-			return getRuleContext(StatementContext.class,i);
+		public StatementsContext statements(int i) {
+			return getRuleContext(StatementsContext.class,i);
 		}
 		public List<ExprContext> expr() {
 			return getRuleContexts(ExprContext.class);
@@ -1419,12 +1429,11 @@ public class ATalkPass2Parser extends Parser {
 			beginScope();
 			setState(235);
 			((Stm_if_elseif_elseContext)_localctx).tp = expr();
-			if(!((Stm_if_elseif_elseContext)_localctx).tp.t.equals(new IntType()))
-			          printErrors((((Stm_if_elseif_elseContext)_localctx).ln!=null?((Stm_if_elseif_elseContext)_localctx).ln.getLine():0), "Invalid use of expression as a condition.");
+			checkConditionExprType(((Stm_if_elseif_elseContext)_localctx).tp.t, (((Stm_if_elseif_elseContext)_localctx).ln!=null?((Stm_if_elseif_elseContext)_localctx).ln.getLine():0));
 			setState(237);
 			match(NL);
 			setState(238);
-			statement(currentReceiver, currentActor, argCnt);
+			statements(currentReceiver, currentActor, argCnt);
 			endScope();
 			setState(250);
 			_errHandler.sync(this);
@@ -1437,12 +1446,11 @@ public class ATalkPass2Parser extends Parser {
 				beginScope();
 				setState(242);
 				((Stm_if_elseif_elseContext)_localctx).tp = expr();
-				if(!((Stm_if_elseif_elseContext)_localctx).tp.t.equals(new IntType()))
-				          printErrors((((Stm_if_elseif_elseContext)_localctx).ln!=null?((Stm_if_elseif_elseContext)_localctx).ln.getLine():0), "Invalid use of expression as a condition.");
+				checkConditionExprType(((Stm_if_elseif_elseContext)_localctx).tp.t, (((Stm_if_elseif_elseContext)_localctx).ln!=null?((Stm_if_elseif_elseContext)_localctx).ln.getLine():0));
 				setState(244);
 				match(NL);
 				setState(245);
-				statement(currentReceiver, currentActor, argCnt);
+				statements(currentReceiver, currentActor, argCnt);
 				endScope();
 				}
 				}
@@ -1461,7 +1469,7 @@ public class ATalkPass2Parser extends Parser {
 				setState(255);
 				match(NL);
 				setState(256);
-				statement(currentReceiver, currentActor, argCnt);
+				statements(currentReceiver, currentActor, argCnt);
 				endScope();
 				}
 			}
@@ -1493,8 +1501,8 @@ public class ATalkPass2Parser extends Parser {
 		public TerminalNode NL(int i) {
 			return getToken(ATalkPass2Parser.NL, i);
 		}
-		public StatementContext statement() {
-			return getRuleContext(StatementContext.class,0);
+		public StatementsContext statements() {
+			return getRuleContext(StatementsContext.class,0);
 		}
 		public TerminalNode ID() { return getToken(ATalkPass2Parser.ID, 0); }
 		public ExprContext expr() {
@@ -1537,7 +1545,7 @@ public class ATalkPass2Parser extends Parser {
 			match(NL);
 			checkIterationExpr((((Stm_foreachContext)_localctx).id!=null?((Stm_foreachContext)_localctx).id.getText():null), (((Stm_foreachContext)_localctx).id!=null?((Stm_foreachContext)_localctx).id.getLine():0), ((Stm_foreachContext)_localctx).tp.t);
 			setState(271);
-			statement(currentReceiver, currentActor, argCnt);
+			statements(currentReceiver, currentActor, argCnt);
 			setState(272);
 			match(T__3);
 			endScope();
@@ -3044,7 +3052,7 @@ public class ATalkPass2Parser extends Parser {
 		"\u0090\3\2\2\2\u0095\u0098\3\2\2\2\u0096\u0094\3\2\2\2\u0096\u0097\3\2"+
 		"\2\2\u0097\u0099\3\2\2\2\u0098\u0096\3\2\2\2\u0099\u009a\b\6\1\2\u009a"+
 		"\13\3\2\2\2\u009b\u009c\7\17\2\2\u009c\u009d\b\7\1\2\u009d\u009e\7+\2"+
-		"\2\u009e\u009f\5\20\t\2\u009f\u00a0\7\6\2\2\u00a0\u00a1\b\7\1\2\u00a1"+
+		"\2\u009e\u009f\5\16\b\2\u009f\u00a0\7\6\2\2\u00a0\u00a1\b\7\1\2\u00a1"+
 		"\u00a2\7+\2\2\u00a2\r\3\2\2\2\u00a3\u00a6\5\20\t\2\u00a4\u00a6\7+\2\2"+
 		"\u00a5\u00a3\3\2\2\2\u00a5\u00a4\3\2\2\2\u00a6\u00a9\3\2\2\2\u00a7\u00a5"+
 		"\3\2\2\2\u00a7\u00a8\3\2\2\2\u00a8\17\3\2\2\2\u00a9\u00a7\3\2\2\2\u00aa"+
@@ -3071,17 +3079,17 @@ public class ATalkPass2Parser extends Parser {
 		"\2\u00e4\u00e5\7\24\2\2\u00e5\u00e6\7\t\2\2\u00e6\u00e7\5\"\22\2\u00e7"+
 		"\u00e8\7\n\2\2\u00e8\u00e9\7+\2\2\u00e9\u00ea\b\f\1\2\u00ea\27\3\2\2\2"+
 		"\u00eb\u00ec\7\25\2\2\u00ec\u00ed\b\r\1\2\u00ed\u00ee\5\"\22\2\u00ee\u00ef"+
-		"\b\r\1\2\u00ef\u00f0\7+\2\2\u00f0\u00f1\5\20\t\2\u00f1\u00fc\b\r\1\2\u00f2"+
+		"\b\r\1\2\u00ef\u00f0\7+\2\2\u00f0\u00f1\5\16\b\2\u00f1\u00fc\b\r\1\2\u00f2"+
 		"\u00f3\7\26\2\2\u00f3\u00f4\b\r\1\2\u00f4\u00f5\5\"\22\2\u00f5\u00f6\b"+
-		"\r\1\2\u00f6\u00f7\7+\2\2\u00f7\u00f8\5\20\t\2\u00f8\u00f9\b\r\1\2\u00f9"+
+		"\r\1\2\u00f6\u00f7\7+\2\2\u00f7\u00f8\5\16\b\2\u00f8\u00f9\b\r\1\2\u00f9"+
 		"\u00fb\3\2\2\2\u00fa\u00f2\3\2\2\2\u00fb\u00fe\3\2\2\2\u00fc\u00fa\3\2"+
 		"\2\2\u00fc\u00fd\3\2\2\2\u00fd\u0105\3\2\2\2\u00fe\u00fc\3\2\2\2\u00ff"+
-		"\u0100\7\27\2\2\u0100\u0101\b\r\1\2\u0101\u0102\7+\2\2\u0102\u0103\5\20"+
-		"\t\2\u0103\u0104\b\r\1\2\u0104\u0106\3\2\2\2\u0105\u00ff\3\2\2\2\u0105"+
+		"\u0100\7\27\2\2\u0100\u0101\b\r\1\2\u0101\u0102\7+\2\2\u0102\u0103\5\16"+
+		"\b\2\u0103\u0104\b\r\1\2\u0104\u0106\3\2\2\2\u0105\u00ff\3\2\2\2\u0105"+
 		"\u0106\3\2\2\2\u0106\u0107\3\2\2\2\u0107\u0108\7\6\2\2\u0108\u0109\7+"+
 		"\2\2\u0109\31\3\2\2\2\u010a\u010b\7\30\2\2\u010b\u010c\b\16\1\2\u010c"+
 		"\u010d\7,\2\2\u010d\u010e\7\31\2\2\u010e\u010f\5\"\22\2\u010f\u0110\7"+
-		"+\2\2\u0110\u0111\b\16\1\2\u0111\u0112\5\20\t\2\u0112\u0113\7\6\2\2\u0113"+
+		"+\2\2\u0110\u0111\b\16\1\2\u0111\u0112\5\16\b\2\u0112\u0113\7\6\2\2\u0113"+
 		"\u0114\b\16\1\2\u0114\u0115\7+\2\2\u0115\33\3\2\2\2\u0116\u0117\7\32\2"+
 		"\2\u0117\u0118\7+\2\2\u0118\35\3\2\2\2\u0119\u011a\7\33\2\2\u011a\u011b"+
 		"\7+\2\2\u011b\37\3\2\2\2\u011c\u011d\5\"\22\2\u011d\u011e\7+\2\2\u011e"+
