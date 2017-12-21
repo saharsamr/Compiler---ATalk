@@ -39,4 +39,8 @@ public class ArrayType extends Type {
 		}
 	}
 
+	public Type getIterationType(){
+		return this.arrType;
+	}
+
 }

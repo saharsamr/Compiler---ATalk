@@ -75,7 +75,7 @@ grammar HandleExprsTypesFuncs;
   void checkIterationExpr(String id, int line, Type tp){
     try{
     Type t = getIDFromSymTable(id, line);
-    tp = tp.dimensionAccess(1);
+    tp = tp.getIterationType();
     if(!t.equals(new NoType()))
       printErrors(line, "variable <" + id + "> already declared in this scope.");
     else
