@@ -105,13 +105,14 @@ public class ATalkPass2Parser extends Parser {
 
 
 	    int errorOccured = 0;
+	    String codeData = "";
 
 	    void beginScope() {
 	        SymbolTable.push();
 	    }
 
 	    void endScope() {
-	        print("Stack offset: " + SymbolTable.top.getOffset(Register.SP) + ", Global offset: " + SymbolTable.top.getOffset(Register.GP));
+	        codeData += ("Stack offset: " + SymbolTable.top.getOffset(Register.SP) + ", Global offset: " + SymbolTable.top.getOffset(Register.GP)+"\n\n");
 	        SymbolTable.pop();
 	    }
 
@@ -197,7 +198,7 @@ public class ATalkPass2Parser extends Parser {
 	    }
 	    else {
 	      SymbolTableVariableItemBase var = (SymbolTableVariableItemBase) item;
-	      print(line + ") Variable " + idName +" used.\t\t" +   "Base Reg: " + var.getBaseRegister() + ", Offset: " + var.getOffset());
+	      codeData += (line + ") Variable " + idName +" used.\t\t" +   "Base Reg: " + var.getBaseRegister() + ", Offset: " + var.getOffset());
 	      return var.getVariable().getType();
 	    }
 	  }
@@ -369,7 +370,7 @@ public class ATalkPass2Parser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 
-			        print("------------------------- Pass2 started -------------------------");
+			        print("------------------------- Pass2 started -------------------------"+"\n");
 			        beginScope();
 			    
 			setState(73);
@@ -402,7 +403,9 @@ public class ATalkPass2Parser extends Parser {
 			}
 
 			        endScope();
-			        print("------------------------- Pass2 finished -------------------------");
+			        print("------------------------- Pass2 finished -------------------------"+"\n");
+			        if(errorOccured == 0)
+			          print(codeData);
 			    
 			}
 		}

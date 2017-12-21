@@ -91,13 +91,14 @@ public class ATalkPass2Lexer extends Lexer {
 
 
 	    int errorOccured = 0;
+	    String codeData = "";
 
 	    void beginScope() {
 	        SymbolTable.push();
 	    }
 
 	    void endScope() {
-	        print("Stack offset: " + SymbolTable.top.getOffset(Register.SP) + ", Global offset: " + SymbolTable.top.getOffset(Register.GP));
+	        codeData += ("Stack offset: " + SymbolTable.top.getOffset(Register.SP) + ", Global offset: " + SymbolTable.top.getOffset(Register.GP)+"\n\n");
 	        SymbolTable.pop();
 	    }
 
@@ -183,7 +184,7 @@ public class ATalkPass2Lexer extends Lexer {
 	    }
 	    else {
 	      SymbolTableVariableItemBase var = (SymbolTableVariableItemBase) item;
-	      print(line + ") Variable " + idName +" used.\t\t" +   "Base Reg: " + var.getBaseRegister() + ", Offset: " + var.getOffset());
+	      codeData += (line + ") Variable " + idName +" used.\t\t" +   "Base Reg: " + var.getBaseRegister() + ", Offset: " + var.getOffset());
 	      return var.getVariable().getType();
 	    }
 	  }

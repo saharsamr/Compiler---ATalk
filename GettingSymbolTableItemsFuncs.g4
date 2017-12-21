@@ -9,7 +9,7 @@ grammar GettingSymbolTableItemsFuncs;
     }
     else {
       SymbolTableVariableItemBase var = (SymbolTableVariableItemBase) item;
-      print(line + ") Variable " + idName +" used.\t\t" +   "Base Reg: " + var.getBaseRegister() + ", Offset: " + var.getOffset());
+      codeData += (line + ") Variable " + idName +" used.\t\t" +   "Base Reg: " + var.getBaseRegister() + ", Offset: " + var.getOffset());
       return var.getVariable().getType();
     }
   }
