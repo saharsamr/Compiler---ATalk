@@ -1,6 +1,16 @@
 grammar HandleExprsTypesFuncs;
 
 @members{
+
+  void putLocalVar(String name, Type type) throws ItemAlreadyExistsException {
+      SymbolTable.top.put(
+          new SymbolTableLocalVariableItem(
+              new Variable(name, type),
+              SymbolTable.top.getOffset(Register.SP)
+          )
+      );
+  }
+
   Type checkArithOperandValidation(Type tp)throws ArithmaticsOperandsException{
     if(!tp.equals(new IntType()))
       throw new ArithmaticsOperandsException();
@@ -68,8 +78,10 @@ grammar HandleExprsTypesFuncs;
     tp = tp.dimensionAccess(1);
     if(!t.equals(new NoType()))
       printErrors(line, "variable <" + id + "> already declared in this scope.");
+    else
+      putLocalVar(id, tp);
     }catch(UndefinedDemensionsException ex){
       printErrors(line, "Undefined demensions.");
-    }
+    }catch(ItemAlreadyExistsException ex){}
   }
 }

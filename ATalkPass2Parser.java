@@ -107,15 +107,16 @@ public class ATalkPass2Parser extends Parser {
 	    int errorOccured = 0;
 	    String codeData = "";
 
-	    void beginScope() {
-	        SymbolTable.push();
-	    }
 
-	    void endScope() {
-	        codeData += ("Stack offset: " + SymbolTable.top.getOffset(Register.SP) + ", Global offset: " + SymbolTable.top.getOffset(Register.GP)+"\n\n");
-	        SymbolTable.pop();
-	    }
 
+	  void putLocalVar(String name, Type type) throws ItemAlreadyExistsException {
+	      SymbolTable.top.put(
+	          new SymbolTableLocalVariableItem(
+	              new Variable(name, type),
+	              SymbolTable.top.getOffset(Register.SP)
+	          )
+	      );
+	  }
 
 	  Type checkArithOperandValidation(Type tp)throws ArithmaticsOperandsException{
 	    if(!tp.equals(new IntType()))
@@ -184,9 +185,11 @@ public class ATalkPass2Parser extends Parser {
 	    tp = tp.dimensionAccess(1);
 	    if(!t.equals(new NoType()))
 	      printErrors(line, "variable <" + id + "> already declared in this scope.");
+	    else
+	      putLocalVar(id, tp);
 	    }catch(UndefinedDemensionsException ex){
 	      printErrors(line, "Undefined demensions.");
-	    }
+	    }catch(ItemAlreadyExistsException ex){}
 	  }
 
 
@@ -331,6 +334,16 @@ public class ATalkPass2Parser extends Parser {
 	  Type printErrAndAssignNoType(String msg){
 	    print(msg);
 	    return new NoType();
+	  }
+
+
+	  void beginScope() {
+	      SymbolTable.push();
+	  }
+
+	  void endScope() {
+	      codeData += ("Stack offset: " + SymbolTable.top.getOffset(Register.SP) + ", Global offset: " + SymbolTable.top.getOffset(Register.GP)+"\n\n");
+	      SymbolTable.pop();
 	  }
 
 	public ATalkPass2Parser(TokenStream input) {
@@ -1408,7 +1421,6 @@ public class ATalkPass2Parser extends Parser {
 			((Stm_if_elseif_elseContext)_localctx).tp = expr();
 			if(!((Stm_if_elseif_elseContext)_localctx).tp.t.equals(new IntType()))
 			          printErrors((((Stm_if_elseif_elseContext)_localctx).ln!=null?((Stm_if_elseif_elseContext)_localctx).ln.getLine():0), "Invalid use of expression as a condition.");
-			      
 			setState(237);
 			match(NL);
 			setState(238);
@@ -1427,7 +1439,6 @@ public class ATalkPass2Parser extends Parser {
 				((Stm_if_elseif_elseContext)_localctx).tp = expr();
 				if(!((Stm_if_elseif_elseContext)_localctx).tp.t.equals(new IntType()))
 				          printErrors((((Stm_if_elseif_elseContext)_localctx).ln!=null?((Stm_if_elseif_elseContext)_localctx).ln.getLine():0), "Invalid use of expression as a condition.");
-				      
 				setState(244);
 				match(NL);
 				setState(245);

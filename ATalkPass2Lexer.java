@@ -93,15 +93,16 @@ public class ATalkPass2Lexer extends Lexer {
 	    int errorOccured = 0;
 	    String codeData = "";
 
-	    void beginScope() {
-	        SymbolTable.push();
-	    }
 
-	    void endScope() {
-	        codeData += ("Stack offset: " + SymbolTable.top.getOffset(Register.SP) + ", Global offset: " + SymbolTable.top.getOffset(Register.GP)+"\n\n");
-	        SymbolTable.pop();
-	    }
 
+	  void putLocalVar(String name, Type type) throws ItemAlreadyExistsException {
+	      SymbolTable.top.put(
+	          new SymbolTableLocalVariableItem(
+	              new Variable(name, type),
+	              SymbolTable.top.getOffset(Register.SP)
+	          )
+	      );
+	  }
 
 	  Type checkArithOperandValidation(Type tp)throws ArithmaticsOperandsException{
 	    if(!tp.equals(new IntType()))
@@ -170,9 +171,11 @@ public class ATalkPass2Lexer extends Lexer {
 	    tp = tp.dimensionAccess(1);
 	    if(!t.equals(new NoType()))
 	      printErrors(line, "variable <" + id + "> already declared in this scope.");
+	    else
+	      putLocalVar(id, tp);
 	    }catch(UndefinedDemensionsException ex){
 	      printErrors(line, "Undefined demensions.");
-	    }
+	    }catch(ItemAlreadyExistsException ex){}
 	  }
 
 
@@ -317,6 +320,16 @@ public class ATalkPass2Lexer extends Lexer {
 	  Type printErrAndAssignNoType(String msg){
 	    print(msg);
 	    return new NoType();
+	  }
+
+
+	  void beginScope() {
+	      SymbolTable.push();
+	  }
+
+	  void endScope() {
+	      codeData += ("Stack offset: " + SymbolTable.top.getOffset(Register.SP) + ", Global offset: " + SymbolTable.top.getOffset(Register.GP)+"\n\n");
+	      SymbolTable.pop();
 	  }
 
 

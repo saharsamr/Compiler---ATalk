@@ -112,32 +112,6 @@ public class ATalkPass1Parser extends Parser {
 	  int repeatedVarCount = 0;
 
 
-	  void beginScope() {
-	      int localOffset = 0;
-	      int globalOffset = 0;
-
-	      if(SymbolTable.top != null) {
-	          localOffset = SymbolTable.top.getOffset(Register.SP);
-	          globalOffset = SymbolTable.top.getOffset(Register.GP);
-	      }
-
-	        SymbolTable.push(new SymbolTable(SymbolTable.top));
-
-	        SymbolTable.top.setOffset(Register.SP, localOffset);
-	        SymbolTable.top.setOffset(Register.GP, globalOffset);
-	    }
-
-	    void endScope() {
-	        codeData += ("Stack offset: " + SymbolTable.top.getOffset(Register.SP) + "\n\n");
-	        if(SymbolTable.top.getPreSymbolTable() != null) {
-	              SymbolTable.top.getPreSymbolTable().setOffset(
-	                  Register.GP,
-	                  SymbolTable.top.getOffset(Register.GP)
-	              );
-	          }
-	          SymbolTable.pop();
-	    }
-
 	    void addVarItem(String name, Type type, int lineNum, Register reg){
 	      try{
 	        if (reg == Register.SP)
@@ -290,6 +264,33 @@ public class ATalkPass1Parser extends Parser {
 	    }
 	    return size;
 	  }
+
+
+	  void beginScope() {
+	      int localOffset = 0;
+	      int globalOffset = 0;
+
+	      if(SymbolTable.top != null) {
+	          localOffset = SymbolTable.top.getOffset(Register.SP);
+	          globalOffset = SymbolTable.top.getOffset(Register.GP);
+	      }
+
+	        SymbolTable.push(new SymbolTable(SymbolTable.top));
+
+	        SymbolTable.top.setOffset(Register.SP, localOffset);
+	        SymbolTable.top.setOffset(Register.GP, globalOffset);
+	    }
+
+	    void endScope() {
+	        codeData += ("Stack offset: " + SymbolTable.top.getOffset(Register.SP) + "\n\n");
+	        if(SymbolTable.top.getPreSymbolTable() != null) {
+	              SymbolTable.top.getPreSymbolTable().setOffset(
+	                  Register.GP,
+	                  SymbolTable.top.getOffset(Register.GP)
+	              );
+	          }
+	          SymbolTable.pop();
+	    }
 
 	public ATalkPass1Parser(TokenStream input) {
 		super(input);

@@ -1,6 +1,6 @@
 grammar ATalkPass1;
 
-import FillSymbolTalbesFuncs, PrintLogsPass1, ArrayFuncs;
+import FillSymbolTalbesFuncs, PrintLogsPass1, ArrayFuncs, ScopesPass1;
 
 @members{
   String codeData = "";

@@ -1,6 +1,6 @@
 grammar ATalkPass2;
 
-import HandleExprsTypesFuncs, GettingSymbolTableItemsFuncs, ArrayFuncs, RecieversFuncs, PrintLogsPass2;
+import HandleExprsTypesFuncs, GettingSymbolTableItemsFuncs, ArrayFuncs, RecieversFuncs, PrintLogsPass2, ScopesPass2;
 
 @header{
       import java.util.ArrayList;
@@ -9,15 +9,6 @@ import HandleExprsTypesFuncs, GettingSymbolTableItemsFuncs, ArrayFuncs, Reciever
 @members{
     int errorOccured = 0;
     String codeData = "";
-
-    void beginScope() {
-        SymbolTable.push();
-    }
-
-    void endScope() {
-        codeData += ("Stack offset: " + SymbolTable.top.getOffset(Register.SP) + ", Global offset: " + SymbolTable.top.getOffset(Register.GP)+"\n\n");
-        SymbolTable.pop();
-    }
 }
 
 program: {
@@ -112,14 +103,14 @@ stm_write:
 stm_if_elseif_else[String currentReceiver, String currentActor, int argCnt]:
     ln = 'if' {beginScope();} tp = expr
       {if(!$tp.t.equals(new IntType()))
-          printErrors($ln.line, "Invalid use of expression as a condition.");
-      }
+          printErrors($ln.line, "Invalid use of expression as a condition.");}
      NL statement[currentReceiver, currentActor, argCnt] {endScope();}
+
     (ln = 'elseif' {beginScope();} tp = expr
       {if(!$tp.t.equals(new IntType()))
-          printErrors($ln.line, "Invalid use of expression as a condition.");
-      }
+          printErrors($ln.line, "Invalid use of expression as a condition.");}
     NL statement[currentReceiver, currentActor, argCnt] {endScope();})*
+
     ('else' {beginScope();} NL statement[currentReceiver, currentActor, argCnt] {endScope();})?
     'end' NL
   ;
