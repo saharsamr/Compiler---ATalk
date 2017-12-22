@@ -11,6 +11,6 @@ public class SymbolTableItemForeachIterator extends SymbolTableVariableItemBase 
 
 	@Override
 	public boolean useMustBeComesAfterDef() {
-		return true;
+		return false;
 	}
 }

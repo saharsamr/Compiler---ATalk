@@ -83,13 +83,18 @@ grammar HandleExprsTypesFuncs;
 
   void checkIterationExpr(String id, int line, Type tp){
     try{
-      tp = tp.getIterationType();
       SymbolTableItem item = SymbolTable.top.get(id);
-      if(item == null)
+      if(item == null){
+        tp = tp.getIterationType();
         putForeachVar(id, tp);
+        SymbolTable.define();
+      }
       else
         printErrors(line, "variable <" + id + "> already declared in this scope.");
     }catch(UndefinedDemensionsException ex){
+      try{
+        putForeachVar(id, tp);
+      }catch(ItemAlreadyExistsException ex_ ){}
       printErrors(line, "Invalid iteration on variable.");
     }catch(ItemAlreadyExistsException ex){}
   }
