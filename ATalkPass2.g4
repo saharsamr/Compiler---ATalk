@@ -31,7 +31,6 @@ actor:
   ;
 
 state:
-    /* type ID { SymbolTable.define(); } (',' ID { SymbolTable.define(); })* NL */
     type ID (',' ID)* NL
   ;
 
@@ -47,8 +46,7 @@ receiver[String actrName]:
 type returns [Type t]:
   {ArrayList<Integer> dims = new ArrayList<Integer>();}
   (('int') {$t = new IntType();} | ('char') {$t = new CharacterType();})
-  ('[' size = CONST_NUM ']'{
-    dims.add(checkDimLenValidationInArray($size.int, $size.line));})*
+  ('[' size = CONST_NUM ']'{dims.add(checkDimLenValidationInArray($size.int, $size.line));})*
   {
     for(int i=dims.size()-1; i >= 0; i--)
       $t = new ArrayType(dims.get(i),$t);

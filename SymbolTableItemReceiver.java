@@ -24,9 +24,9 @@ public class SymbolTableItemReceiver extends SymbolTableItem {
 		return key + ")";
 	}
 
-	public Register getBaseRegister(){
-    return Register.GP; //in SP bud
-  }
+	// public Register getBaseRegister(){
+  //   return Register.GP; //in SP bud
+  // }
 
 	String receiverName;
 	String actorName;

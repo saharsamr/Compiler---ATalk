@@ -3,24 +3,19 @@ grammar GettingSymbolTableItemsFuncs;
 @members{
   Type getIDFromSymTable(String idName, int line) {
     SymbolTableItem item = SymbolTable.top.get(idName);
-    try{
-      if(item == null){
-        printErrors(line, "Variable <" + idName + "> doesnt exist.");
-        putLocalVar(idName, new NoType());
-        return new NoType();
-      }
-      else {
-        SymbolTableVariableItemBase var = (SymbolTableVariableItemBase) item;
-        codeData += (line + ") Variable " + idName +" used.\t\t" +   "Base Reg: " + var.getBaseRegister() + ", Offset: " + var.getOffset());
-        return var.getVariable().getType();
-      }
-    }catch(ItemAlreadyExistsException ex){
+    if(item == null){
+      printErrors(line, "Variable <" + idName + "> doesnt exist.");
       return new NoType();
+    }
+    else {
+      SymbolTableVariableItemBase var = (SymbolTableVariableItemBase) item;
+      codeData += (line + ") Variable " + idName +" used.\t\t" +   "Base Reg: " + var.getBaseRegister() + ", Offset: " + var.getOffset());
+      return var.getVariable().getType();
     }
   }
 
-  SymbolTableItemReceiver getRecieverFromSymTable(String name, int line) throws ReceiverDoseNotExistsException{
-    SymbolTableItem item = SymbolTable.top.get(name);
+  SymbolTableItemReceiver getRecieverFromSymTable(String name, int line, SymbolTable actorSym) throws ReceiverDoseNotExistsException{
+    SymbolTableItem item = actorSym.get(name);
     if(item == null)
       throw new ReceiverDoseNotExistsException();
     SymbolTableItemReceiver var = (SymbolTableItemReceiver) item;
@@ -57,8 +52,11 @@ grammar GettingSymbolTableItemsFuncs;
   }
 
   SymbolTableItemReceiver checkRecieverExistance(String currentActor, String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes, int line)
-  throws ReceiverDoseNotExistsException{
+  throws ReceiverDoseNotExistsException, ActorDoesntExistsException{
     String key = makeRecieverkey(currentActor, rcvrActor, rcvrName, argumentTypes);
-    return getRecieverFromSymTable(key, line);
+    if(rcvrActor.equals("self"))
+      return getRecieverFromSymTable(key, line, SymbolTable.top);
+    else
+      return getRecieverFromSymTable(key, line, getActorFromSymTable(rcvrActor, line).getActorSymTable());
   }
 }

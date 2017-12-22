@@ -1,8 +1,9 @@
 public class SymbolTableItemActor extends SymbolTableItem {
 
-	public SymbolTableItemActor(String actorName, int offset) {
+	public SymbolTableItemActor(String actorName, int offset, SymbolTable actorSym_) {
 		this.actorName = actorName;
 		this.offset = offset;
+		this.actorSym = actorSym_;
 	}
 
 	public int getOffset() {
@@ -22,6 +23,11 @@ public class SymbolTableItemActor extends SymbolTableItem {
 		return 0;
 	}
 
+	public SymbolTable getActorSymTable(){
+		return this.actorSym;
+	}
+
 	int offset;
 	String actorName;
+	SymbolTable actorSym;
 }

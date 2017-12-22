@@ -24,7 +24,7 @@ grammar FillSymbolTalbesFuncs;
       }
     }
 
-    void addActor(int size, String name, int lineNum){
+    void addActor(int size, String name, int lineNum, SymbolTable actorSym){
       if( size <= 0 ){
         size=0;
         printErrors(lineNum, "size of Actor queue is negative.");
@@ -32,13 +32,13 @@ grammar FillSymbolTalbesFuncs;
       codeData += ("Actor\n\tname: "+ name
           + "\n\tActor queue size: " + size + "\n\n");
       try{
-        putActor(name, SymbolTable.top.getOffset(Register.GP));
+        putActor(name, SymbolTable.top.getOffset(Register.GP), actorSym);
       }catch(ActorAlreadyExistsException e){
         actorCount++;
         printErrors(lineNum,"Actor <" + name + "> already exist!");
         String new_name = name + "_temporary_" + actorCount;
         try{
-          putActor(new_name, SymbolTable.top.getOffset(Register.GP));
+          putActor(new_name, SymbolTable.top.getOffset(Register.GP), actorSym);
         }catch(ActorAlreadyExistsException ex){}
       }
     }
@@ -76,11 +76,11 @@ grammar FillSymbolTalbesFuncs;
         );
     }
 
-    void putActor(String name, int offset)throws ActorAlreadyExistsException{
+    void putActor(String name, int offset, SymbolTable actorSym)throws ActorAlreadyExistsException{
       try{
         SymbolTable.top.put(
             new SymbolTableItemActor(name,
-                SymbolTable.top.getOffset(Register.GP)
+                SymbolTable.top.getOffset(Register.GP), actorSym
             )
         );
       }catch(ItemAlreadyExistsException e){

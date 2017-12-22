@@ -22,9 +22,9 @@ program:{beginScope();}
 
 actor:
 		'actor' name = ID '<' size = CONST_NUM '>' NL {
-      addActor($size.int, $name.text, $name.line);  beginScope();}
+    beginScope();}
 			(state | receiver[$name.text] | NL)*
-		{endScope();}'end' (NL | EOF)
+		{SymbolTable actorSym = SymbolTable.top; endScope(); addActor($size.int, $name.text, $name.line, actorSym);  }'end' (NL | EOF)
 	;
 
 state:
