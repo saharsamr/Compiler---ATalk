@@ -4,7 +4,7 @@ grammar GettingSymbolTableItemsFuncs;
   Type getIDFromSymTable(String idName, int line) {
     SymbolTableItem item = SymbolTable.top.get(idName);
     if(item == null){
-      printErrors(line, "Variable <" + idName + "> doesnt exist.");
+      printErrors(line, "Undefined refrence to variable <" + idName + ">.");
       return new NoType();
     }
     else {

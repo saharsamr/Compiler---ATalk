@@ -26,9 +26,9 @@ grammar RecieversFuncs;
     }catch(SenderInInitException ex){
         printErrors(line, "Invalid use of keyword <sender>.");
     }catch(ActorDoesntExistsException ex){
-        printErrors(line, "Actor: " + rcvrActor + " does not exist.");
+        printErrors(line, "Undefined refrence to actor<" + rcvrActor + ">.");
     }catch(ReceiverDoseNotExistsException ex){
-        printErrors(line, "Reciever: " + rcvrName + " does not exist.");
+        printErrors(line, "Undefined refrence to reciever<" + rcvrName + ">.");
     }
   }
 }

@@ -78,11 +78,11 @@ statement[String currentReceiver, String currentActor , int argCnt]:
 stm_vardef:
     t = type ln = ID { SymbolTable.define(); }('=' tp = expr{
         if(!$t.t.equals($tp.t))
-          printErrors($ln.line, "Invalid assignment.");
+          printErrors($ln.line, "Invalid assignment by types <" + $t.t.toString() + "> and <" + $tp.t.toString() + ">.");
         }
       )? (',' ID { SymbolTable.define(); } ('=' tp = expr{
           if(!$t.t.equals($tp.t))
-            printErrors($ln.line, "Invalid assignment.");
+            printErrors($ln.line, "Invalid assignment by types <" + $t.t.toString() + "> and <" + $tp.t.toString() + ">.");
           })?)* NL
   ;
 
@@ -138,7 +138,7 @@ expr_assign returns [Type t, boolean rvalue, int ln_]:
     tp1 = expr_or ln = '=' tp2 = expr_assign
       {$ln_ = findLine($tp1.ln_, $tp2.ln_);
         if($tp1.rvalue)
-          printErrors($ln.line, "Assignment to an rvalue.");
+          printErrors($ln.line, "Invalid Assignment to an rvalue.");
         else
           $t = assignAssignmentExprType($tp1.t, $tp2.t, $ln_);}
   |  tp = expr_or {$t = $tp.t; $rvalue = $tp.rvalue;}
@@ -147,26 +147,26 @@ expr_assign returns [Type t, boolean rvalue, int ln_]:
 expr_or returns [Type t, boolean rvalue, int ln_]:
     tp1 = expr_and tp2 = expr_or_tmp
     {$ln_ = findLine($tp1.ln_, $tp2.ln_);
-      $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands", $ln_);
+      $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands by types <" + $tp1.t.toString() + "> and <" + $tp2.t.toString() + ">.", $ln_);
       $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
 expr_or_tmp returns [Type t, boolean rvalue, int ln_]:
     ln = 'or' tp1 = expr_and tp2 = expr_or_tmp
-      {$t = assignExprType_tmp($tp1.t, "Invalid operands for <or> operator.", $ln.line); $rvalue = true; $ln_ = $ln.line;}
+      {$t = assignExprType_tmp($tp1.t, "Invalid operands for <or> operatorby types <" + $tp1.t.toString() + "> and <" + $tp2.t.toString() + ">.", $ln.line); $rvalue = true; $ln_ = $ln.line;}
   | {$t = new NoType(); $rvalue = false; $ln_ = -1;}
   ;
 
 expr_and returns [Type t, boolean rvalue, int ln_]:
     tp1 = expr_eq tp2 = expr_and_tmp
     {$ln_ = findLine($tp1.ln_, $tp2.ln_);
-      $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands", $ln_);
+      $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands by types <" + $tp1.t.toString() + "> and <" + $tp2.t.toString() + ">.", $ln_);
       $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
 expr_and_tmp returns [Type t, boolean rvalue, int ln_]:
     ln = 'and' tp1 = expr_eq tp2 = expr_and_tmp
-      {$t = assignExprType_tmp($tp1.t, "Invalid operands for <and> operator.", $ln.line); $rvalue = true; $ln_ = $ln.line;}
+      {$t = assignExprType_tmp($tp1.t, "Invalid operands for <and> operator by types <" + $tp1.t.toString() + "> and <" + $tp2.t.toString() + ">.", $ln.line); $rvalue = true; $ln_ = $ln.line;}
   | {$t = new NoType(); $rvalue = false; $ln_ = -1;}
   ;
 
@@ -187,7 +187,7 @@ expr_eq_tmp returns [Type t, boolean rvalue, int ln_]:
 expr_cmp returns [Type t, boolean rvalue, int ln_]:
     tp1 = expr_add tp2 = expr_cmp_tmp
     {$ln_ = findLine($tp1.ln_, $tp2.ln_);
-      $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands", $ln_);
+      $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands by types <" + $tp1.t.toString() + "> and <" + $tp2.t.toString() + ">.", $ln_);
       $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
@@ -201,7 +201,7 @@ expr_cmp_tmp returns [Type t, boolean rvalue, int ln_]:
 expr_add returns [Type t, boolean rvalue, int ln_]:
     tp1 = expr_mult tp2 = expr_add_tmp
     {$ln_ = findLine($tp1.ln_, $tp2.ln_);
-      $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands", $ln_);
+      $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands by types <" + $tp1.t.toString() + "> and <" + $tp2.t.toString() + ">.", $ln_);
       $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
@@ -215,7 +215,7 @@ expr_add_tmp returns [Type t, boolean rvalue, int ln_]:
 expr_mult returns [Type t, boolean rvalue, int ln_]:
     tp1 = expr_un tp2 = expr_mult_tmp
     {$ln_ = findLine($tp1.ln_, $tp2.ln_);
-     $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands", $ln_);
+     $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands by types <" + $tp1.t.toString() + "> and <" + $tp2.t.toString() + ">.", $ln_);
      $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
@@ -228,7 +228,7 @@ expr_mult_tmp returns [Type t, boolean rvalue, int ln_]:
 
 expr_un returns [Type t, boolean rvalue, int ln_]:
     ln = ('not' | '-') tp = expr_un
-      {$t = assignExprType_tmp($tp.t,  "Invalid arithmatic operands", $ln.line); $rvalue = true; $ln_ = $ln.line;}
+      {$t = assignExprType_tmp($tp.t,  "Invalid arithmatic operands.", $ln.line); $rvalue = true; $ln_ = $ln.line;}
   |  tp1 = expr_mem {$t = $tp1.t; $rvalue = $tp1.rvalue; $ln_ = $tp1.ln_;}
   ;
 
@@ -253,7 +253,7 @@ expr_mem_tmp returns [int dimension, int ln_]:
     ln = '[' tp = expr {
        $ln_ = $ln.line;
       if(!$tp.t.equals(new IntType()))
-        printErrors($ln.line, "invalid index.");
+        printErrors($ln.line, "Invalid index.");
       } ']' d = expr_mem_tmp {$dimension = $d.dimension + 1;}
   | {$dimension = 0;  $ln_ = -1;}
   ;
