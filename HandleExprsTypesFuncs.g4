@@ -83,7 +83,7 @@ grammar HandleExprsTypesFuncs;
 
   void checkIterationExpr(String id, int line, Type tp){
     try{
-      SymbolTableItem item = SymbolTable.top.get(id);
+      SymbolTableItem item = SymbolTable.top.getInCurrentScope(id);
       if(item == null){
         tp = tp.getIterationType();
         putForeachVar(id, tp);
