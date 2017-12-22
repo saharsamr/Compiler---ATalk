@@ -5,7 +5,7 @@ grammar HandleExprsTypesFuncs;
   void putForeachVar(String name, Type type) throws ItemAlreadyExistsException {
       SymbolTable.top.put(
           new SymbolTableItemForeachIterator(
-              new Variable(name, type),
+              new Variable(name, type, true),
               SymbolTable.top.getOffset(Register.TEMP0)
           )
       );
@@ -14,7 +14,7 @@ grammar HandleExprsTypesFuncs;
   void putLocalVar(String name, Type type) throws ItemAlreadyExistsException {
       SymbolTable.top.put(
           new SymbolTableLocalVariableItem(
-              new Variable(name, type),
+              new Variable(name, type, false),
               SymbolTable.top.getOffset(Register.SP)
           )
       );

@@ -1,14 +1,16 @@
 public class Variable {
-	
-	public Variable(String name, Type type) {
+
+	public Variable(String name, Type type, boolean rvalue) {
 		this.name = name;
 		this.type = type;
+		if(rvalue)
+			this.type.setRvalue();
 	}
 
 	public String getName() {
 		return name;
 	}
-	
+
 	public Type getType() {
 		return type;
 	}

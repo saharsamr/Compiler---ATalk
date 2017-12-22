@@ -61,7 +61,7 @@ grammar FillSymbolTalbesFuncs;
     void putLocalVar(String name, Type type) throws ItemAlreadyExistsException {
         SymbolTable.top.put(
             new SymbolTableLocalVariableItem(
-                new Variable(name, type),
+                new Variable(name, type, false),
                 SymbolTable.top.getOffset(Register.SP)
             )
         );
@@ -70,7 +70,7 @@ grammar FillSymbolTalbesFuncs;
     void putGlobalVar(String name, Type type) throws ItemAlreadyExistsException {
         SymbolTable.top.put(
             new SymbolTableGlobalVariableItem(
-                new Variable(name, type),
+                new Variable(name, type, false),
                 SymbolTable.top.getOffset(Register.GP)
             )
         );
