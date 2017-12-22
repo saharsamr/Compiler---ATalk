@@ -12,13 +12,15 @@ import FillSymbolTalbesFuncs, PrintLogsPass1, ArrayFuncs, ScopesPass1;
 }
 
 program:{beginScope();}
-		(actor{actorCount++;} | NL)*{
-      endScope();
-      if(actorCount == 0)
-        printErrors(-1,"actor doesnt found!");
-      if(errorOccured == 0)
-        print(codeData);
-  };
+  (actor{actorCount++;} | NL)*{
+    endScope();
+    if(actorCount == 0)
+      printErrors(-1,"actor doesnt found!");
+    if(errorOccured == 0)
+      print(codeData);
+    if(errorOccured != 0)
+      System.exit(0);
+};
 
 actor:
 		'actor' name = ID '<' size = CONST_NUM '>' NL {

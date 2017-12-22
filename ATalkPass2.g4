@@ -262,10 +262,10 @@ expr_other returns [Type t, boolean rvalue, int ln_]:
      ln = CONST_NUM {$t = new IntType(); $rvalue = true; $ln_ = $ln.line;}
   |  ln = CONST_CHAR {$t = new CharacterType(); $rvalue = true; $ln_ = $ln.line;}
   |  str = CONST_STR {$t = new ArrayType($str.text.length()-2, new CharacterType()); $rvalue = true; $ln_ = $str.line;}
-  |  id = ID {$t = getIDFromSymTable($id.text, $id.line); $ln_ = $id.line;}
+  |  id = ID {$t = getIDFromSymTable($id.text, $id.line); $rvalue = ; $ln_ = $id.line;}
   |  ln = '{' tp1 = expr {int size = 1;} (',' tp2 = expr
           {size = checkAndFindNumOfItemsInExplitArray($tp1.t, $tp2.t, size);})*
-          {$t = assignExplitArrayType(size, $tp1.t, $ln.line); $rvalue = false; $ln_ = $ln.line;}
+          {$t = assignExplitArrayType(size, $tp1.t, $ln.line); $rvalue = true; $ln_ = $ln.line;}
      '}'
   |  'read' '(' size = CONST_NUM ')' {$t = new ArrayType($size.int, new CharacterType()); $rvalue = true; $ln_ = $size.line;}
   |  ln = '(' tp = expr ')' {$t = $tp.t; $rvalue = $tp.rvalue; $ln_ = $ln.line;}
