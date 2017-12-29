@@ -1,6 +1,7 @@
 grammar ATalkPass2;
 
-import HandleExprsTypesFuncs, GettingSymbolTableItemsFuncs, ArrayFuncs, RecieversFuncs, PrintLogsPass2, ScopesPass2;
+import HandleExprsTypesFuncs, GettingSymbolTableItemsFuncs, ArrayFuncs, RecieversFuncs, PrintLogsPass2, ScopesPass2,
+MipsVarInitialization;
 
 @header{
       import java.util.ArrayList;
@@ -9,6 +10,7 @@ import HandleExprsTypesFuncs, GettingSymbolTableItemsFuncs, ArrayFuncs, Reciever
 @members{
     int errorOccured = 0;
     String codeData = "";
+    Translator mips = new Translator();
 }
 
 program: {
@@ -20,6 +22,7 @@ program: {
         print("------------------------- Pass2 finished -------------------------"+"\n");
         if(errorOccured == 0)
           print(codeData);
+        mips.makeOutput();
     }
   ;
 
@@ -31,12 +34,16 @@ actor:
   ;
 
 state:
-    type ID (',' ID)* NL
+    type var_id = ID {
+        globalVarInitialization($var_id.text, $var_id.line);
+      } (',' var_id = ID {
+        globalVarInitialization($var_id.text, $var_id.line);
+      })* NL
   ;
 
 receiver[String actrName]:
-    'receiver' currentReceiver = ID {int argCnt = 0;} '(' (type ID { SymbolTable.define(); argCnt++;}
-    (',' type ID { SymbolTable.define(); })*)? ')' NL
+    'receiver' currentReceiver = ID {int argCnt = 0;} '(' (type ID {localVarInitialization();  argCnt++;}
+    (',' type ID { localVarInitialization(); argCnt++;})*)? ')' NL
     {beginScope();}
       statements[$currentReceiver.text, actrName, argCnt]
     'end' {endScope();} NL
@@ -76,11 +83,11 @@ statement[String currentReceiver, String currentActor , int argCnt]:
   ;
 
 stm_vardef:
-    t = type ln = ID { SymbolTable.define(); }('=' tp = expr{
+    t = type ln = ID { localVarInitialization(); }('=' tp = expr{
         if(!$t.t.equals($tp.t))
           printErrors($ln.line, "Invalid assignment by types <" + $t.t.toString() + "> and <" + $tp.t.toString() + ">.");
         }
-      )? (',' ID { SymbolTable.define(); } ('=' tp = expr{
+      )? (',' ID { localVarInitialization(); } ('=' tp = expr{
           if(!$t.t.equals($tp.t))
             printErrors($ln.line, "Invalid assignment by types <" + $t.t.toString() + "> and <" + $tp.t.toString() + ">.");
           })?)* NL
