@@ -1,4 +1,4 @@
-grammar MipsVarInitialization;
+grammar MipsFunctions;
 
 @members{
   void globalVarInitialization(String var_id, int line){

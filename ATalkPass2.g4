@@ -1,7 +1,7 @@
 grammar ATalkPass2;
 
 import HandleExprsTypesFuncs, GettingSymbolTableItemsFuncs, ArrayFuncs, RecieversFuncs, PrintLogsPass2, ScopesPass2,
-MipsVarInitialization;
+MipsFunctions;
 
 @header{
       import java.util.ArrayList;
@@ -102,7 +102,7 @@ stm_tell[String currentReceiver, String currentActor, int argCnt]:
 
 stm_write:
     ln = 'write' '(' tp = expr ')' NL
-      {checkWriteFuncArgument($tp.t, $ln.line);}
+      {checkWriteFuncArgument($tp.t, $ln.line); mips.write()}
   ;
 
 stm_if_elseif_else[String currentReceiver, String currentActor, int argCnt]:
@@ -214,7 +214,12 @@ expr_add returns [Type t, boolean rvalue, int ln_]:
 
 expr_add_tmp returns [Type t, boolean rvalue, int ln_]:
     add = ('+' | '-') tp = expr_mult
-      {$t = assignExprType_tmp($tp.t, "Invalid operands for +/- operators.", $add.line); $rvalue = true; $ln_ = $add.line;}
+      {
+        $t = assignExprType_tmp($tp.t, "Invalid operands for +/- operators.", $add.line);
+        $rvalue = true;
+        $ln_ = $add.line;
+        mips.operationCommand($add.text);
+      }
     expr_add_tmp
   | {$t = new NoType(); $rvalue = false; $ln_ = -1;}
   ;
@@ -228,14 +233,24 @@ expr_mult returns [Type t, boolean rvalue, int ln_]:
 
 expr_mult_tmp returns [Type t, boolean rvalue, int ln_]:
     mult = ('*' | '/') tp = expr_un
-      {$t = assignExprType_tmp($tp.t, "Invalid operands for multiplication operands.", $mult.line); $rvalue = true;  $ln_ = $mult.line;}
+      {
+        $t = assignExprType_tmp($tp.t, "Invalid operands for multiplication operands.", $mult.line);
+        $rvalue = true;
+        $ln_ = $mult.line;
+        mips.operationCommand($mult.text);
+      }
     expr_mult_tmp
   | {$t = new NoType(); $rvalue = false; $ln_ = -1;}
   ;
 
 expr_un returns [Type t, boolean rvalue, int ln_]:
     ln = ('not' | '-') tp = expr_un
-      {$t = assignExprType_tmp($tp.t,  "Invalid arithmatic operands.", $ln.line); $rvalue = true; $ln_ = $ln.line;}
+      {
+        $t = assignExprType_tmp($tp.t,  "Invalid arithmatic operands.", $ln.line);
+        $rvalue = true;
+        $ln_ = $ln.line;
+        mips.unaryOperationCommand($ln.text);
+      }
   |  tp1 = expr_mem {$t = $tp1.t; $rvalue = $tp1.rvalue; $ln_ = $tp1.ln_;}
   ;
 
@@ -266,7 +281,7 @@ expr_mem_tmp returns [int dimension, int ln_]:
   ;
 
 expr_other returns [Type t, boolean rvalue, int ln_]:
-     ln = CONST_NUM {$t = new IntType(); $rvalue = true; $ln_ = $ln.line;}
+     ln = CONST_NUM {$t = new IntType(); $rvalue = true; $ln_ = $ln.line; mips.addToStack(Integer.parseInt($ln.text));}
   |  ln = CONST_CHAR {$t = new CharacterType(); $rvalue = true; $ln_ = $ln.line;}
   |  str = CONST_STR {$t = new ArrayType($str.text.length()-2, new CharacterType()); $rvalue = true; $ln_ = $str.line;}
   |  id = ID {$t = getIDFromSymTable($id.text, $id.line); $rvalue = $t.isRvalue(); $ln_ = $id.line;}

@@ -99,7 +99,24 @@ public class Translator {
         popStack();
         instructions.add("# end of assign");
     }
-
+    public void unaryOperationCommand(String s){
+      instructions.add("# operation " + s);
+      if(s.equals("-")){
+        instructions.add("lw $a0, 4($sp)");
+        popStack();
+        instructions.add("neg $a0, $a0");
+        instructions.add("sw $a0, 0($sp)");
+        instructions.add("addiu $sp, $sp, -4");
+      }
+      if(s.equals("not")){
+        instructions.add("lw $a0, 4($sp)");
+        popStack();
+        instructions.add("not $a0, $a0");
+        instructions.add("sw $a0, 0($sp)");
+        instructions.add("addiu $sp, $sp, -4");
+      }
+      instructions.add("# end of operation " + s);
+    }
     public void operationCommand(String s){
         instructions.add("# operation " + s);
         if (s.equals("*")){
