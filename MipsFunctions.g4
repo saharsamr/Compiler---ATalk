@@ -17,7 +17,7 @@ grammar MipsFunctions;
     SymbolTableItem item = SymbolTable.top.get(id);
     SymbolTableVariableItemBase var = (SymbolTableVariableItemBase) item;
     //print(""+var.getOffset());
-    if (!isRvalue) mips.addToStack(id, var.getOffset()*-1);
+    if (isRvalue) mips.addToStack(id, var.getOffset()*-1);
     else mips.addAddressToStack(id, var.getOffset()*-1);
   }
 }

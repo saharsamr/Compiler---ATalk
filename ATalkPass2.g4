@@ -146,7 +146,7 @@ expr returns [Type t, boolean rvalue, int ln_]:
   ;
 
 expr_assign returns [Type t, boolean rvalue, int ln_]:
-    tp1 = expr_or ln = '=' tp2 = expr_assign
+    tp1 = expr_or[false] ln = '=' tp2 = expr_assign
       {$ln_ = findLine($tp1.ln_, $tp2.ln_);
         if($tp1.rvalue)
           printErrors($ln.line, "Invalid Assignment to an rvalue.");
@@ -155,37 +155,37 @@ expr_assign returns [Type t, boolean rvalue, int ln_]:
             mips.assignCommand();
           }
         }
-  |  tp = expr_or {$t = $tp.t; $rvalue = $tp.rvalue;}
+  |  tp = expr_or[true] {$t = $tp.t; $rvalue = $tp.rvalue;}
   ;
 
-expr_or returns [Type t, boolean rvalue, int ln_]:
-    tp1 = expr_and tp2 = expr_or_tmp
+expr_or[boolean is_rvalue] returns [Type t, boolean rvalue, int ln_]:
+    tp1 = expr_and[is_rvalue] tp2 = expr_or_tmp
     {$ln_ = findLine($tp1.ln_, $tp2.ln_);
       $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands by types <" + $tp1.t.toString() + "> and <" + $tp2.t.toString() + ">.", $ln_);
       $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
 expr_or_tmp returns [Type t, boolean rvalue, int ln_]:
-    ln = 'or' tp1 = expr_and tp2 = expr_or_tmp
+    ln = 'or' tp1 = expr_and[true] tp2 = expr_or_tmp
       {$t = assignExprType_tmp($tp1.t, "Invalid operands for <or> operatorby types <" + $tp1.t.toString() + "> and <" + $tp2.t.toString() + ">.", $ln.line); $rvalue = true; $ln_ = $ln.line;}
   | {$t = new NoType(); $rvalue = false; $ln_ = -1;}
   ;
 
-expr_and returns [Type t, boolean rvalue, int ln_]:
-    tp1 = expr_eq tp2 = expr_and_tmp
+expr_and[boolean is_rvalue] returns [Type t, boolean rvalue, int ln_]:
+    tp1 = expr_eq[is_rvalue] tp2 = expr_and_tmp
     {$ln_ = findLine($tp1.ln_, $tp2.ln_);
       $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands by types <" + $tp1.t.toString() + "> and <" + $tp2.t.toString() + ">.", $ln_);
       $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
 expr_and_tmp returns [Type t, boolean rvalue, int ln_]:
-    ln = 'and' tp1 = expr_eq tp2 = expr_and_tmp
+    ln = 'and' tp1 = expr_eq[true] tp2 = expr_and_tmp
       {$t = assignExprType_tmp($tp1.t, "Invalid operands for <and> operator by types <" + $tp1.t.toString() + "> and <" + $tp2.t.toString() + ">.", $ln.line); $rvalue = true; $ln_ = $ln.line;}
   | {$t = new NoType(); $rvalue = false; $ln_ = -1;}
   ;
 
-expr_eq returns [Type t, boolean rvalue, int ln_]:
-    tp1 = expr_cmp tp2 = expr_eq_tmp
+expr_eq[boolean is_rvalue] returns [Type t, boolean rvalue, int ln_]:
+    tp1 = expr_cmp[is_rvalue] tp2 = expr_eq_tmp
       {$ln_ = findLine($tp1.ln_, $tp2.ln_);
         $t = checkEqualityExprType($tp1.t, $tp2.t, $ln_);
         $rvalue = $tp1.rvalue || $tp2.rvalue;}
@@ -193,34 +193,34 @@ expr_eq returns [Type t, boolean rvalue, int ln_]:
 
 
 expr_eq_tmp returns [Type t, boolean rvalue, int ln_]:
-    ln = ('==' | '<>') tp1 = expr_cmp tp2 = expr_eq_tmp
+    ln = ('==' | '<>') tp1 = expr_cmp[true] tp2 = expr_eq_tmp
       {$t = checkEqualityExprType_tmp($tp1.t, $tp2.t, $ln.line); $rvalue = true; $ln_ = $ln.line;}
   | {$t = new NoType(); $rvalue = false; $ln_ = -1;}
   ;
 
-expr_cmp returns [Type t, boolean rvalue, int ln_]:
-    tp1 = expr_add tp2 = expr_cmp_tmp
+expr_cmp[boolean is_rvalue] returns [Type t, boolean rvalue, int ln_]:
+    tp1 = expr_add[is_rvalue] tp2 = expr_cmp_tmp
     {$ln_ = findLine($tp1.ln_, $tp2.ln_);
       $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands by types <" + $tp1.t.toString() + "> and <" + $tp2.t.toString() + ">.", $ln_);
       $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
 expr_cmp_tmp returns [Type t, boolean rvalue, int ln_]:
-    (cmp = '<' | cmp = '>') tp = expr_add
+    (cmp = '<' | cmp = '>') tp = expr_add[true]
       {$t = assignExprType_tmp($tp.t, "Invalid operands for comparision operators.", $cmp.line); $rvalue = true; $ln_ = $cmp.line;}
     expr_cmp_tmp
   | {$t = new NoType(); $rvalue = false; $ln_ = -1;}
   ;
 
-expr_add returns [Type t, boolean rvalue, int ln_]:
-    tp1 = expr_mult tp2 = expr_add_tmp
+expr_add[boolean is_rvalue] returns [Type t, boolean rvalue, int ln_]:
+    tp1 = expr_mult[is_rvalue] tp2 = expr_add_tmp
     {$ln_ = findLine($tp1.ln_, $tp2.ln_);
       $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands by types <" + $tp1.t.toString() + "> and <" + $tp2.t.toString() + ">.", $ln_);
       $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
 expr_add_tmp returns [Type t, boolean rvalue, int ln_]:
-    add = ('+' | '-') tp = expr_mult
+    add = ('+' | '-') tp = expr_mult[true]
       {
         $t = assignExprType_tmp($tp.t, "Invalid operands for +/- operators.", $add.line);
         $rvalue = true;
@@ -231,15 +231,15 @@ expr_add_tmp returns [Type t, boolean rvalue, int ln_]:
   | {$t = new NoType(); $rvalue = false; $ln_ = -1;}
   ;
 
-expr_mult returns [Type t, boolean rvalue, int ln_]:
-    tp1 = expr_un tp2 = expr_mult_tmp
+expr_mult[boolean is_rvalue] returns [Type t, boolean rvalue, int ln_]:
+    tp1 = expr_un[is_rvalue] tp2 = expr_mult_tmp
     {$ln_ = findLine($tp1.ln_, $tp2.ln_);
      $t = assignExprType ($tp1.t, $tp2.t, "Invalid arithmatic operands by types <" + $tp1.t.toString() + "> and <" + $tp2.t.toString() + ">.", $ln_);
      $rvalue = $tp1.rvalue || $tp2.rvalue;}
   ;
 
 expr_mult_tmp returns [Type t, boolean rvalue, int ln_]:
-    mult = ('*' | '/') tp = expr_un
+    mult = ('*' | '/') tp = expr_un[true]
       {
         $t = assignExprType_tmp($tp.t, "Invalid operands for multiplication operands.", $mult.line);
         $rvalue = true;
@@ -250,19 +250,19 @@ expr_mult_tmp returns [Type t, boolean rvalue, int ln_]:
   | {$t = new NoType(); $rvalue = false; $ln_ = -1;}
   ;
 
-expr_un returns [Type t, boolean rvalue, int ln_]:
-    ln = ('not' | '-') tp = expr_un
+expr_un[boolean is_rvalue] returns [Type t, boolean rvalue, int ln_]:
+    ln = ('not' | '-') tp = expr_un[true]
       {
         $t = assignExprType_tmp($tp.t,  "Invalid arithmatic operands.", $ln.line);
         $rvalue = true;
         $ln_ = $ln.line;
         mips.unaryOperationCommand($ln.text);
       }
-  |  tp1 = expr_mem {$t = $tp1.t; $rvalue = $tp1.rvalue; $ln_ = $tp1.ln_;}
+  |  tp1 = expr_mem[is_rvalue] {$t = $tp1.t; $rvalue = $tp1.rvalue; $ln_ = $tp1.ln_;}
   ;
 
-expr_mem returns [Type t, boolean rvalue, int ln_]:
-    tp = expr_other dim = expr_mem_tmp {
+expr_mem[boolean is_rvalue] returns [Type t, boolean rvalue, int ln_]:
+    tp = expr_other[is_rvalue] dim = expr_mem_tmp {
       $ln_ = findLine($tp.ln_, $dim.ln_);
       try{
         $t = $tp.t.dimensionAccess($dim.dimension);
@@ -287,12 +287,12 @@ expr_mem_tmp returns [int dimension, int ln_]:
   | {$dimension = 0;  $ln_ = -1;}
   ;
 
-expr_other returns [Type t, boolean rvalue, int ln_]:
+expr_other[boolean is_rvalue] returns [Type t, boolean rvalue, int ln_]:
      ln = CONST_NUM {$t = new IntType(); $rvalue = true; $ln_ = $ln.line; mips.addToStack(Integer.parseInt($ln.text));}
   |  ln = CONST_CHAR {$t = new CharacterType(); $rvalue = true; $ln_ = $ln.line;}
   |  str = CONST_STR {$t = new ArrayType($str.text.length()-2, new CharacterType()); $rvalue = true; $ln_ = $str.line;}
   |  id = ID {  $t = getIDFromSymTable($id.text, $id.line);
-                addIDtoStack($id.text, $t.isRvalue());
+                addIDtoStack($id.text, is_rvalue);
                 $rvalue = $t.isRvalue();
                 $ln_ = $id.line;
              }
