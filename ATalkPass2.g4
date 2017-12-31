@@ -83,13 +83,17 @@ statement[String currentReceiver, String currentActor , int argCnt]:
   ;
 
 stm_vardef:
-    t = type ln = ID { localVarInitialization(); }('=' tp = expr{
+    t = type ln = ID { localVarInitialization();}('=' tp = expr{
         if(!$t.t.equals($tp.t))
           printErrors($ln.line, "Invalid assignment by types <" + $t.t.toString() + "> and <" + $tp.t.toString() + ">.");
+        else
+          mips.assignCommand();
         }
       )? (',' ID { localVarInitialization(); } ('=' tp = expr{
           if(!$t.t.equals($tp.t))
             printErrors($ln.line, "Invalid assignment by types <" + $t.t.toString() + "> and <" + $tp.t.toString() + ">.");
+          else
+            mips.assignCommand();
           })?)* NL
   ;
 
@@ -102,7 +106,7 @@ stm_tell[String currentReceiver, String currentActor, int argCnt]:
 
 stm_write:
     ln = 'write' '(' tp = expr ')' NL
-      {checkWriteFuncArgument($tp.t, $ln.line); mips.write()}
+      {checkWriteFuncArgument($tp.t, $ln.line); mips.write();}
   ;
 
 stm_if_elseif_else[String currentReceiver, String currentActor, int argCnt]:
@@ -146,8 +150,11 @@ expr_assign returns [Type t, boolean rvalue, int ln_]:
       {$ln_ = findLine($tp1.ln_, $tp2.ln_);
         if($tp1.rvalue)
           printErrors($ln.line, "Invalid Assignment to an rvalue.");
-        else
-          $t = assignAssignmentExprType($tp1.t, $tp2.t, $ln_);}
+        else{
+            $t = assignAssignmentExprType($tp1.t, $tp2.t, $ln_);
+            mips.assignCommand();
+          }
+        }
   |  tp = expr_or {$t = $tp.t; $rvalue = $tp.rvalue;}
   ;
 
@@ -284,7 +291,11 @@ expr_other returns [Type t, boolean rvalue, int ln_]:
      ln = CONST_NUM {$t = new IntType(); $rvalue = true; $ln_ = $ln.line; mips.addToStack(Integer.parseInt($ln.text));}
   |  ln = CONST_CHAR {$t = new CharacterType(); $rvalue = true; $ln_ = $ln.line;}
   |  str = CONST_STR {$t = new ArrayType($str.text.length()-2, new CharacterType()); $rvalue = true; $ln_ = $str.line;}
-  |  id = ID {$t = getIDFromSymTable($id.text, $id.line); $rvalue = $t.isRvalue(); $ln_ = $id.line;}
+  |  id = ID {  $t = getIDFromSymTable($id.text, $id.line);
+                addIDtoStack($id.text, $t.isRvalue());
+                $rvalue = $t.isRvalue();
+                $ln_ = $id.line;
+             }
   |  ln = '{' tp1 = expr {int size = 1;} (',' tp2 = expr
           {size = checkAndFindNumOfItemsInExplitArray($tp1.t, $tp2.t, size);})*
           {$t = assignExplitArrayType(size, $tp1.t, $ln.line); $rvalue = true; $ln_ = $ln.line;}

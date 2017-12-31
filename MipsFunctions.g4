@@ -12,4 +12,12 @@ grammar MipsFunctions;
     SymbolTable.define();
     mips.addToStack(0);
   }
+
+  void addIDtoStack(String id, boolean isRvalue) {
+    SymbolTableItem item = SymbolTable.top.get(id);
+    SymbolTableVariableItemBase var = (SymbolTableVariableItemBase) item;
+    //print(""+var.getOffset());
+    if (!isRvalue) mips.addToStack(id, var.getOffset()*-1);
+    else mips.addAddressToStack(id, var.getOffset()*-1);
+  }
 }
