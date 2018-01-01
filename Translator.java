@@ -117,6 +117,33 @@ public class Translator {
       }
       instructions.add("# end of operation " + s);
     }
+    // public void compareOperationCommand(String s){
+    //   if(s.equals("<")){//a1<a0
+    //     instructions.add("lw $a0, 4($sp)");
+    //     popStack();
+    //     instructions.add("lw $a1, 4($sp)");
+    //     popStack();
+    //     instructions.add("blt $a1, $a0, label");
+    //   }if(s.equals(">")){//a1<a0
+    //     instructions.add("lw $a0, 4($sp)");
+    //     popStack();
+    //     instructions.add("lw $a1, 4($sp)");
+    //     popStack();
+    //     instructions.add("bgt $a1, $a0, label");
+    //   }if(s.equals("==")){//a1<a0
+    //     instructions.add("lw $a0, 4($sp)");
+    //     popStack();
+    //     instructions.add("lw $a1, 4($sp)");
+    //     popStack();
+    //     instructions.add("beq $a1, $a0, label");
+    //   }if(s.equals("<>")){//a1<a0
+    //     instructions.add("lw $a0, 4($sp)");
+    //     popStack();
+    //     instructions.add("lw $a1, 4($sp)");
+    //     popStack();
+    //     instructions.add("bne $a1, $a0, label");
+    //   }
+    // }
     public void operationCommand(String s){
         instructions.add("# operation " + s);
         if (s.equals("*")){
@@ -152,6 +179,24 @@ public class Translator {
             instructions.add("lw $a1, 4($sp)");
             popStack();
             instructions.add("sub $a0, $a1, $a0");
+            instructions.add("sw $a0, 0($sp)");
+            instructions.add("addiu $sp, $sp, -4");
+        }
+        else if (s.equals("or")){
+            instructions.add("lw $a0, 4($sp)");
+            popStack();
+            instructions.add("lw $a1, 4($sp)");
+            popStack();
+            instructions.add("or $a0, $a1, $a0");
+            instructions.add("sw $a0, 0($sp)");
+            instructions.add("addiu $sp, $sp, -4");
+        }
+        else if (s.equals("and")){
+            instructions.add("lw $a0, 4($sp)");
+            popStack();
+            instructions.add("lw $a1, 4($sp)");
+            popStack();
+            instructions.add("and $a0, $a1, $a0");
             instructions.add("sw $a0, 0($sp)");
             instructions.add("addiu $sp, $sp, -4");
         }
