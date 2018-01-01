@@ -206,7 +206,7 @@ expr_eq_tmp returns [Type t, boolean rvalue, int ln_]:
         $t = checkEqualityExprType_tmp($tp1.t, $tp2.t, $ln.line);
         $rvalue = true;
         $ln_ = $ln.line;
-        //mips.compareOperationCommand($ln.text);
+        mips.compareOperationCommand($ln.text);
       }
   | {$t = new NoType(); $rvalue = false; $ln_ = -1;}
   ;
@@ -219,8 +219,13 @@ expr_cmp[boolean is_rvalue] returns [Type t, boolean rvalue, int ln_]:
   ;
 
 expr_cmp_tmp returns [Type t, boolean rvalue, int ln_]:
-    (cmp = '<' | cmp = '>') tp = expr_add[true]
-      {$t = assignExprType_tmp($tp.t, "Invalid operands for comparision operators.", $cmp.line); $rvalue = true; $ln_ = $cmp.line;}
+    cmp = ('<' | '>') tp = expr_add[true]
+      {
+        $t = assignExprType_tmp($tp.t, "Invalid operands for comparision operators.", $cmp.line);
+        $rvalue = true;
+        $ln_ = $cmp.line;
+        mips.compareOperationCommand($cmp.text);
+      }
     expr_cmp_tmp
   | {$t = new NoType(); $rvalue = false; $ln_ = -1;}
   ;

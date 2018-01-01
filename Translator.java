@@ -26,6 +26,8 @@ public class Translator {
         this.addSystemCall(10);
         try {
             PrintWriter writer = new PrintWriter(output);
+            checkEquality();
+            checkNonEquality();
             writer.println("main:");
             writer.println("move $fp, $sp");
             for (int i=0;i<initInstructions.size();i++){
@@ -117,33 +119,56 @@ public class Translator {
       }
       instructions.add("# end of operation " + s);
     }
-    // public void compareOperationCommand(String s){
-    //   if(s.equals("<")){//a1<a0
-    //     instructions.add("lw $a0, 4($sp)");
-    //     popStack();
-    //     instructions.add("lw $a1, 4($sp)");
-    //     popStack();
-    //     instructions.add("blt $a1, $a0, label");
-    //   }if(s.equals(">")){//a1<a0
-    //     instructions.add("lw $a0, 4($sp)");
-    //     popStack();
-    //     instructions.add("lw $a1, 4($sp)");
-    //     popStack();
-    //     instructions.add("bgt $a1, $a0, label");
-    //   }if(s.equals("==")){//a1<a0
-    //     instructions.add("lw $a0, 4($sp)");
-    //     popStack();
-    //     instructions.add("lw $a1, 4($sp)");
-    //     popStack();
-    //     instructions.add("beq $a1, $a0, label");
-    //   }if(s.equals("<>")){//a1<a0
-    //     instructions.add("lw $a0, 4($sp)");
-    //     popStack();
-    //     instructions.add("lw $a1, 4($sp)");
-    //     popStack();
-    //     instructions.add("bne $a1, $a0, label");
-    //   }
-    // }
+    public void checkEquality(){
+      instructions.add("checkEquality:");
+      instructions.add("bne $a1, $a0, pushFalse");
+      instructions.add("li $a2, 1");
+      instructions.add("j setResult");
+      instructions.add("pushFalse:");
+      instructions.add("li $a2, 0");
+      instructions.add("setResult:");
+      instructions.add("sw $a2, 0($sp)");
+      instructions.add("addiu $sp, $sp, -4");
+      instructions.add("jr $ra");
+    }
+    public void checkNonEquality(){
+      instructions.add("checkNonEquality:");
+      instructions.add("beq $a1, $a0, pushFalse");
+      instructions.add("li $a2, 1");
+      instructions.add("j setResult");
+    }
+    public void compareOperationCommand(String s){
+      instructions.add("# start of compare operation "+s);
+      if(s.equals("<")){
+        instructions.add("lw $a0, 4($sp)");
+        popStack();
+        instructions.add("lw $a1, 4($sp)");
+        popStack();
+        instructions.add("slt $a2, $a1, $a0");
+        instructions.add("sw $a2, 0($sp)");
+        instructions.add("addiu $sp, $sp, -4");
+      }
+      if(s.equals(">")){
+        instructions.add("lw $a0, 4($sp)");
+        popStack();
+        instructions.add("lw $a1, 4($sp)");
+        popStack();
+        instructions.add("slt $a2, $a0, $a1");
+        instructions.add("sw $a2, 0($sp)");
+        instructions.add("addiu $sp, $sp, -4");
+      }
+      if(s.equals("==") || s.equals("<>")){
+        instructions.add("lw $a0, 4($sp)");
+        popStack();
+        instructions.add("lw $a1, 4($sp)");
+        popStack();
+        if(s.equals("=="))
+            instructions.add("jal checkEquality");
+        if(s.equals("<>"))
+          instructions.add("jal checkNonEquality");
+      }
+      instructions.add("# end of operation " + s);
+    }
     public void operationCommand(String s){
         instructions.add("# operation " + s);
         if (s.equals("*")){
