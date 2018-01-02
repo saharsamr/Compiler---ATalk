@@ -43,11 +43,29 @@ state:
   ;
 
 receiver[String actrName]:
-    'receiver' currentReceiver = ID {int argCnt = 0;} '(' (type ID {localVarInitialization();  argCnt++;}
-    (',' type ID { localVarInitialization(); argCnt++;})*)? ')' NL
-    {beginScope();}
+    'receiver' currentReceiver = ID {
+        int argCnt = 0;
+        ArrayList <Type> argumentTypes = new ArrayList <Type>();
+      } '(' (tp = type ID {
+        localVarInitialization();
+        argumentTypes.add($tp.t);
+        argCnt++;
+      }
+    (',' tp = type ID {
+      localVarInitialization();
+      argumentTypes.add($tp.t);
+      argCnt++;
+    })*)? ')' NL
+    {
+      beginScope();
+      String key = makeKey(actrName, $currentReceiver.text, argumentTypes);
+      mips.addLable(key);
+    }
       statements[$currentReceiver.text, actrName, argCnt]
-    'end' {endScope();} NL
+    'end' {
+        endScope();
+        mips.jumpToLable("end_" + key);
+      } NL
   ;
 
 
@@ -332,7 +350,7 @@ expr_mem_tmp returns [int dimension, int ln_]:
 
 expr_other[boolean is_rvalue] returns [Type t, boolean rvalue, int ln_]:
      ln = CONST_NUM {$t = new IntType(); $rvalue = true; $ln_ = $ln.line; mips.addToStack(Integer.parseInt($ln.text));}
-  |  ln = CONST_CHAR {$t = new CharacterType(); $rvalue = true; $ln_ = $ln.line;}
+  |  ln = CONST_CHAR {$t = new CharacterType(); $rvalue = true; $ln_ = $ln.line;  mips.addToStack((int) $ln.text.charAt(0));}
   |  str = CONST_STR {$t = new ArrayType($str.text.length()-2, new CharacterType()); $rvalue = true; $ln_ = $str.line;}
   |  id = ID {  $t = getIDFromSymTable($id.text, $id.line);
                 addIDtoStack($id.text, is_rvalue);
