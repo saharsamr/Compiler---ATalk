@@ -42,6 +42,10 @@ public class SymbolTableItemActor extends SymbolTableItem {
 		}
 	}
 
+	public String getNextMessage() throws NoSuchElementException {
+		return this.messagesQueue.remove();
+	}
+
 	int offset;
 	String actorName;
 	SymbolTable actorSym;

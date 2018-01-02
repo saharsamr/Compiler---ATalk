@@ -276,5 +276,20 @@ public class Translator {
     public void makeScheduler(ArrayList <SymbolTableItemActor> actorsList){
       for (int i = 0; i < actorsList.size(); i++)
         actorsList.get(i).addInitRecieverToQueue();
+      int index = 0;
+      for(;;){
+        boolean emptyLists = true;
+        for ( index = 0; index <actorsList.size(); index++){
+          SymbolTableItemActor actr = actorsList.get(index);
+          try{
+            String recvrKey = actr.getNextMessage();
+            emptyLists = false;
+            jumpToLable(recvrKey);
+            instructions.add("end_" + recvrKey);
+          }catch(NoSuchElementException  ex){}
+        }
+        if (emptyLists)
+          break;
+      }
     }
 }
