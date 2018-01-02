@@ -12,6 +12,7 @@ MipsFunctions;
     int ifCounter = 0;
     String codeData = "";
     Translator mips = new Translator();
+ArrayList <SymbolTableItemActor> actorsList = new ArrayList <SymbolTableItemActor>();
 }
 
 program: {
@@ -23,13 +24,19 @@ program: {
         print("------------------------- Pass2 finished -------------------------"+"\n");
         if(errorOccured == 0)
           print(codeData);
+        mips.makeScheduler(actorsList);
         mips.makeOutput();
     }
   ;
 
 actor:
     'actor' actrName = ID '<' CONST_NUM '>' NL
-    {beginScope();}
+    {
+      beginScope();
+      try{
+        actorsList.add(getActorFromSymTable($actrName.text, $actrName.line));
+      }catch(ActorDoesntExistsException e) {}
+    }
       (state | receiver[$actrName.text] | NL)*
     'end' {endScope();} (NL | EOF)
   ;

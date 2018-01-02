@@ -1,9 +1,12 @@
+import java.util.*;
+
 public class SymbolTableItemActor extends SymbolTableItem {
 
 	public SymbolTableItemActor(String actorName, int offset, SymbolTable actorSym_) {
 		this.actorName = actorName;
 		this.offset = offset;
 		this.actorSym = actorSym_;
+		this.messagesQueue = new LinkedList<String>();
 	}
 
 	public int getOffset() {
@@ -27,7 +30,20 @@ public class SymbolTableItemActor extends SymbolTableItem {
 		return this.actorSym;
 	}
 
+	public void addInitRecieverToQueue() {
+		HashMap<String, SymbolTableItem> items = actorSym.getItems();
+		for (String currentKey : items.keySet()) {
+			SymbolTableItem item = items.get(currentKey);
+			if(item instanceof SymbolTableItemReceiver){
+				SymbolTableItemReceiver recvr = (SymbolTableItemReceiver) item;
+				if (recvr.getRecieverName().equals("init"))
+					this.messagesQueue.add(recvr.getKey());
+			}
+		}
+	}
+
 	int offset;
 	String actorName;
 	SymbolTable actorSym;
+	Queue<String> messagesQueue;
 }

@@ -272,4 +272,9 @@ public class Translator {
       popStack();
       instructions.add("beqz $a0, " + labelName);
     }
+
+    public void makeScheduler(ArrayList <SymbolTableItemActor> actorsList){
+      for (int i = 0; i < actorsList.size(); i++)
+        actorsList.get(i).addInitRecieverToQueue();
+    }
 }

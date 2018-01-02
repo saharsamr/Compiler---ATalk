@@ -96,6 +96,10 @@ public class SymbolTable {
 		return pre;
 	}
 
+	public HashMap<String, SymbolTableItem> getItems(){
+		return this.items;
+	}
+
 	SymbolTable pre;
 	HashMap<String, SymbolTableItem> items;
 	HashMap<Register, Integer> offsets;

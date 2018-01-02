@@ -24,6 +24,10 @@ public class SymbolTableItemReceiver extends SymbolTableItem {
 		return key + ")";
 	}
 
+	public String getRecieverName(){
+		return this.receiverName;
+	}
+
 	// public Register getBaseRegister(){
   //   return Register.GP; //in SP bud
   // }
