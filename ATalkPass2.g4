@@ -9,6 +9,7 @@ MipsFunctions;
 
 @members{
     int errorOccured = 0;
+    int ifCounter = 0;
     String codeData = "";
     Translator mips = new Translator();
 }
@@ -110,16 +111,40 @@ stm_write:
   ;
 
 stm_if_elseif_else[String currentReceiver, String currentActor, int argCnt]:
-    ln = 'if' {beginScope();} tp = expr
-      {checkConditionExprType($tp.t, $ln.line);}
-     NL statements[currentReceiver, currentActor, argCnt] {endScope();}
+    ln = 'if' {
+        int elseIfCounter = 0;
+        ifCounter++;
+        beginScope();
+      }
+      tp = expr {
+        checkConditionExprType($tp.t, $ln.line);
+        mips.generateConditionCode("end_" + $ln.text + "_" + ifCounter);
+      }
+     NL statements[currentReceiver, currentActor, argCnt] {
+       mips.jumpToLable("end_if_block_" + ifCounter);
+       endScope();
+       mips.addLable("end_" + $ln.text + "_" + ifCounter);
+     }
 
-    (ln = 'elseif' {beginScope();} tp = expr
-      {checkConditionExprType($tp.t, $ln.line);}
-    NL statements[currentReceiver, currentActor, argCnt] {endScope();})*
+    (ln = 'elseif' {
+        elseIfCounter++;
+        beginScope();
+      } tp = expr {
+        checkConditionExprType($tp.t, $ln.line);
+        mips.generateConditionCode("end_" + $ln.text + "_" + ifCounter + "_" + elseIfCounter);
+      }
+    NL statements[currentReceiver, currentActor, argCnt] {
+        mips.jumpToLable("end_if_block_" + ifCounter);
+        endScope();
+        mips.addLable("end_" + $ln.text + "_" + ifCounter + "_" + elseIfCounter);
+      })*
 
-    ('else' {beginScope();} NL statements[currentReceiver, currentActor, argCnt] {endScope();})?
-    'end' NL
+    (ln = 'else' {
+        beginScope();
+      } NL statements[currentReceiver, currentActor, argCnt] {
+          endScope();
+        })?
+    'end' {mips.addLable("end_if_block_" + ifCounter);} NL
   ;
 
 stm_foreach[String currentReceiver, String currentActor, int argCnt]:

@@ -49,6 +49,10 @@ public class Translator {
 
     }
 
+    public void addLable(String s){
+      instructions.add(s+":");
+    }
+
     public void addToStack(String s, int adr){
 //        int adr = table.getAddress(s)*(-1);
         instructions.add("# start of adding variable to stack");
@@ -253,5 +257,19 @@ public class Translator {
         initInstructions.add("li $a0, " + x);
         initInstructions.add("sw $a0, " + adr + "($gp)");
         initInstructions.add("# end of adding a global variable");
+    }
+
+    public void jumpToLable(String s){
+      instructions.add("j " + s);
+    }
+
+    public void addInstruction(String s){
+      instructions.add(s);
+    }
+
+    public void generateConditionCode(String labelName){
+      instructions.add("lw $a0, 4($sp)");
+      popStack();
+      instructions.add("beqz $a0, " + labelName);
     }
 }
