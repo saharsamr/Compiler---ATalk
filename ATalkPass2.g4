@@ -66,12 +66,15 @@ receiver[String actrName]:
     {
       beginScope();
       String key = makeKey(actrName, $currentReceiver.text, argumentTypes);
+      print(key);
+      /* mips.jumpToLable("after_" + key); */
       mips.addLable(key);
     }
       statements[$currentReceiver.text, actrName, argCnt]
     'end' {
         endScope();
-        mips.jumpToLable("end_" + key);
+        /* mips.jumpToLable("end_" + key); */
+        mips.addLable("after_" + key);
       } NL
   ;
 
@@ -138,17 +141,17 @@ stm_write:
 stm_if_elseif_else[String currentReceiver, String currentActor, int argCnt]:
     ln = 'if' {
         int elseIfCounter = 0;
-        ifCounter++;
+        int cnt = ifCounter++;
         beginScope();
       }
       tp = expr {
         checkConditionExprType($tp.t, $ln.line);
-        mips.generateConditionCode("end_" + $ln.text + "_" + ifCounter);
+        mips.generateConditionCode("end_" + $ln.text + "_" + cnt);
       }
      NL statements[currentReceiver, currentActor, argCnt] {
-       mips.jumpToLable("end_if_block_" + ifCounter);
+       mips.jumpToLable("end_if_block_" + cnt);
        endScope();
-       mips.addLable("end_" + $ln.text + "_" + ifCounter);
+       mips.addLable("end_" + $ln.text + "_" + cnt);
      }
 
     (ln = 'elseif' {
@@ -156,12 +159,12 @@ stm_if_elseif_else[String currentReceiver, String currentActor, int argCnt]:
         beginScope();
       } tp = expr {
         checkConditionExprType($tp.t, $ln.line);
-        mips.generateConditionCode("end_" + $ln.text + "_" + ifCounter + "_" + elseIfCounter);
+        mips.generateConditionCode("end_" + $ln.text + "_" + cnt + "_" + elseIfCounter);
       }
     NL statements[currentReceiver, currentActor, argCnt] {
-        mips.jumpToLable("end_if_block_" + ifCounter);
+        mips.jumpToLable("end_if_block_" + cnt);
         endScope();
-        mips.addLable("end_" + $ln.text + "_" + ifCounter + "_" + elseIfCounter);
+        mips.addLable("end_" + $ln.text + "_" + cnt + "_" + elseIfCounter);
       })*
 
     (ln = 'else' {
@@ -169,7 +172,7 @@ stm_if_elseif_else[String currentReceiver, String currentActor, int argCnt]:
       } NL statements[currentReceiver, currentActor, argCnt] {
           endScope();
         })?
-    'end' {mips.addLable("end_if_block_" + ifCounter);} NL
+    'end' {mips.addLable("end_if_block_" + cnt);} NL
   ;
 
 stm_foreach[String currentReceiver, String currentActor, int argCnt]:

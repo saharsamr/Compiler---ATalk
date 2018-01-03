@@ -33,13 +33,13 @@ grammar GettingSymbolTableItemsFuncs;
   }
 
   String makeKey(String actr, String rcvr, ArrayList<Type> argumentTypes){
-    String key = actr + ": " + rcvr + " (";
+    String key = actr + "_" + rcvr;
     for (int i = 0; i < argumentTypes.size(); i++){
       key += argumentTypes.get(i).toString();
       if (i != argumentTypes.size() - 1)
-        key += ", ";
+        key += "_";
     }
-    return key + ")";
+    return key;
   }
 
   String makeRecieverkey(String currentActor, String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes){

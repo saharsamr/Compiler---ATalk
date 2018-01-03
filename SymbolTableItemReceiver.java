@@ -15,13 +15,13 @@ public class SymbolTableItemReceiver extends SymbolTableItem {
 
 	@Override
 	public String getKey() {
-		String key = actorName + ": " + this.receiverName + " (";
+		String key = actorName + "_" + this.receiverName;
 		for (int i = 0; i < argumentTypes.size(); i++){
 			key += argumentTypes.get(i).toString();
 			if (i != argumentTypes.size() - 1)
-				key += ", ";
+				key += "_";
 		}
-		return key + ")";
+		return key;
 	}
 
 	public String getRecieverName(){
