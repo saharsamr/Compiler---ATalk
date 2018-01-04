@@ -267,6 +267,20 @@ public class Translator {
       instructions.add(s);
     }
 
+    public void arrayElementOffset(int dim){
+      instructions.add("li $a0, 0");
+      for (int i = dim - 1 ; i >= 0 ; i--) {
+        instructions.add("lw $a1, 4($sp)");
+        popStack();
+        int size = dimensionAccess(i).size();
+        instructions.add("li $a2, " + size);
+        instructions.add("mul $a2, $a1, $a2");
+        instructions.add("add $a0, $a0, $a2");
+      }
+      instructions.add("sw $a0, 0($sp)");
+      instructions.add("addiu $sp, $sp, -4");
+    }
+
     public void generateConditionCode(String labelName){
       instructions.add("lw $a0, 4($sp)");
       popStack();

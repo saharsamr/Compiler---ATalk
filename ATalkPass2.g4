@@ -54,19 +54,18 @@ receiver[String actrName]:
         int argCnt = 0;
         ArrayList <Type> argumentTypes = new ArrayList <Type>();
       } '(' (tp = type ID {
-        localVarInitialization();
+        localVarInitialization($tp.t);
         argumentTypes.add($tp.t);
         argCnt++;
       }
     (',' tp = type ID {
-      localVarInitialization();
+      localVarInitialization($tp.t);
       argumentTypes.add($tp.t);
       argCnt++;
     })*)? ')' NL
     {
       beginScope();
       String key = makeKey(actrName, $currentReceiver.text, argumentTypes);
-      print(key);
       /* mips.jumpToLable("after_" + key); */
       mips.addLable(key);
     }
@@ -112,13 +111,13 @@ statement[String currentReceiver, String currentActor , int argCnt]:
   ;
 
 stm_vardef:
-    t = type ln = ID { localVarInitialization();}('=' tp = expr{
+    t = type ln = ID { localVarInitialization($tp.t);}('=' tp = expr{
         if(!$t.t.equals($tp.t))
           printErrors($ln.line, "Invalid assignment by types <" + $t.t.toString() + "> and <" + $tp.t.toString() + ">.");
         else
           mips.assignCommand();
         }
-      )? (',' ID { localVarInitialization(); } ('=' tp = expr{
+      )? (',' ID { localVarInitialization($tp.t); } ('=' tp = expr{
           if(!$t.t.equals($tp.t))
             printErrors($ln.line, "Invalid assignment by types <" + $t.t.toString() + "> and <" + $tp.t.toString() + ">.");
           else
@@ -339,8 +338,10 @@ expr_mem[boolean is_rvalue] returns [Type t, boolean rvalue, int ln_]:
         $t = $tp.t.dimensionAccess($dim.dimension);
         if($dim.dimension == 0)
           $rvalue = $tp.rvalue;
-        else
+        else{
+          int elementsNum = $t.size()/4;
           $rvalue = false;
+        }
       }catch(UndefinedDemensionsException ex){
         printErrors($ln_, "Undefined demensions.");
         $t = new NoType();
@@ -360,7 +361,7 @@ expr_mem_tmp returns [int dimension, int ln_]:
 
 expr_other[boolean is_rvalue] returns [Type t, boolean rvalue, int ln_]:
      ln = CONST_NUM {$t = new IntType(); $rvalue = true; $ln_ = $ln.line; mips.addToStack(Integer.parseInt($ln.text));}
-  |  ln = CONST_CHAR {$t = new CharacterType(); $rvalue = true; $ln_ = $ln.line;  mips.addToStack((int) $ln.text.charAt(0));}
+  |  ln = CONST_CHAR {$t = new CharacterType(); $rvalue = true; $ln_ = $ln.line;  mips.addToStack((int) $ln.text.charAt(1));}
   |  str = CONST_STR {$t = new ArrayType($str.text.length()-2, new CharacterType()); $rvalue = true; $ln_ = $str.line;}
   |  id = ID {  $t = getIDFromSymTable($id.text, $id.line);
                 addIDtoStack($id.text, is_rvalue);
