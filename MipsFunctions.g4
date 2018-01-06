@@ -12,8 +12,8 @@ grammar MipsFunctions;
     SymbolTable.define();
     if(tp.equals(new IntType()) || tp.equals(new CharacterType()))
       mips.addToStack(0);
-    if(tp.equals(new ArrayType())){
-      for (int i=0 ; i < tp.size() ; i++)
+    if(tp instanceof ArrayType){
+      for (int i=0 ; i < tp.size()/4 ; i++)
         mips.addToStack(0);
     }
   }
@@ -21,17 +21,17 @@ grammar MipsFunctions;
   void addIDtoStack(String id, boolean isRvalue) {
     SymbolTableItem item = SymbolTable.top.get(id);
     SymbolTableVariableItemBase var = (SymbolTableVariableItemBase) item;
-    //print(""+var.getOffset());
-    if(var.getVariable().getType.equals(new ArrayType())){
-      mips.addAddressToStack($id.text, var.getOffset()*-1);
+    if(var.getVariable().getType() instanceof ArrayType){
+      mips.addAddressToStack(id, var.getOffset()*-1);
+      return ;
     }
     if (var.getBaseRegister() == Register.SP){
-        if (isRvalue) mips.addToStack($id.text, var.getOffset()*-1);
-        else mips.addAddressToStack($id.text, var.getOffset()*-1);
+        if (isRvalue) mips.addToStack(id, var.getOffset()*-1);
+        else mips.addAddressToStack(id, var.getOffset()*-1);
     }
     else {
         if (isRvalue) mips.addGlobalToStack(var.getOffset());
-        else mips.addGlobalAddressToStack($id.text, var.getOffset());
+        else mips.addGlobalAddressToStack(id, var.getOffset());
     }
   }
 }

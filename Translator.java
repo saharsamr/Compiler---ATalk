@@ -93,16 +93,32 @@ public class Translator {
         instructions.add("# end syscall");
     }
 
-    public void assignCommand(){
+    public void initArrElem(int arrSize){
+      instructions.add("# start inti elem to array");
+      for (int i = 0; i < arrSize ; i++) {
+        instructions.add("lw $a0, 4($sp)");
+        popStack();
+        instructions.add("lw $a1, " + (arrSize-i)*4 + "($sp)");
+        instructions.add("addiu $a1, $a1, " + (arrSize-i-1)*-4);
+        instructions.add("sw $a0, 0($a1)");
+      }
+      popStack();
+      instructions.add("# end of init arr elem");
+    }
+
+    public void assignCommand(boolean varDef){
         instructions.add("# start of assign");
         instructions.add("lw $a0, 4($sp)");
         popStack();
         instructions.add("lw $a1, 4($sp)");
         popStack();
-        instructions.add("sw $a0, 0($a1)");
+        if(!varDef)
+          instructions.add("sw $a0, 0($a1)");
+        else
+          instructions.add("sw $a1, 0($a0)");
         instructions.add("sw $a0, 0($sp)");
         instructions.add("addiu $sp, $sp, -4");
-        popStack();
+      //  popStack();
         instructions.add("# end of assign");
     }
     public void unaryOperationCommand(String s){
@@ -267,18 +283,38 @@ public class Translator {
       instructions.add(s);
     }
 
-    public void arrayElementOffset(int dim){
+    public void arrayElementOffset(Type tp, int dim){
+      instructions.add("# calculate array element offset");
       instructions.add("li $a0, 0");
+      int size = tp.size();
       for (int i = dim - 1 ; i >= 0 ; i--) {
-        instructions.add("lw $a1, 4($sp)");
+        instructions.add("lw $a1, 4($sp)");//access [1]
         popStack();
-        int size = dimensionAccess(i).size();
+        try{
+          size = tp.dimensionAccess(i+1).size();
+          //System.out.println(size);
+        }catch(UndefinedDemensionsException ex){}
         instructions.add("li $a2, " + size);
         instructions.add("mul $a2, $a1, $a2");
         instructions.add("add $a0, $a0, $a2");
       }
       instructions.add("sw $a0, 0($sp)");
       instructions.add("addiu $sp, $sp, -4");
+    }
+
+    public void getElement(int elemNum){
+      instructions.add("# adding array elements to stack");
+      instructions.add("lw $a0, 4($sp)");
+      popStack();//elem offset
+      instructions.add("lw $a1, 0($a0)");
+      instructions.add("sw $a1, 0($sp)");
+      instructions.add("addiu $sp, $sp, -4");
+      for (int i = 0; i < elemNum; i++) {
+        instructions.add("lw $a1, " + 4*elemNum + "($sp)");//address of elem
+        instructions.add("sw $a1, 0($sp)");
+        instructions.add("addiu $sp, $sp, -4");
+      }
+      instructions.add("# end of adding array elements to stack");
     }
 
     public void generateConditionCode(String labelName){

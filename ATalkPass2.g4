@@ -8,11 +8,12 @@ MipsFunctions;
 }
 
 @members{
+    boolean varDef = false;
     int errorOccured = 0;
     int ifCounter = 0;
     String codeData = "";
     Translator mips = new Translator();
-ArrayList <SymbolTableItemActor> actorsList = new ArrayList <SymbolTableItemActor>();
+    ArrayList <SymbolTableItemActor> actorsList = new ArrayList <SymbolTableItemActor>();
 }
 
 program: {
@@ -24,7 +25,7 @@ program: {
         print("------------------------- Pass2 finished -------------------------"+"\n");
         if(errorOccured == 0)
           print(codeData);
-        mips.makeScheduler(actorsList);
+        //mips.makeScheduler(actorsList);
         mips.makeOutput();
     }
   ;
@@ -111,17 +112,19 @@ statement[String currentReceiver, String currentActor , int argCnt]:
   ;
 
 stm_vardef:
-    t = type ln = ID { localVarInitialization($tp.t);}('=' tp = expr{
+    t = type ln = ID { localVarInitialization($t.t);}('=' tp = expr{
         if(!$t.t.equals($tp.t))
           printErrors($ln.line, "Invalid assignment by types <" + $t.t.toString() + "> and <" + $tp.t.toString() + ">.");
-        else
-          mips.assignCommand();
+        else{
+          addIDtoStack($ln.text, false);
+          mips.assignCommand(true);
+          }
         }
       )? (',' ID { localVarInitialization($tp.t); } ('=' tp = expr{
           if(!$t.t.equals($tp.t))
             printErrors($ln.line, "Invalid assignment by types <" + $t.t.toString() + "> and <" + $tp.t.toString() + ">.");
           else
-            mips.assignCommand();
+             mips.addToStack(Integer.parseInt($tp.text));
           })?)* NL
   ;
 
@@ -204,7 +207,8 @@ expr_assign returns [Type t, boolean rvalue, int ln_]:
           printErrors($ln.line, "Invalid Assignment to an rvalue.");
         else{
             $t = assignAssignmentExprType($tp1.t, $tp2.t, $ln_);
-            mips.assignCommand();
+            if(!varDef)
+            mips.assignCommand(false);
           }
         }
   |  tp = expr_or[true] {$t = $tp.t; $rvalue = $tp.rvalue;}
@@ -331,50 +335,58 @@ expr_un[boolean is_rvalue] returns [Type t, boolean rvalue, int ln_]:
   |  tp1 = expr_mem[is_rvalue] {$t = $tp1.t; $rvalue = $tp1.rvalue; $ln_ = $tp1.ln_;}
   ;
 
-expr_mem[boolean is_rvalue] returns [Type t, boolean rvalue, int ln_]:
-    tp = expr_other[is_rvalue] dim = expr_mem_tmp {
-      $ln_ = findLine($tp.ln_, $dim.ln_);
-      try{
-        $t = $tp.t.dimensionAccess($dim.dimension);
-        if($dim.dimension == 0)
-          $rvalue = $tp.rvalue;
-        else{
+  expr_mem[boolean is_rvalue] returns [Type t, boolean rvalue, int ln_]:
+      tp = expr_other[is_rvalue] dim = expr_mem_tmp {
+        $ln_ = findLine($tp.ln_, $dim.ln_);
+        try{
+          $t = $tp.t.dimensionAccess($dim.dimension);
           int elementsNum = $t.size()/4;
+          if($dim.dimension == 0)
+            $rvalue = $tp.rvalue;
+          else{
+            $rvalue = false;
+          }
+          if($tp.arrType){
+            mips.arrayElementOffset($tp.t, $dim.dimension);
+            mips.operationCommand("-");
+            if($is_rvalue){
+              mips.getElement(elementsNum);
+            }
+          }
+        }catch(UndefinedDemensionsException ex){
+          printErrors($ln_, "Undefined demensions.");
+          $t = new NoType();
           $rvalue = false;
         }
-      }catch(UndefinedDemensionsException ex){
-        printErrors($ln_, "Undefined demensions.");
-        $t = new NoType();
-        $rvalue = false;
       }
-    }
-  ;
+    ;
+  expr_mem_tmp returns [int dimension, int ln_]:
+      ln = '[' tp = expr {
+         $ln_ = $ln.line;
+        if(!$tp.t.equals(new IntType()))
+          printErrors($ln.line, "Invalid index.");
+        } ']' d = expr_mem_tmp {$dimension = $d.dimension + 1;}
+    | {$dimension = 0;  $ln_ = -1;}
+    ;
 
-expr_mem_tmp returns [int dimension, int ln_]:
-    ln = '[' tp = expr {
-       $ln_ = $ln.line;
-      if(!$tp.t.equals(new IntType()))
-        printErrors($ln.line, "Invalid index.");
-      } ']' d = expr_mem_tmp {$dimension = $d.dimension + 1;}
-  | {$dimension = 0;  $ln_ = -1;}
-  ;
-
-expr_other[boolean is_rvalue] returns [Type t, boolean rvalue, int ln_]:
-     ln = CONST_NUM {$t = new IntType(); $rvalue = true; $ln_ = $ln.line; mips.addToStack(Integer.parseInt($ln.text));}
-  |  ln = CONST_CHAR {$t = new CharacterType(); $rvalue = true; $ln_ = $ln.line;  mips.addToStack((int) $ln.text.charAt(1));}
-  |  str = CONST_STR {$t = new ArrayType($str.text.length()-2, new CharacterType()); $rvalue = true; $ln_ = $str.line;}
-  |  id = ID {  $t = getIDFromSymTable($id.text, $id.line);
-                addIDtoStack($id.text, is_rvalue);
-                $rvalue = $t.isRvalue();
-                $ln_ = $id.line;
-             }
-  |  ln = '{' tp1 = expr {int size = 1;} (',' tp2 = expr
-          {size = checkAndFindNumOfItemsInExplitArray($tp1.t, $tp2.t, size);})*
-          {$t = assignExplitArrayType(size, $tp1.t, $ln.line); $rvalue = true; $ln_ = $ln.line;}
-     '}'
-  |  'read' '(' size = CONST_NUM ')' {$t = new ArrayType($size.int, new CharacterType()); $rvalue = true; $ln_ = $size.line;}
-  |  ln = '(' tp = expr ')' {$t = $tp.t; $rvalue = $tp.rvalue; $ln_ = $ln.line;}
-  ;
+  expr_other[boolean is_rvalue] returns [Type t, boolean rvalue, int ln_, boolean arrType]:
+       ln = CONST_NUM {$arrType = false; $t = new IntType(); $rvalue = true; $ln_ = $ln.line; mips.addToStack(Integer.parseInt($ln.text));}
+    |  ln = CONST_CHAR {$arrType = false; $t = new CharacterType(); $rvalue = true; $ln_ = $ln.line;  mips.addToStack((int) $ln.text.charAt(1));}
+    |  str = CONST_STR {$arrType = false; $t = new ArrayType($str.text.length()-2, new CharacterType()); $rvalue = true; $ln_ = $str.line;}
+    |  id = ID {  $t = getIDFromSymTable($id.text, $id.line);
+                  addIDtoStack($id.text, $is_rvalue);
+                  if($t instanceof ArrayType)
+                    $arrType = true;
+                  $rvalue = $t.isRvalue();
+                  $ln_ = $id.line;
+               }
+    |  ln = '{' tp1 = expr {int size = 1;} (',' tp2 = expr
+            {size = checkAndFindNumOfItemsInExplitArray($tp1.t, $tp2.t, size);})*
+            {varDef = true; $arrType = false; $t = assignExplitArrayType(size, $tp1.t, $ln.line); mips.initArrElem(size); $rvalue = true; $ln_ = $ln.line;}
+       '}'
+    |  'read' '(' size = CONST_NUM ')' {$arrType = false; $t = new ArrayType($size.int, new CharacterType()); $rvalue = true; $ln_ = $size.line;}
+    |  ln = '(' tp = expr ')' {$arrType = false; $t = $tp.t; $rvalue = $tp.rvalue; $ln_ = $ln.line;}
+    ;
 
 CONST_NUM:
     ('-')?[0-9]+
