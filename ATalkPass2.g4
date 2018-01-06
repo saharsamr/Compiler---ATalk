@@ -112,14 +112,22 @@ statement[String currentReceiver, String currentActor , int argCnt]:
   ;
 
 stm_vardef:
-    t = type ln = ID { localVarInitialization($t.t);}('=' tp = expr{
-        if(!$t.t.equals($tp.t))
+    t = type ln = ID { localVarInitialization($t.t);}('=' {
+        SymbolTableItem item = SymbolTable.top.get($ln.text);
+        SymbolTableVariableItemBase var = (SymbolTableVariableItemBase) item;
+        if(var.getVariable().getType() instanceof ArrayType)
+          mips.addAddressToStack($ln.text, var.getOffset()*-1);
+        } tp = expr{
+        if(!$t.t.equals($tp.t))//address e ezafe shode am pak kon
           printErrors($ln.line, "Invalid assignment by types <" + $t.t.toString() + "> and <" + $tp.t.toString() + ">.");
         else{
-          addIDtoStack($ln.text, false);
-          mips.assignCommand(true);
+          if(!varDef){
+            addIDtoStack($ln.text, false);
+            mips.assignCommand(true);
           }
+          varDef = false;
         }
+      }
       )? (',' ID { localVarInitialization($tp.t); } ('=' tp = expr{
           if(!$t.t.equals($tp.t))
             printErrors($ln.line, "Invalid assignment by types <" + $t.t.toString() + "> and <" + $tp.t.toString() + ">.");
@@ -208,7 +216,8 @@ expr_assign returns [Type t, boolean rvalue, int ln_]:
         else{
             $t = assignAssignmentExprType($tp1.t, $tp2.t, $ln_);
             if(!varDef)
-            mips.assignCommand(false);
+              mips.assignCommand(false);
+            varDef = false;
           }
         }
   |  tp = expr_or[true] {$t = $tp.t; $rvalue = $tp.rvalue;}
