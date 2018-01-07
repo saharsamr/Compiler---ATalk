@@ -9,6 +9,8 @@ MipsFunctions;
 
 @members{
     boolean varDef = false;
+    boolean strDef=false;
+    boolean idsee=false;
     int errorOccured = 0;
     int ifCounter = 0;
     String codeData = "";
@@ -118,14 +120,22 @@ stm_vardef:
         if(var.getVariable().getType() instanceof ArrayType)
           mips.addAddressToStack($ln.text, var.getOffset()*-1);
         } tp = expr{
-        if(!$t.t.equals($tp.t))//address e ezafe shode am pak kon
+        if(!$t.t.equals($tp.t))
           printErrors($ln.line, "Invalid assignment by types <" + $t.t.toString() + "> and <" + $tp.t.toString() + ">.");
         else{
-          if(!varDef){
+          if(!varDef && !strDef){
             addIDtoStack($ln.text, false);
             mips.assignCommand(true);
+            if(! (var.getVariable().getType() instanceof ArrayType))
+              mips.popStack();
           }
+          else if(varDef){
+            mips.initArrElem($t.t.size()/4);
+          //  mips.popStack();
+          }
+
           varDef = false;
+          strDef = false;
         }
       }
       )? (',' ID { localVarInitialization($tp.t); } ('=' tp = expr{
@@ -145,7 +155,8 @@ stm_tell[String currentReceiver, String currentActor, int argCnt]:
 
 stm_write:
     ln = 'write' '(' tp = expr ')' NL
-      {checkWriteFuncArgument($tp.t, $ln.line); mips.write();}
+      {checkWriteFuncArgument($tp.t, $ln.line); if(strDef) mips.write($tp.t,true);else mips.write($tp.t,false); if((idsee)&& !($tp.t instanceof ArrayType)){mips.popStack();print($ln.line+"");}//
+    strDef = false;idsee=false;}
   ;
 
 stm_if_elseif_else[String currentReceiver, String currentActor, int argCnt]:
@@ -215,9 +226,17 @@ expr_assign returns [Type t, boolean rvalue, int ln_]:
           printErrors($ln.line, "Invalid Assignment to an rvalue.");
         else{
             $t = assignAssignmentExprType($tp1.t, $tp2.t, $ln_);
-            if(!varDef)
+            if(!varDef && !strDef){
               mips.assignCommand(false);
+              //mips.popStack();
+            }
+            else{
+              mips.initArrElem($tp2.t.size()/4);
+              //mips.popStack();
+            }
             varDef = false;
+          strDef = false;
+          idsee=false;
           }
         }
   |  tp = expr_or[true] {$t = $tp.t; $rvalue = $tp.rvalue;}
@@ -359,7 +378,7 @@ expr_un[boolean is_rvalue] returns [Type t, boolean rvalue, int ln_]:
             mips.arrayElementOffset($tp.t, $dim.dimension);
             mips.operationCommand("-");
             if($is_rvalue){
-              mips.getElement(elementsNum);
+              mips.getElement($t);
             }
           }
         }catch(UndefinedDemensionsException ex){
@@ -374,24 +393,33 @@ expr_un[boolean is_rvalue] returns [Type t, boolean rvalue, int ln_]:
          $ln_ = $ln.line;
         if(!$tp.t.equals(new IntType()))
           printErrors($ln.line, "Invalid index.");
+        idsee=true;
         } ']' d = expr_mem_tmp {$dimension = $d.dimension + 1;}
     | {$dimension = 0;  $ln_ = -1;}
     ;
 
   expr_other[boolean is_rvalue] returns [Type t, boolean rvalue, int ln_, boolean arrType]:
        ln = CONST_NUM {$arrType = false; $t = new IntType(); $rvalue = true; $ln_ = $ln.line; mips.addToStack(Integer.parseInt($ln.text));}
-    |  ln = CONST_CHAR {$arrType = false; $t = new CharacterType(); $rvalue = true; $ln_ = $ln.line;  mips.addToStack((int) $ln.text.charAt(1));}
-    |  str = CONST_STR {$arrType = false; $t = new ArrayType($str.text.length()-2, new CharacterType()); $rvalue = true; $ln_ = $str.line;}
+    |  ln = CONST_CHAR {$arrType = false; $t = new CharacterType(); $rvalue = true; $ln_ = $ln.line; mips.addToStack((int) $ln.text.charAt(1));}
+    |  str = CONST_STR {strDef=true;
+                  $arrType = false; $rvalue = true; $ln_ = $str.line;
+                  $t = new ArrayType($str.text.length()-2, new CharacterType());
+                  for(int i = 1 ; i <$str.text.length()-1 ; i++)
+                    mips.addToStack((int) $str.text.charAt(i));
+                }
     |  id = ID {  $t = getIDFromSymTable($id.text, $id.line);
                   addIDtoStack($id.text, $is_rvalue);
-                  if($t instanceof ArrayType)
+                  if($t instanceof ArrayType){
                     $arrType = true;
+                    //idsee= true;
+                  }
                   $rvalue = $t.isRvalue();
                   $ln_ = $id.line;
+                  //if($is_rvalue)
                }
     |  ln = '{' tp1 = expr {int size = 1;} (',' tp2 = expr
             {size = checkAndFindNumOfItemsInExplitArray($tp1.t, $tp2.t, size);})*
-            {varDef = true; $arrType = false; $t = assignExplitArrayType(size, $tp1.t, $ln.line); mips.initArrElem(size); $rvalue = true; $ln_ = $ln.line;}
+            {varDef = true; $arrType = false; $t = assignExplitArrayType(size, $tp1.t, $ln.line); $rvalue = true; $ln_ = $ln.line;}
        '}'
     |  'read' '(' size = CONST_NUM ')' {$arrType = false; $t = new ArrayType($size.int, new CharacterType()); $rvalue = true; $ln_ = $size.line;}
     |  ln = '(' tp = expr ')' {$arrType = false; $t = $tp.t; $rvalue = $tp.rvalue; $ln_ = $ln.line;}

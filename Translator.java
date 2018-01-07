@@ -248,12 +248,26 @@ public class Translator {
         instructions.add("# end of operation " + s);
     }
 
-    public void write(){
+    public void write(Type tp, boolean reverse){
         instructions.add("# writing");
-        instructions.add("lw $a0, 4($sp)");
-        this.addSystemCall(1);
-        popStack();
-        instructions.add("addi $a0, $zero, 10");
+        int size = tp.size()/4;
+        int offset = 4;
+        //System.out.println(size);
+        for (int i = 0; i < size ; i++) {
+          if(reverse)
+            offset = (size-i)*4;
+          instructions.add("lw $a0, " + offset + "($sp)");
+          if (tp.equals(new IntType()))
+            this.addSystemCall(1);
+          else
+            this.addSystemCall(11);
+          if(!reverse)
+            popStack();
+        }
+        if(reverse)
+          instructions.add("addiu $sp, $sp, " + 4*size);
+
+        instructions.add("addi $a0, $zero, 10");//print Enter
         this.addSystemCall(11);
         instructions.add("# end of writing");
     }
@@ -302,18 +316,30 @@ public class Translator {
       instructions.add("addiu $sp, $sp, -4");
     }
 
-    public void getElement(int elemNum){
+    public void getElement(Type tp){
       instructions.add("# adding array elements to stack");
       instructions.add("lw $a0, 4($sp)");
       popStack();//elem offset
-      instructions.add("lw $a1, 0($a0)");
-      instructions.add("sw $a1, 0($sp)");
-      instructions.add("addiu $sp, $sp, -4");
-      for (int i = 0; i < elemNum; i++) {
-        instructions.add("lw $a1, " + 4*elemNum + "($sp)");//address of elem
-        instructions.add("sw $a1, 0($sp)");
-        instructions.add("addiu $sp, $sp, -4");
+      int elemNum=tp.size()/4;
+      int max=elemNum;
+      try{
+          if( !(tp instanceof ArrayType && tp.getIterationType() instanceof CharacterType)){
+          instructions.add("lw $a1, 0($a0)");
+          instructions.add("sw $a1, 0($sp)");
+          instructions.add("addiu $sp, $sp, -4");
+        }
+          // else
+          // instructions.add("addiu $sp, $sp, 4");
+
+        }catch(UndefinedDemensionsException ex){}
+
+      //System.out.println(elemNum);
+      for (int i = 0; i < max; i++) {
+        instructions.add("lw $a1, " + 4*(elemNum-i) + "($sp)");//address of elem
+        instructions.add("sw $a1, "+ -4*(elemNum-i-1) + "($sp)");
+        //instructions.add("addiu $sp, $sp, -4");
       }
+      instructions.add("addiu $sp, $sp,"+-4*(elemNum));
       instructions.add("# end of adding array elements to stack");
     }
 
