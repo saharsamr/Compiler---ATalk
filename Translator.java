@@ -94,7 +94,7 @@ public class Translator {
     }
 
     public void initArrElem(int arrSize){
-      instructions.add("# start inti elem to array");
+      instructions.add("# start init elem to array");
       for (int i = 0; i < arrSize ; i++) {
         instructions.add("lw $a0, 4($sp)");
         popStack();
@@ -118,7 +118,6 @@ public class Translator {
           instructions.add("sw $a1, 0($a0)");
         instructions.add("sw $a0, 0($sp)");
         instructions.add("addiu $sp, $sp, -4");
-      //  popStack();
         instructions.add("# end of assign");
     }
     public void unaryOperationCommand(String s){
@@ -248,28 +247,33 @@ public class Translator {
         instructions.add("# end of operation " + s);
     }
 
-    public void write(Type tp, boolean reverse){
+    public void write(Type tp){
         instructions.add("# writing");
         int size = tp.size()/4;
-        int offset = 4;
-        //System.out.println(size);
         for (int i = 0; i < size ; i++) {
-          if(reverse)
-            offset = (size-i)*4;
-          instructions.add("lw $a0, " + offset + "($sp)");
+          instructions.add("lw $a0, " + (size-i)*4 + "($sp)");
           if (tp.equals(new IntType()))
             this.addSystemCall(1);
           else
             this.addSystemCall(11);
-          if(!reverse)
-            popStack();
         }
-        if(reverse)
-          instructions.add("addiu $sp, $sp, " + 4*size);
+        instructions.add("addiu $sp, $sp, " + 4*size);
 
         instructions.add("addi $a0, $zero, 10");//print Enter
         this.addSystemCall(11);
         instructions.add("# end of writing");
+    }
+
+    public void readFunc(int size){
+        instructions.add("# read");
+        for (int i = 0 ;i < size ;i++ ) {
+          this.addSystemCall(12);
+          instructions.add("sw $v0, 0($sp)");
+          instructions.add("addiu $sp, $sp, -4");
+        }
+        instructions.add("addi $a0, $zero, 10");//print Enter
+        this.addSystemCall(11);
+        instructions.add("# end of reading");
     }
 
     public void addGlobalToStack(int adr){
@@ -306,7 +310,6 @@ public class Translator {
         popStack();
         try{
           size = tp.dimensionAccess(i+1).size();
-          //System.out.println(size);
         }catch(UndefinedDemensionsException ex){}
         instructions.add("li $a2, " + size);
         instructions.add("mul $a2, $a1, $a2");
@@ -327,19 +330,14 @@ public class Translator {
           instructions.add("lw $a1, 0($a0)");
           instructions.add("sw $a1, 0($sp)");
           instructions.add("addiu $sp, $sp, -4");
-        }
-          // else
-          // instructions.add("addiu $sp, $sp, 4");
-
+          }
         }catch(UndefinedDemensionsException ex){}
 
-      //System.out.println(elemNum);
       for (int i = 0; i < max; i++) {
-        instructions.add("lw $a1, " + 4*(elemNum-i) + "($sp)");//address of elem
-        instructions.add("sw $a1, "+ -4*(elemNum-i-1) + "($sp)");
-        //instructions.add("addiu $sp, $sp, -4");
+        instructions.add("lw $a1, " + -4*(i) + "($a0)");//address of elem
+        instructions.add("sw $a1, 0($sp)");
+        instructions.add("addiu $sp, $sp, -4");
       }
-      instructions.add("addiu $sp, $sp,"+-4*(elemNum));
       instructions.add("# end of adding array elements to stack");
     }
 
