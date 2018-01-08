@@ -35,7 +35,7 @@ __pycache__/
 .vs/
 project.lock.json
 
-*.atk
+#*.atk
 
 # Build results
 [Dd]ebug/
