@@ -5,6 +5,7 @@ MipsFunctions;
 
 @header{
       import java.util.ArrayList;
+      import java.util.HashMap;
 }
 
 @members{
@@ -12,9 +13,11 @@ MipsFunctions;
     boolean idsee=false;
     int errorOccured = 0;
     int ifCounter = 0;
+    int actorCounter = 0;
     String codeData = "";
     Translator mips = new Translator();
     ArrayList <SymbolTableItemActor> actorsList = new ArrayList <SymbolTableItemActor>();
+    HashMap <String, Integer> actorsID = new HashMap <String, Integer> ();
 }
 
 program: {
@@ -31,9 +34,17 @@ program: {
     }
   ;
 
+  //tu t4 tahe queue e recieveras.
+  //tu t3 saresh.
+  //tu t5 shomareye actori k bayad bere tahe listo negah midaram.
+  //tu t2 ba fasele queue har actor ro negah midaram
+
 actor:
     'actor' actrName = ID '<' CONST_NUM '>' NL
     {
+      actorCounter++;
+      actorsID.put($actrName.text, actorCounter);
+      mips.jalToAddToRecieverScheduler(actorCounter);//shomareye actor ro negah midare.
       beginScope();
       try{
         actorsList.add(getActorFromSymTable($actrName.text, $actrName.line));
@@ -146,7 +157,13 @@ stm_tell[String currentReceiver, String currentActor, int argCnt]:
     {ArrayList<Type> argumentsTypes = new ArrayList<Type>();}
     rcvrActor = (ID | 'sender' | 'self') '<<' rcvrName = ID '(' (tp = expr {argumentsTypes.add($tp.t);}
                                                             (',' tp = expr {argumentsTypes.add($tp.t);})*)? ')' NL
-      {checkCallValidation(currentActor, currentReceiver, $rcvrActor.text, $rcvrName.text, argumentsTypes, $rcvrName.line, argCnt);}
+      {
+        checkCallValidation(currentActor, currentReceiver, $rcvrActor.text, $rcvrName.text, argumentsTypes, $rcvrName.line, argCnt);
+        if($rcvrActor.text.equals("self"))
+          mips.jalToAddToRecieverScheduler(actorsID.get(currentActor));
+        else
+          mips.jalToAddToRecieverScheduler(actorsID.get($rcvrActor.text));
+      }
   ;
 
 stm_write:

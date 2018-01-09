@@ -28,6 +28,7 @@ public class Translator {
             PrintWriter writer = new PrintWriter(output);
             checkEquality();
             checkNonEquality();
+            addRecieverToScheduler();
             writer.println("main:");
             writer.println("move $fp, $sp");
             for (int i=0;i<initInstructions.size();i++){
@@ -365,5 +366,17 @@ public class Translator {
         if (emptyLists)
           break;
       }
+    }
+
+    public void jalToAddToRecieverScheduler(int actorCounter){
+      instructions.add("li $t5, " + actorCounter); //shomareye actor ro mirize tu t5.
+      instructions.add("jal addRecieverToScheduler");
+    }
+
+    public void addRecieverToScheduler(){
+      instructions.add("addRecieverToScheduler:");
+      instructions.add("lw $t5, 4($t4)");  //shomareye actore ro mirize tu khuneye khalie badie queue.
+      instructions.add("addiu $t4, $t4, 4"); //tahe queue ro yeki mibare jolo.
+      instructions.add("jr $ra");
     }
 }
