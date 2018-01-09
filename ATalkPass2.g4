@@ -12,6 +12,7 @@ MipsFunctions;
     boolean idsee=false;
     int errorOccured = 0;
     int ifCounter = 0;
+    int foreachCounter = 0;
     String codeData = "";
     Translator mips = new Translator();
     ArrayList <SymbolTableItemActor> actorsList = new ArrayList <SymbolTableItemActor>();
@@ -193,10 +194,19 @@ stm_if_elseif_else[String currentReceiver, String currentActor, int argCnt]:
   ;
 
 stm_foreach[String currentReceiver, String currentActor, int argCnt]:
-    'foreach' {beginScope();} id = ID 'in' tp = expr NL
+    'foreach' {beginScope(); foreachCounter++;} id = ID 'in' tp = expr NL
               {checkIterationExpr($id.text, $id.line, $tp.t);}
+              {
+                mips.initForeachVarToStack(0);
+                mips.reInitForeachVar($tp.t.size()/4);
+                mips.addLable("foreach_" + foreachCounter);
+              }
       statements[currentReceiver, currentActor, argCnt]
-    'end' {endScope();} NL
+      {
+        mips.foreachIteration(foreachCounter);
+        mips.jumpToLable("foreach_" + foreachCounter);
+      }
+    'end' {endScope(); mips.addLable("end_foreach_" + foreachCounter);} NL
   ;
 
 stm_quit:

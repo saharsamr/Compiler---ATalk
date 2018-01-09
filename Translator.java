@@ -30,6 +30,8 @@ public class Translator {
             checkNonEquality();
             writer.println("main:");
             writer.println("move $fp, $sp");
+            writer.println("move $t0, $fp");
+            writer.println("addiu $t0, $t0, -4000");
             for (int i=0;i<initInstructions.size();i++){
                 writer.println(initInstructions.get(i));
             }
@@ -48,6 +50,7 @@ public class Translator {
         instructions.add("# end of adding a number to stack");
 
     }
+
 
     public void addLable(String s){
       instructions.add(s+":");
@@ -345,6 +348,43 @@ public class Translator {
       instructions.add("lw $a0, 4($sp)");
       popStack();
       instructions.add("beqz $a0, " + labelName);
+    }
+
+    public void initForeachVarToStack(int x){
+        instructions.add("# adding a number to stack");
+        instructions.add("li $a0, " + x);
+        instructions.add("sw $a0, 0($t0)");
+        instructions.add("# end of adding a number to stack");
+
+    }
+
+    public void getForeachVar(){
+        instructions.add("# getting for var");
+        instructions.add("lw $a0, 0($t0)");
+        instructions.add("sw $a0, 0($sp)");
+        instructions.add("addiu $sp, $sp, -4");
+        instructions.add("# end of adding a number to stack");
+
+    }
+
+    public void reInitForeachVar(int size){
+      instructions.add("# init foreach variable value");
+      instructions.add("li $t1, " + (size-1));
+      instructions.add("li $t2, " + 4*(size));
+      instructions.add("add $t2, $t2, $sp");
+      instructions.add("lw $a0, 0($t2)");
+      instructions.add("sw $a0, 0($t0)");
+      instructions.add("# end of init foreach variable value");
+    }
+
+    public void foreachIteration(int foreachNum){
+      instructions.add("# end of foreach checking");
+      instructions.add("beqz $t1, end_foreach_"+foreachNum);
+      instructions.add("addiu $t1, $t1, -1");
+      instructions.add("addiu $t2, $t2, -4");
+      instructions.add("lw $a0, 0($t2)");
+      instructions.add("sw $a0, 0($t0)");
+      instructions.add("# end of end of foreach checking");
     }
 
     public void makeScheduler(ArrayList <SymbolTableItemActor> actorsList){

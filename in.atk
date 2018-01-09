@@ -1,5 +1,11 @@
 actor salam<20>
     receiver init()
+      int[4] arr = {50,60,80,90}
+        foreach elem in arr
+          if ( elem > 75 )
+            write(elem)
+          end
+        end
         int c=5
         char[2][3] chch
         chch = {{'a','b','c'},{'d','e','f'}}
@@ -7,17 +13,23 @@ actor salam<20>
         write(chch[1])
         write(c)
 
-        char[5] hello
-        hello = read(5)
+
+        char[5] kkk
+        kkk=read(5)
+
+        foreach elem in {1,2,3}
+          write(elem)
+        end
 
         char[4] qm = {'a','b','c','d'}
         char mm = 'c'
+        write(kkk)
         write("salam")
-        write(hello)
         write("salam")
         char[2] ppm
         write(qm[3])
         ppm = {'h','g'}
+
 
         write(mm)
         char[4] eq = "asdf"
@@ -49,7 +61,5 @@ actor salam<20>
         write(m[3])
         write(c)
         write(b)
-
-
     end
 end
