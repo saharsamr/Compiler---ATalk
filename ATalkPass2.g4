@@ -214,7 +214,7 @@ stm_quit:
   ;
 
 stm_break:
-    'break' NL
+    'break' {mips.jumpToLable("end_foreach_" + foreachCounter);} NL
   ;
 
 stm_assignment:
