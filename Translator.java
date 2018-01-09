@@ -350,17 +350,25 @@ public class Translator {
       instructions.add("beqz $a0, " + labelName);
     }
 
-    public void initForeachVarToStack(int x){
+    public void initForeachVarToStack(int size){
         instructions.add("# adding a number to stack");
-        instructions.add("li $a0, " + x);
+        //System.out.println(""+x);
+        instructions.add("li $a0, 0");
         instructions.add("sw $a0, 0($t0)");
+        instructions.add("addiu $t0, $t0, -4");
+        instructions.add("li $a0, " + (size-1));
+        instructions.add("sw $a0, 0($t0)");
+        instructions.add("addiu $t0, $t0, -4");
+        instructions.add("li $a0, " + 4*(size));
+        instructions.add("sw $a0, 0($t0)");
+        instructions.add("addiu $t0, $t0, -4");
         instructions.add("# end of adding a number to stack");
 
     }
 
     public void getForeachVar(){
         instructions.add("# getting for var");
-        instructions.add("lw $a0, 0($t0)");
+        instructions.add("lw $a0, 12($t0)");//
         instructions.add("sw $a0, 0($sp)");
         instructions.add("addiu $sp, $sp, -4");
         instructions.add("# end of adding a number to stack");
@@ -369,22 +377,34 @@ public class Translator {
 
     public void reInitForeachVar(int size){
       instructions.add("# init foreach variable value");
-      instructions.add("li $t1, " + (size-1));
-      instructions.add("li $t2, " + 4*(size));
+      // instructions.add("li $t1, " + (size-1));
+      // instructions.add("li $t2, " + 4*(size));
+      instructions.add("lw $t2, 4($t0)");
+      instructions.add("lw $t1, 8($t0)");
       instructions.add("add $t2, $t2, $sp");
       instructions.add("lw $a0, 0($t2)");
-      instructions.add("sw $a0, 0($t0)");
+      instructions.add("sw $a0, 12($t0)");
       instructions.add("# end of init foreach variable value");
     }
 
     public void foreachIteration(int foreachNum){
       instructions.add("# end of foreach checking");
-      instructions.add("beqz $t1, end_foreach_"+foreachNum);
+      instructions.add("lw $t1, 8($t0)");
+      instructions.add("beqz $t1, end_foreach_" + foreachNum);
+      instructions.add("lw $t2, 4($t0)");
       instructions.add("addiu $t1, $t1, -1");
       instructions.add("addiu $t2, $t2, -4");
+      instructions.add("sw $t1, 8($t0)");
+      instructions.add("sw $t2, 4($t0)");
+      instructions.add("add $t2, $t2, $sp");
       instructions.add("lw $a0, 0($t2)");
-      instructions.add("sw $a0, 0($t0)");
+      instructions.add("sw $a0, 12($t0)");//set var
+      instructions.add("j foreach_" + foreachNum);
       instructions.add("# end of end of foreach checking");
+    }
+
+    public void endofForeach(){
+      instructions.add("addiu $t0, $t0, 12");
     }
 
     public void makeScheduler(ArrayList <SymbolTableItemActor> actorsList){

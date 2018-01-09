@@ -12,7 +12,7 @@ MipsFunctions;
     boolean idsee=false;
     int errorOccured = 0;
     int ifCounter = 0;
-    int foreachCounter = 0;
+    int foreachCounter = 0, forCnt=0;
     String codeData = "";
     Translator mips = new Translator();
     ArrayList <SymbolTableItemActor> actorsList = new ArrayList <SymbolTableItemActor>();
@@ -194,19 +194,18 @@ stm_if_elseif_else[String currentReceiver, String currentActor, int argCnt]:
   ;
 
 stm_foreach[String currentReceiver, String currentActor, int argCnt]:
-    'foreach' {beginScope(); foreachCounter++;} id = ID 'in' tp = expr NL
+    'foreach' {beginScope(); forCnt = foreachCounter++;} id = ID {} 'in' tp = expr NL
               {checkIterationExpr($id.text, $id.line, $tp.t);}
               {
-                mips.initForeachVarToStack(0);
+                mips.initForeachVarToStack($tp.t.size()/4);
                 mips.reInitForeachVar($tp.t.size()/4);
-                mips.addLable("foreach_" + foreachCounter);
+                mips.addLable("foreach_" + forCnt);
               }
       statements[currentReceiver, currentActor, argCnt]
       {
-        mips.foreachIteration(foreachCounter);
-        mips.jumpToLable("foreach_" + foreachCounter);
+        mips.foreachIteration(forCnt);
       }
-    'end' {endScope(); mips.addLable("end_foreach_" + foreachCounter);} NL
+    'end' {endScope(); mips.addLable("end_foreach_" + forCnt); mips.endofForeach(); forCnt--;} NL
   ;
 
 stm_quit:
@@ -214,7 +213,7 @@ stm_quit:
   ;
 
 stm_break:
-    'break' {mips.jumpToLable("end_foreach_" + foreachCounter);} NL
+    'break' {mips.jumpToLable("end_foreach_" + forCnt); mips.endofForeach();} NL
   ;
 
 stm_assignment:

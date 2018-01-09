@@ -1,12 +1,7 @@
 actor salam<3>
     receiver init()
-      foreach a in "sadaf"
-          write(a)
-      end
 
-      foreach elem in {1,2,3}
-        write(elem)
-      end
+
 
       foreach a in "pashm"
           if(a == 'h')
@@ -14,5 +9,18 @@ actor salam<3>
           end
           write(a)
       end
+
+
+
+                    foreach elem in {1,2,3}
+                      foreach c in {4,5,6,7}
+                          write(c)
+                        end
+                      end
+
+        foreach a in "sadaf"
+        write(a)
+        end
+
     end
 end
