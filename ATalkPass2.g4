@@ -43,6 +43,7 @@ actor:
     'actor' actrName = ID '<' CONST_NUM '>' NL
     {
       actorCounter++;
+      int recieverCnter = 0;
       actorsID.put($actrName.text, actorCounter);
       mips.jalToAddToRecieverScheduler(actorCounter);//shomareye actor ro negah midare.
       beginScope();
@@ -64,7 +65,10 @@ state:
 
 receiver[String actrName]:
     'receiver' currentReceiver = ID {
+        recieverCnter++;
         int argCnt = 0;
+        if($currentReceiver.text.equals("init"))
+          mips.addRecieverToActorQueue(actorCounter, recieverCnter);
         ArrayList <Type> argumentTypes = new ArrayList <Type>();
       } '(' (tp = type ID {
         localVarInitialization($tp.t);
@@ -78,15 +82,15 @@ receiver[String actrName]:
     })*)? ')' NL
     {
       beginScope();
-      String key = makeKey(actrName, $currentReceiver.text, argumentTypes);
+      /* String key = makeKey(actrName, $currentReceiver.text, argumentTypes); */
       /* mips.jumpToLable("after_" + key); */
-      mips.addLable(key);
+      mips.addLable("label_" + actorCounter + "_" + recieverCnter);
     }
       statements[$currentReceiver.text, actrName, argCnt]
     'end' {
         endScope();
         /* mips.jumpToLable("end_" + key); */
-        mips.addLable("after_" + key);
+        mips.addLable("after_" + actorCounter + "_" + recieverCnter);
       } NL
   ;
 

@@ -31,6 +31,9 @@ public class Translator {
             addRecieverToScheduler();
             writer.println("main:");
             writer.println("move $fp, $sp");
+            writer.println("addi $t3, $sp, -4000");//avale queue vase actora.
+            writer.println("sw $t4, 0($t3)");//tahe queue e actora.
+            writer.println("addi $t2, $sp, -8000");//shurue queue'haye actorha.
             for (int i=0;i<initInstructions.size();i++){
                 writer.println(initInstructions.get(i));
             }
@@ -376,7 +379,16 @@ public class Translator {
     public void addRecieverToScheduler(){
       instructions.add("addRecieverToScheduler:");
       instructions.add("lw $t5, 4($t4)");  //shomareye actore ro mirize tu khuneye khalie badie queue.
-      instructions.add("addiu $t4, $t4, 4"); //tahe queue ro yeki mibare jolo.
+      instructions.add("addiu $t 4, $t4, 4");//tahe queue ro yeki mibare jolo.
       instructions.add("jr $ra");
+    }
+
+    public void addRecieverToActorQueue(int actorCounter, int recieverCnter){
+      instructions.add("lw $a0, " + (actorCounter-1)*100+1 + "($t2)");//tedad recieverai k tu actore ro migiree.
+      instructions.add("addi $a2, $a0, 4");//yeki ziadesh mikone tu khate badi updatesh mikone.
+      instructions.add("sw $a2, " + (actorCounter-1)*100+1 + "($t2)");
+      instructions.add("li $a1, " + recieverCnter); //meqdari k bayad tahe queue push she.
+      instructions.add("add $a0, $a0, $t2"); //adrese tahe queue mire tu a0
+      instructions.add("sw $a1, 0($a0)"); // meqdaro mizare tahe queue.
     }
 }
