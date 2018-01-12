@@ -21,21 +21,31 @@ program:{beginScope();}
     if(errorOccured != 0)
       System.exit(0);
     numOfActors = actorCounter;
+    ATalk.numOfActors = numOfActors;
+    ATalk.actorsID = actorsID;
+    ATalk.recieversID = recieversID;
+    ATalk.numOfReciversInActors = numOfReciversInActors;
 };
 
 actor:
 		'actor' name = ID '<' size = CONST_NUM '>' NL {
           beginScope();
           actorCounter++;
+          /* print("-----"); */
           recieverCnter = 0;
+          /* print("&&&&&&"); */
           actorsID.put($name.text, actorCounter);
+          /* print("*********"); */
       }
 			(state | receiver[$name.text] | NL)*
 		{
       SymbolTable actorSym = SymbolTable.top;
       endScope();
       addActor($size.int, $name.text, $name.line, actorSym);
+      print(""+actorCounter);
+      print(""+recieverCnter);
       numOfReciversInActors.put(actorCounter, recieverCnter);
+      print("added.");
     }'end' (NL | EOF)
 	;
 

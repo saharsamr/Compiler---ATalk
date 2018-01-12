@@ -31,7 +31,7 @@ public class Translator {
             addActorToScheduler();
             addRecieverToScheduler();
             popFromActorsQueue();
-            for(int i = 0; i < numOfActors; i++)
+            for(int i = 1; i <= numOfActors; i++)
               popFromRecieversQueue(i);
             writer.println("main:");
             writer.println("move $fp, $sp");

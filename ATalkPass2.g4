@@ -19,6 +19,10 @@ MipsFunctions, GlobalInTwoPasses;
 }
 
 program: {
+        numOfActors = ATalk.numOfActors;
+        actorsID = ATalk.actorsID;
+        recieversID = ATalk.recieversID;
+        numOfReciversInActors = ATalk.numOfReciversInActors;
         mips.numOfActors = numOfActors;
         mips.numOfReciversInActors = numOfReciversInActors;
         print("------------------------- Pass2 started -------------------------"+"\n");

@@ -1,6 +1,7 @@
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 import java.io.IOException;
+import java.util.HashMap;
 
 // Visit https://stackoverflow.com/questions/26451636/how-do-i-use-antlr-generated-parser-and-lexer
 public class ATalk {
@@ -21,4 +22,9 @@ public class ATalk {
 		ATalkPass2Parser pass2Parser = new ATalkPass2Parser(pass2Tokens);
 		ParseTree pass2Tree = pass2Parser.program();
 	}
+
+	public static HashMap <String, Integer> actorsID = new HashMap <String, Integer> ();
+	public static HashMap <String, Integer> recieversID = new HashMap <String, Integer> ();
+	public static int numOfActors;
+	public static HashMap <Integer, Integer> numOfReciversInActors = new HashMap <Integer, Integer> ();
 }
