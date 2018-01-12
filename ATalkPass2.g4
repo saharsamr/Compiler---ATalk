@@ -29,7 +29,6 @@ program: {
         print("------------------------- Pass2 finished -------------------------"+"\n");
         if(errorOccured == 0)
           print(codeData);
-        numOfAactors = actorCounter;
         //mips.makeScheduler(actorsList);
         mips.makeOutput();
     }
@@ -78,11 +77,12 @@ receiver[String actrName]:
     {
       beginScope();
       String key = makeKey(actrName, $currentReceiver.text, argumentTypes);
-      mips.addLable("label_" + actorsID.get(actrName) + "_" + recieversID.get($currentReceiver.text));
+      mips.addLable("label_" + actorsID.get(actrName) + "_" + recieversID.get(key));
     }
       statements[$currentReceiver.text, actrName, argCnt]
     'end' {
         endScope();
+        mips.jumpToScheduler();
       } NL
   ;
 
