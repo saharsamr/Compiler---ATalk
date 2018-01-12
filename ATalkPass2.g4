@@ -13,12 +13,9 @@ MipsFunctions, GlobalInTwoPasses;
     boolean idsee=false;
     int errorOccured = 0;
     int ifCounter = 0;
-    /* int actorCounter = 0; */
     int numOfAactors;
     String codeData = "";
     Translator mips = new Translator();
-    /* ArrayList <SymbolTableItemActor> actorsList = new ArrayList <SymbolTableItemActor>(); */
-    /* HashMap <String, Integer> actorsID = new HashMap <String, Integer> (); */
 }
 
 program: {
@@ -46,14 +43,9 @@ program: {
 actor:
     'actor' actrName = ID '<' CONST_NUM '>' NL
     {
-      /* actorCounter++; */
       int recieverCnter = 0;
-      /* actorsID.put($actrName.text, actorCounter); */
       mips.jalToAddToActorScheduler(actorsID.get($actrName.text));//shomareye actor ro negah midare.
       beginScope();
-      /* try{
-        actorsList.add(getActorFromSymTable($actrName.text, $actrName.line));
-      }catch(ActorDoesntExistsException e) {} */
     }
       (state | receiver[$actrName.text] | NL)*
     'end' {endScope();} (NL | EOF)
@@ -69,7 +61,6 @@ state:
 
 receiver[String actrName]:
     'receiver' currentReceiver = ID {
-        /* recieverCnter++; */
         int argCnt = 0;
         if($currentReceiver.text.equals("init"))
           mips.addRecieverToActorQueue(actorCounter, recieverCnter);
@@ -87,15 +78,11 @@ receiver[String actrName]:
     {
       beginScope();
       String key = makeKey(actrName, $currentReceiver.text, argumentTypes);
-      /* mips.jumpToLable("after_" + key); */
-
       mips.addLable("label_" + actorsID.get(actrName) + "_" + recieversID.get($currentReceiver.text));
     }
       statements[$currentReceiver.text, actrName, argCnt]
     'end' {
         endScope();
-        /* mips.jumpToLable("end_" + key); */
-        /* mips.addLable("after_" + actorCounter + "_" + recieverCnter); */
       } NL
   ;
 
