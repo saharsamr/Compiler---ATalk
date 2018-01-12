@@ -1,6 +1,6 @@
 grammar ATalkPass1;
 
-import FillSymbolTalbesFuncs, PrintLogsPass1, ArrayFuncs, ScopesPass1;
+import FillSymbolTalbesFuncs, PrintLogsPass1, ArrayFuncs, ScopesPass1, GlobalInTwoPasses;
 
 @members{
   String codeData = "";
@@ -24,7 +24,11 @@ program:{beginScope();}
 
 actor:
 		'actor' name = ID '<' size = CONST_NUM '>' NL {
-    beginScope();}
+          beginScope();
+          actorCounter++;
+          int recieverCnter = 0;
+          actorsID.put($name.text, actorCounter);
+      }
 			(state | receiver[$name.text] | NL)*
 		{SymbolTable actorSym = SymbolTable.top; endScope(); addActor($size.int, $name.text, $name.line, actorSym);  }'end' (NL | EOF)
 	;
@@ -46,6 +50,9 @@ receiver[String actorName]:
           {addReceiver($name.text, $actorName, $name.line, argumentsTypes);
            beginScope();
            addRecieverArguments(argumentsTypes, argumentsNames, $name.line);
+           String recvrKey = makeKey(actorName, $name.text, argumentTypes);
+           recieverCnter++;
+           recieversID.put(recvrKey, recieverCnter);
          }
 			statements
 		'end' NL

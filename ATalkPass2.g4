@@ -1,7 +1,7 @@
 grammar ATalkPass2;
 
 import HandleExprsTypesFuncs, GettingSymbolTableItemsFuncs, ArrayFuncs, RecieversFuncs, PrintLogsPass2, ScopesPass2,
-MipsFunctions;
+MipsFunctions, GlobalInTwoPasses;
 
 @header{
       import java.util.ArrayList;
@@ -13,12 +13,12 @@ MipsFunctions;
     boolean idsee=false;
     int errorOccured = 0;
     int ifCounter = 0;
-    int actorCounter = 0;
+    /* int actorCounter = 0; */
     int numOfAactors;
     String codeData = "";
     Translator mips = new Translator();
-    ArrayList <SymbolTableItemActor> actorsList = new ArrayList <SymbolTableItemActor>();
-    HashMap <String, Integer> actorsID = new HashMap <String, Integer> ();
+    /* ArrayList <SymbolTableItemActor> actorsList = new ArrayList <SymbolTableItemActor>(); */
+    /* HashMap <String, Integer> actorsID = new HashMap <String, Integer> (); */
 }
 
 program: {
@@ -44,14 +44,14 @@ program: {
 actor:
     'actor' actrName = ID '<' CONST_NUM '>' NL
     {
-      actorCounter++;
+      /* actorCounter++; */
       int recieverCnter = 0;
-      actorsID.put($actrName.text, actorCounter);
-      mips.jalToAddToRecieverScheduler(actorCounter);//shomareye actor ro negah midare.
+      /* actorsID.put($actrName.text, actorCounter); */
+      mips.jalToAddToActorScheduler(actorsID.get($actrName.text));//shomareye actor ro negah midare.
       beginScope();
-      try{
+      /* try{
         actorsList.add(getActorFromSymTable($actrName.text, $actrName.line));
-      }catch(ActorDoesntExistsException e) {}
+      }catch(ActorDoesntExistsException e) {} */
     }
       (state | receiver[$actrName.text] | NL)*
     'end' {endScope();} (NL | EOF)
@@ -67,7 +67,7 @@ state:
 
 receiver[String actrName]:
     'receiver' currentReceiver = ID {
-        recieverCnter++;
+        /* recieverCnter++; */
         int argCnt = 0;
         if($currentReceiver.text.equals("init"))
           mips.addRecieverToActorQueue(actorCounter, recieverCnter);
@@ -84,15 +84,16 @@ receiver[String actrName]:
     })*)? ')' NL
     {
       beginScope();
-      /* String key = makeKey(actrName, $currentReceiver.text, argumentTypes); */
+      String key = makeKey(actrName, $currentReceiver.text, argumentTypes);
       /* mips.jumpToLable("after_" + key); */
-      mips.addLable("label_" + actorCounter + "_" + recieverCnter);
+
+      mips.addLable("label_" + actorsID.get(actrName) + "_" + recieversID.get($currentReceiver.text));
     }
       statements[$currentReceiver.text, actrName, argCnt]
     'end' {
         endScope();
         /* mips.jumpToLable("end_" + key); */
-        mips.addLable("after_" + actorCounter + "_" + recieverCnter);
+        /* mips.addLable("after_" + actorCounter + "_" + recieverCnter); */
       } NL
   ;
 
@@ -165,10 +166,14 @@ stm_tell[String currentReceiver, String currentActor, int argCnt]:
                                                             (',' tp = expr {argumentsTypes.add($tp.t);})*)? ')' NL
       {
         checkCallValidation(currentActor, currentReceiver, $rcvrActor.text, $rcvrName.text, argumentsTypes, $rcvrName.line, argCnt);
-        if($rcvrActor.text.equals("self"))
-          mips.jalToAddToRecieverScheduler(actorsID.get(currentActor));
-        else
-          mips.jalToAddToRecieverScheduler(actorsID.get($rcvrActor.text));
+        if($rcvrActor.text.equals("self")){
+          mips.jalToAddToActorScheduler(actorsID.get(currentActor));
+          mips.jalToAddRecieverToScheduler(actorsID.get(currentActor), recieversID.get(currentReceiver));
+        }
+        else{
+          mips.jalToAddToActorScheduler(actorsID.get($rcvrActor.text));
+          mips.jalToAddRecieverToScheduler(actorsID.get($rcvrActor.text), recieversID.get($rcvrName.text));
+        }
       }
   ;
 
