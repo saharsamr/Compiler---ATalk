@@ -20,17 +20,23 @@ program:{beginScope();}
       print(codeData);
     if(errorOccured != 0)
       System.exit(0);
+    numOfActors = actorCounter;
 };
 
 actor:
 		'actor' name = ID '<' size = CONST_NUM '>' NL {
           beginScope();
           actorCounter++;
-          int recieverCnter = 0;
+          recieverCnter = 0;
           actorsID.put($name.text, actorCounter);
       }
 			(state | receiver[$name.text] | NL)*
-		{SymbolTable actorSym = SymbolTable.top; endScope(); addActor($size.int, $name.text, $name.line, actorSym);  }'end' (NL | EOF)
+		{
+      SymbolTable actorSym = SymbolTable.top;
+      endScope();
+      addActor($size.int, $name.text, $name.line, actorSym);
+      numOfReciversInActors.put(actorCounter, recieverCnter);
+    }'end' (NL | EOF)
 	;
 
 state:
@@ -50,7 +56,7 @@ receiver[String actorName]:
           {addReceiver($name.text, $actorName, $name.line, argumentsTypes);
            beginScope();
            addRecieverArguments(argumentsTypes, argumentsNames, $name.line);
-           String recvrKey = makeKey(actorName, $name.text, argumentTypes);
+           String recvrKey = makeKey(actorName, $name.text, argumentsTypes);
            recieverCnter++;
            recieversID.put(recvrKey, recieverCnter);
          }

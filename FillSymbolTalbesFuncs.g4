@@ -1,9 +1,5 @@
 grammar FillSymbolTalbesFuncs;
 
-@header{
-      import java.util.ArrayList;
-}
-
 @members{
     void addVarItem(String name, Type type, int lineNum, Register reg){
       try{

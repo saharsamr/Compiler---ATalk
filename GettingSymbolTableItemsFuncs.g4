@@ -32,7 +32,7 @@ grammar GettingSymbolTableItemsFuncs;
     return var;
   }
 
-  String makeKey(String actr, String rcvr, ArrayList<Type> argumentTypes){
+  /* String makeKey(String actr, String rcvr, ArrayList<Type> argumentTypes){
     String key = actr + "_" + rcvr;
     for (int i = 0; i < argumentTypes.size(); i++){
       key += argumentTypes.get(i).toString();
@@ -40,7 +40,7 @@ grammar GettingSymbolTableItemsFuncs;
         key += "_";
     }
     return key;
-  }
+  } */
 
   String makeRecieverkey(String currentActor, String rcvrActor, String rcvrName, ArrayList<Type> argumentTypes){
     if(rcvrActor.equals("self"))

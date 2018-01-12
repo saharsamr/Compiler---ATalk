@@ -402,21 +402,24 @@ public class Translator {
       instructions.add("popingActor:");
       instructions.add("lw $t7, -4($t4)");///shomareye actori k bayad run she.
       instructions.add("addiu $t4, $t4, -4");
-      for(int i = 0; i < numOfAactors; i++){
+      for(int i = 0; i < numOfActors; i++){
         instructions.add("li $a1, " + i);
         instructions.add("beq $t7, $a1, popingReciever_" + i);
       }
     }
 
-    public void popFromRecieversQueue(int actorCounter, int numOfRecievers){
+    public void popFromRecieversQueue(int actorCounter){
       instructions.add("popingReciever_" + actorCounter + ":");
       instructions.add("lw $a0, " + (actorCounter-1)*100+1 + "($t2)");
       instructions.add("addi $a2, $a0, -4");
       instructions.add("lw $a3, 0($a2)");///shomareye recieveri k bayad run she.
       instructions.add("sw $a2, " + (actorCounter-1)*100+1 + "($t2)");
-      for(int i = 0; i < numOfRecievers; i++){
+      for(int i = 0; i < numOfReciversInActors.get(actorCounter); i++){
         instructions.add("li $a1, " + i);
         instructions.add("beq $a1, $a3, label_" + actorCounter + "_" + i);
       }
     }
+
+    public int numOfActors;
+    public HashMap <Integer, Integer> numOfReciversInActors = new HashMap <Integer, Integer> ();
 }

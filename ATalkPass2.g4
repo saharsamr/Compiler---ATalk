@@ -22,6 +22,8 @@ MipsFunctions, GlobalInTwoPasses;
 }
 
 program: {
+        mips.numOfActors = numOfActors;
+        mips.numOfReciversInActors = numOfReciversInActors;
         print("------------------------- Pass2 started -------------------------"+"\n");
         beginScope();
     }
