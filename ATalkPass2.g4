@@ -14,6 +14,7 @@ MipsFunctions;
     int errorOccured = 0;
     int ifCounter = 0;
     int actorCounter = 0;
+    int numOfAactors;
     String codeData = "";
     Translator mips = new Translator();
     ArrayList <SymbolTableItemActor> actorsList = new ArrayList <SymbolTableItemActor>();
@@ -29,6 +30,7 @@ program: {
         print("------------------------- Pass2 finished -------------------------"+"\n");
         if(errorOccured == 0)
           print(codeData);
+        numOfAactors = actorCounter;
         //mips.makeScheduler(actorsList);
         mips.makeOutput();
     }
