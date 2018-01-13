@@ -13,7 +13,11 @@ MipsFunctions, GlobalInTwoPasses;
     boolean idsee=false;
     int errorOccured = 0;
     int ifCounter = 0;
+<<<<<<< HEAD
     int numOfAactors;
+=======
+    int foreachCounter = 0, forCnt=0;
+>>>>>>> 26ca201ddd28a3faa0771756c9120cad9ec5aa74
     String codeData = "";
     Translator mips = new Translator();
 }
@@ -213,10 +217,18 @@ stm_if_elseif_else[String currentReceiver, String currentActor, int argCnt]:
   ;
 
 stm_foreach[String currentReceiver, String currentActor, int argCnt]:
-    'foreach' {beginScope();} id = ID 'in' tp = expr NL
+    'foreach' {beginScope(); forCnt = foreachCounter++;} id = ID {} 'in' tp = expr NL
               {checkIterationExpr($id.text, $id.line, $tp.t);}
+              {
+                mips.initForeachVarToStack($tp.t.size()/4);
+                mips.reInitForeachVar($tp.t.size()/4);
+                mips.addLable("foreach_" + forCnt);
+              }
       statements[currentReceiver, currentActor, argCnt]
-    'end' {endScope();} NL
+      {
+        mips.foreachIteration(forCnt);
+      }
+    'end' {endScope(); mips.addLable("end_foreach_" + forCnt); mips.endofForeach(); forCnt--;} NL
   ;
 
 stm_quit:
@@ -224,7 +236,7 @@ stm_quit:
   ;
 
 stm_break:
-    'break' NL
+    'break' {mips.jumpToLable("end_foreach_" + forCnt); mips.endofForeach();} NL
   ;
 
 stm_assignment:

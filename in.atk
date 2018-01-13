@@ -1,55 +1,26 @@
-actor salam<20>
+actor salam<3>
     receiver init()
-        int c=5
-        char[2][3] chch
-        chch = {{'a','b','c'},{'d','e','f'}}
-        write(chch[1][2])
-        write(chch[1])
-        write(c)
 
-        char[5] hello
-        hello = read(5)
 
-        char[4] qm = {'a','b','c','d'}
-        char mm = 'c'
-        write("salam")
-        write(hello)
-        write("salam")
-        char[2] ppm
-        write(qm[3])
-        ppm = {'h','g'}
 
-        write(mm)
-        char[4] eq = "asdf"
-        write(eq)
-        write(ppm[1])
-        write(c)
-        int[4] m = {1,2,3,4}
-        int[3][2] ll
-        ll = {{15,16},{17,18},{19,20}}
-        write(c)
-        write(ll[2][1])
-        int b
-        int[3] n
-        b =10
-        n = {10,14,65}
-        if (b == c)
-          write(1)
-        elseif (b <> c)
-          if (b == c)
-            write(2)
-          elseif (b <> c)
-            write (n[2])
-          else
-            write(4)
+      foreach a in "pashm"
+          if(a == 'h')
+            break
           end
-        else
-            write(5)
-        end
-        write(m[3])
-        write(c)
-        write(b)
+          write(a)
+      end
 
+
+
+                    foreach elem in {1,2,3}
+                      foreach c in {4,5,6,7}
+                          write(c)
+                        end
+                      end
+
+        foreach a in "sadaf"
+        write(a)
+        end
 
     end
 end

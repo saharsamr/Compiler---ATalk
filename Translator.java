@@ -36,11 +36,16 @@ public class Translator {
             scheduler();
             writer.println("main:");
             writer.println("move $fp, $sp");
+<<<<<<< HEAD
             writer.println("addi $t3, $sp, -4000");//avale queue vase actora.
             writer.println("li $a0, 0");////0 ro mirize tu a0 k bezare sare jai k t3 eshare mikone k bege khalie.
             writer.println("sw $a0, 0($t3)");
             writer.println("addi $t4, $t3, 4");//tahe queue e actora.
             writer.println("addi $t2, $sp, -8000");//shurue queue'haye actorha.
+=======
+            writer.println("move $t0, $fp");
+            writer.println("addiu $t0, $t0, -4000");
+>>>>>>> 26ca201ddd28a3faa0771756c9120cad9ec5aa74
             for (int i=0;i<initInstructions.size();i++){
                 writer.println(initInstructions.get(i));
             }
@@ -64,6 +69,7 @@ public class Translator {
         instructions.add("addiu $sp, $sp, -4");
         instructions.add("# end of adding a number to stack");
     }
+
 
     public void addLable(String s){
       instructions.add(s+":");
@@ -363,6 +369,7 @@ public class Translator {
       instructions.add("beqz $a0, " + labelName);
     }
 
+<<<<<<< HEAD
     public void jalToAddToActorScheduler(int actorCounter){
       instructions.add("li $t5, " + actorCounter); //shomareye actor ro mirize tu t5.
       instructions.add("jal addActorToScheduler");
@@ -409,6 +416,82 @@ public class Translator {
       for(int i = 1; i <= numOfActors; i++){
         instructions.add("li $a1, " + i);
         instructions.add("beq $t7, $a1, popingReciever_" + i);
+=======
+    public void initForeachVarToStack(int size){
+        instructions.add("# adding a number to stack");
+        //System.out.println(""+x);
+        instructions.add("li $a0, 0");
+        instructions.add("sw $a0, 0($t0)");
+        instructions.add("addiu $t0, $t0, -4");
+        instructions.add("li $a0, " + (size-1));
+        instructions.add("sw $a0, 0($t0)");
+        instructions.add("addiu $t0, $t0, -4");
+        instructions.add("li $a0, " + 4*(size));
+        instructions.add("sw $a0, 0($t0)");
+        instructions.add("addiu $t0, $t0, -4");
+        instructions.add("# end of adding a number to stack");
+
+    }
+
+    public void getForeachVar(){
+        instructions.add("# getting for var");
+        instructions.add("lw $a0, 12($t0)");//
+        instructions.add("sw $a0, 0($sp)");
+        instructions.add("addiu $sp, $sp, -4");
+        instructions.add("# end of adding a number to stack");
+
+    }
+
+    public void reInitForeachVar(int size){
+      instructions.add("# init foreach variable value");
+      // instructions.add("li $t1, " + (size-1));
+      // instructions.add("li $t2, " + 4*(size));
+      instructions.add("lw $t2, 4($t0)");
+      instructions.add("lw $t1, 8($t0)");
+      instructions.add("add $t2, $t2, $sp");
+      instructions.add("lw $a0, 0($t2)");
+      instructions.add("sw $a0, 12($t0)");
+      instructions.add("# end of init foreach variable value");
+    }
+
+    public void foreachIteration(int foreachNum){
+      instructions.add("# end of foreach checking");
+      instructions.add("lw $t1, 8($t0)");
+      instructions.add("beqz $t1, end_foreach_" + foreachNum);
+      instructions.add("lw $t2, 4($t0)");
+      instructions.add("addiu $t1, $t1, -1");
+      instructions.add("addiu $t2, $t2, -4");
+      instructions.add("sw $t1, 8($t0)");
+      instructions.add("sw $t2, 4($t0)");
+      instructions.add("add $t2, $t2, $sp");
+      instructions.add("lw $a0, 0($t2)");
+      instructions.add("sw $a0, 12($t0)");//set var
+      instructions.add("j foreach_" + foreachNum);
+      instructions.add("# end of end of foreach checking");
+    }
+
+    public void endofForeach(){
+      instructions.add("addiu $t0, $t0, 12");
+    }
+
+    public void makeScheduler(ArrayList <SymbolTableItemActor> actorsList){
+      for (int i = 0; i < actorsList.size(); i++)
+        actorsList.get(i).addInitRecieverToQueue();
+      int index = 0;
+      for(;;){
+        boolean emptyLists = true;
+        for ( index = 0; index <actorsList.size(); index++){
+          SymbolTableItemActor actr = actorsList.get(index);
+          try{
+            String recvrKey = actr.getNextMessage();
+            emptyLists = false;
+            jumpToLable(recvrKey);
+            instructions.add("end_" + recvrKey);
+          }catch(NoSuchElementException  ex){}
+        }
+        if (emptyLists)
+          break;
+>>>>>>> 26ca201ddd28a3faa0771756c9120cad9ec5aa74
       }
     }
 

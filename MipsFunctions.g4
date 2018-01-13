@@ -29,9 +29,12 @@ grammar MipsFunctions;
         if (isRvalue) mips.addToStack(id, var.getOffset()*-1);
         else mips.addAddressToStack(id, var.getOffset()*-1);
     }
-    else {
+    else if(var.getBaseRegister() == Register.GP){
         if (isRvalue) mips.addGlobalToStack(var.getOffset());
         else mips.addGlobalAddressToStack(id, var.getOffset());
+    }
+    else{
+      mips.getForeachVar();
     }
   }
 }
