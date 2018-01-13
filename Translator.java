@@ -39,19 +39,20 @@ public class Translator {
             writer.println("addi $t3, $sp, -4000");//avale queue vase actora.
             writer.println("li $a0, 0");////0 ro mirize tu a0 k bezare sare jai k t3 eshare mikone k bege khalie.
             writer.println("sw $a0, 0($t3)");
-            writer.println("addi $t4, $t3, 0");//tahe queue e actora.
+            writer.println("addi $t4, $t3, 4");//tahe queue e actora.
             writer.println("addi $t2, $sp, -8000");//shurue queue'haye actorha.
             for (int i=0;i<initInstructions.size();i++){
                 writer.println(initInstructions.get(i));
             }
+            writer.println("li $a0, 0");////0 ro mirize tu a0 k bezare sare jai k t3 eshare mikone k bege khalie.
             for(int i = 1; i <= numOfActors; i++)
-                writer.println("lw $a0, " + (i-1)*100 + "($t2)");
+                writer.println("sw $a0, " + (i-1)*100 + "($t2)");
             writer.println("j scheduler");
             for (int i=0;i<instructions.size();i++){
                 writer.println(instructions.get(i));
             }
             writer.println("EndOfProgram:");
-            writer.println("");
+            writer.println("jr $ra");
             writer.close();
         } catch (Exception e) { e.printStackTrace(); }
     }
@@ -62,7 +63,6 @@ public class Translator {
         instructions.add("sw $a0, 0($sp)");
         instructions.add("addiu $sp, $sp, -4");
         instructions.add("# end of adding a number to stack");
-
     }
 
     public void addLable(String s){
@@ -385,7 +385,7 @@ public class Translator {
       instructions.add("li $a1, 4");
       instructions.add("mul $a1, $a1, $a0");
       instructions.add("add $a1, $a1, $t3");//addressi k bayad tush benevisaro hesab mikone.
-      instructions.add("lw $t5, 0($a1)");//shomareye actore ro mirize tu khuneye khalie badie queue.
+      instructions.add("sw $t5, 0($a1)");//shomareye actore ro mirize tu khuneye khalie badie queue.
       instructions.add("jr $ra");
     }
 
